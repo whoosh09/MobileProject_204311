@@ -16,7 +16,11 @@
 import 'package:flutter/material.dart';
 import 'mock_data.dart'; //
 import 'game_screen.dart'; //
+import 'store.dart';
+import 'dictionary.dart';
+import 'profile.dart';
 
+// HomePage (The Container): This is the "Main Frame.
 class HomePage extends StatefulWidget {
   final User currentUser; // Required to track coins and stats
 
@@ -36,9 +40,9 @@ class _HomePageState extends State<HomePage> {
   // We use a getter to pass the currentUser down to the WordleMainBody
   List<Widget> get _pages => [
     WordleMainBody(currentUser: widget.currentUser),
-    const Center(child: Text('Store Page', style: TextStyle(fontSize: 24))),
-    const Center(child: Text('Dictionary Page', style: TextStyle(fontSize: 24))),
-    const Center(child: Text('Profile Page', style: TextStyle(fontSize: 24))),
+    StorePage(currentUser: widget.currentUser),
+    DictionaryPage(currentUser: widget.currentUser),
+    ProfilePage(currentUser: widget.currentUser),
   ];
 
   void _onItemTapped(int index) {
@@ -51,7 +55,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // Added the AppBar back in without breaking the layout
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -79,13 +82,13 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: _pages[_selectedIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
+      bottomNavigationBar: Container( // Bottom Navigation Bar Container
+        decoration: BoxDecoration( //grey border at navbar
           border: Border(
             top: BorderSide(color: Colors.grey.shade200, width: 2),
           ),
         ),
-        child: BottomNavigationBar(
+        child: BottomNavigationBar( // Bottom Navigation Bar
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           elevation: 0,
@@ -107,6 +110,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+//WordleMainBody (The Content)
 class WordleMainBody extends StatelessWidget {
   final User currentUser; // Added to handle statistics
 

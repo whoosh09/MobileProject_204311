@@ -32,14 +32,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-
+  void _refreshState() {
+    setState(() {});
+  }
   void _handleLogout() {
     Navigator.pushReplacementNamed(context, '/login'); //
   }
 
   // We use a getter to pass the currentUser down to the WordleMainBody
   List<Widget> get _pages => [
-    WordleMainBody(currentUser: widget.currentUser),
+    WordleMainBody(currentUser: widget.currentUser, onRefresh: _refreshState),
     StorePage(currentUser: widget.currentUser),
     DictionaryPage(currentUser: widget.currentUser),
     ProfilePage(currentUser: widget.currentUser),
@@ -113,8 +115,9 @@ class _HomePageState extends State<HomePage> {
 //WordleMainBody (The Content)
 class WordleMainBody extends StatelessWidget {
   final User currentUser; // Added to handle statistics
+  final VoidCallback onRefresh;
 
-  const WordleMainBody({super.key, required this.currentUser});
+  const WordleMainBody({super.key, required this.currentUser,required this.onRefresh,});
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +165,7 @@ class WordleMainBody extends StatelessWidget {
                   ),
                 );
                 // Trigger refresh if needed (Parent should handle state)
+                onRefresh();
               },
               child: const Text(
                 "PLAY",

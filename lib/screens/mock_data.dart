@@ -56,7 +56,7 @@ class User {
 class MockDatabase {
   static List<User> users = [
     User(username: 'a', password: 'a', coins: 10, wordsFound: 1, foundWordsList: ['HELLO']),
-    User(username: 'b', password: 'b', coins: 0, wordsFound: 2),
+    User(username: 'b', password: 'b', coins: 0, wordsFound: 0),
     User(username: 'c', password: 'c', coins: 0, wordsFound: 0),
     User(username: 'd', password: 'd', coins: 0, wordsFound: 0),
   ];

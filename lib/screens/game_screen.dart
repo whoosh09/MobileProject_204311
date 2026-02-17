@@ -1,8 +1,24 @@
+/*
+ * File: game_screen.dart
+ * Description: The core gameplay screen for the Wordle-style game.
+ *
+ * Responsibilities:
+ * - Implements game logic (Word guessing, 6 attempts limitation)
+ * - Loads game assets (Target words and Valid dictionary from .txt files)
+ * - Validates user guesses against a dictionary and checks for double-letter logic
+ * - Renders the game grid and interactive keyboard with color feedback
+ * - Updates user rewards (Coins/Stats) and saves data upon winning
+ *
+ *
+ * Author: Detnarin Karinchai
+ * Course: Mobile Application Development Framework
+ */
+ 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // 1. จำเป็นสำหรับการอ่านไฟล์
-import 'dart:math'; // 2. จำเป็นสำหรับการสุ่ม
+import 'package:flutter/services.dart';
+import 'dart:math';
+import 'mock_data.dart'; 
 
-// --- Constants & Enum (เหมือนเดิม) ---
 const Color correctColor = Color(0xFF6AAA64);
 const Color presentColor = Color(0xFFC9B458);
 const Color absentColor = Color(0xFF787C7E);
@@ -14,82 +30,93 @@ const Color filledBorderColor = Color(0xFF878A8C);
 enum LetterStatus { initial, entered, correct, present, absent }
 
 class WordleScreen extends StatefulWidget {
-  const WordleScreen({super.key});
+  final User currentUser; // เพิ่มตัวรับ User
+  const WordleScreen({super.key, required this.currentUser});
 
   @override
   State<WordleScreen> createState() => _WordleScreenState();
 }
 
 class _WordleScreenState extends State<WordleScreen> {
-  // เปลี่ยนจาก final เป็น String ธรรมดา เพราะเราจะเปลี่ยนค่ามัน
   String targetWord = "";
-  bool isLoading = true; // ตัวแปรเช็คสถานะการโหลดไฟล์
+  // เพิ่ม Set สำหรับเก็บคำศัพท์ทั้งหมด เพื่อใช้ตรวจสอบว่ามีคำนี้จริงไหม
+  Set<String> validWordsDict = {}; 
+  bool isLoading = true;
 
   List<String> guesses = List.filled(6, "");
   int currentRow = 0;
   List<List<LetterStatus>> gridStatus = List.generate(
-      6,
-          (_) => List.filled(5, LetterStatus.initial)
-  );
+      6, (_) => List.filled(5, LetterStatus.initial));
 
   Map<String, LetterStatus> keyStatus = {};
 
   @override
   void initState() {
     super.initState();
-    _loadTargetWord(); // เรียกฟังก์ชันโหลดคำเมื่อหน้าจอเริ่มทำงาน
+    _loadGameData();
   }
 
-  // --- ฟังก์ชันใหม่: โหลดคำศัพท์จากไฟล์ ---
-  Future<void> _loadTargetWord() async {
+  // --- โหลดข้อมูลทั้ง 2 ไฟล์พร้อมกัน ---
+  Future<void> _loadGameData() async {
     try {
-      // อ่านไฟล์จาก assets
-      final String response = await rootBundle.loadString('assets/targetwords.txt');
+      // โหลด 2 ไฟล์พร้อมกันเพื่อความเร็ว
+      final results = await Future.wait([
+        rootBundle.loadString('assets/targetwords.txt'),
+        rootBundle.loadString('assets/validwords.txt'),
+      ]);
 
-      // แยกบรรทัดเป็น List
-      List<String> words = response.split('\n');
+      final String targetContent = results[0];
+      final String validContent = results[1];
 
-      // Clean ข้อมูล: ตัดช่องว่าง, เอาเฉพาะคำที่มี 5 ตัวอักษร, ทำเป็นตัวใหญ่หมด
-      List<String> validWords = words
+      // เตรียม List คำตอบ (Target)
+      List<String> targets = targetContent.split('\n')
           .map((w) => w.trim().toUpperCase())
           .where((w) => w.length == 5)
           .toList();
 
-      if (validWords.isNotEmpty) {
-        // สุ่มคำ
-        final random = Random();
-        setState(() {
-          targetWord = validWords[random.nextInt(validWords.length)];
-          isLoading = false; // โหลดเสร็จแล้ว
-          print("Target Word: $targetWord"); // (Optional) แอบดูคำตอบใน Console
-        });
-      } else {
-        // กรณีไฟล์ว่าง หรือไม่มีคำ 5 ตัวอักษร ให้ใช้ค่า Default
-        setState(() {
-          targetWord = "WORLD";
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      // กรณีอ่านไฟล์ไม่ได้
-      print("Error loading file: $e");
+      // อันนี้เตรียม Dictionary (กูใช้ Set จะได้ให้ค้นหาเร็ว O(1))
+      List<String> valids = validContent.split('\n')
+          .map((w) => w.trim().toUpperCase())
+          .where((w) => w.length == 5)
+          .toList();
+
       setState(() {
-        targetWord = "ERROR"; // หรือค่า Default อื่นๆ
+        // เลือกคำตอบ
+        if (targets.isNotEmpty) {
+          targetWord = targets[Random().nextInt(targets.length)];
+        } else {
+          targetWord = "WORLD"; //กันไว้
+        }
+
+        // สร้าง Dictionary (เอาคำตอบมารวมด้วย กันพลาดกรณีคำตอบไม่อยู่ใน dict)
+        validWordsDict = valids.toSet();
+        validWordsDict.addAll(targets); 
+
+        isLoading = false;
+        print("Target: $targetWord"); //ดูคำตอบใน Consoleได้
+      });
+
+    } catch (e) {
+      print("Error loading files: $e");
+      setState(() {
+        targetWord = "ERROR";
         isLoading = false;
       });
     }
   }
 
   void onKeyPressed(String val) {
-    if (currentRow >= 6 || isLoading) return; // เพิ่มเงื่อนไข isLoading
+    if (currentRow >= 6 || isLoading) return;
 
     setState(() {
       if (val == "ENTER") {
         _checkWord();
       } else if (val == "DEL") {
         if (guesses[currentRow].isNotEmpty) {
-          guesses[currentRow] = guesses[currentRow].substring(0, guesses[currentRow].length - 1);
-          gridStatus[currentRow][guesses[currentRow].length] = LetterStatus.initial;
+          guesses[currentRow] =
+              guesses[currentRow].substring(0, guesses[currentRow].length - 1);
+          gridStatus[currentRow][guesses[currentRow].length] =
+              LetterStatus.initial;
         }
       } else {
         if (guesses[currentRow].length < 5) {
@@ -102,53 +129,123 @@ class _WordleScreenState extends State<WordleScreen> {
   }
 
   void _checkWord() {
-    if (guesses[currentRow].length != 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Not enough letters"), duration: Duration(milliseconds: 500)),
-      );
+    String guess = guesses[currentRow];
+    // เช็คความยาวตอนผู้เล่นพิมพ์ไม่ครบแต่กดส่ง
+    if (guess.length != 5) {
+      _showMessage("Not enough letters");
       return;
     }
+    //  เช็คว่ามีคำนี้ใน Dictionary มั้ย
+    if (!validWordsDict.contains(guess)) {
+      _showMessage("Not in word list");
+      // สั่งให้ Grid สั่น (Optional) หรือแค่แจ้งเตือนก็ได้
+      return; 
+    }
 
-    String guess = guesses[currentRow];
+    // --- Logic ตรวจสี ---
+    List<String> targetChars = targetWord.split('');
+    List<LetterStatus> rowStatus = List.filled(5, LetterStatus.absent);
 
+    // รอบที่ 1 สีเขียว (Correct)
     for (int i = 0; i < 5; i++) {
-      String char = guess[i];
-      LetterStatus status;
-
-      if (targetWord[i] == char) {
-        status = LetterStatus.correct;
-      } else if (targetWord.contains(char)) {
-        status = LetterStatus.present;
-      } else {
-        status = LetterStatus.absent;
+      if (guess[i] == targetChars[i]) {
+        rowStatus[i] = LetterStatus.correct;
+        targetChars[i] = '';
       }
+    }
 
-      gridStatus[currentRow][i] = status;
-
-      if (keyStatus[char] != LetterStatus.correct) {
-        if (status == LetterStatus.correct) {
-          keyStatus[char] = LetterStatus.correct;
-        } else if (keyStatus[char] != LetterStatus.present && status == LetterStatus.present) {
-          keyStatus[char] = LetterStatus.present;
-        } else if (keyStatus[char] == null && status == LetterStatus.absent) {
-          keyStatus[char] = LetterStatus.absent;
+    // รอบที่ 2 สีเหลือง (Present)
+    for (int i = 0; i < 5; i++) {
+      if (rowStatus[i] != LetterStatus.correct) {
+        String char = guess[i];
+        int indexInTarget = targetChars.indexOf(char);
+        if (indexInTarget != -1) {
+          rowStatus[i] = LetterStatus.present;
+          targetChars[indexInTarget] = ''; 
         }
       }
     }
 
-    currentRow++;
+    // อัปเดต Grid และ Keyboard
+    setState(() {
+      for (int i = 0; i < 5; i++) {
+        gridStatus[currentRow][i] = rowStatus[i];
+      }
 
-    // (Optional) เช็คชนะ/แพ้ ตรงนี้ได้
+      for (int i = 0; i < 5; i++) {
+        String char = guess[i];
+        LetterStatus currentStatus = rowStatus[i];
+        
+        if (keyStatus[char] != LetterStatus.correct) {
+          if (currentStatus == LetterStatus.correct) {
+            keyStatus[char] = LetterStatus.correct;
+          } else if (keyStatus[char] != LetterStatus.present &&
+              currentStatus == LetterStatus.present) {
+            keyStatus[char] = LetterStatus.present;
+          } else if (keyStatus[char] == null &&
+              currentStatus == LetterStatus.absent) {
+            keyStatus[char] = LetterStatus.absent;
+          }
+        }
+      }
+
+      currentRow++;
+    });
+
+    // เช็คแพ้/ชนะ
     if (guess == targetWord) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("YOU WON! 🎉")));
+      setState(() {
+        widget.currentUser.coins += 10;
+        widget.currentUser.wordsFound += 1;
+        if (!widget.currentUser.foundWordsList.contains(targetWord)) {
+           widget.currentUser.foundWordsList.add(targetWord);
+        }
+      });
+      widget.currentUser.saveData(); 
+      _showEndGameDialog("YOU WON! 🎉\nCorrect word: $targetWord\n(+10 Coins)", true);
     } else if (currentRow == 6) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Game Over! Word was $targetWord")));
+      _showEndGameDialog("Game Over \n\nThe word was $targetWord", false);
     }
+  }
+  
+  void _showMessage(String msg) {
+    ScaffoldMessenger.of(context).clearSnackBars(); // ลบอันเก่าออกก่อนเพื่อให้ขึ้นอันใหม่ทันที
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, textAlign: TextAlign.center),
+        duration: const Duration(milliseconds: 1000),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 50, left: 20, right: 20),
+        backgroundColor: Colors.black87,
+      ),
+    );
+  }
+
+  void _showEndGameDialog(String message, bool won) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(won ? "Nicega!" : "Oh no!", textAlign: TextAlign.center),
+        content: Text(message, textAlign: TextAlign.center),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: correctColor),
+              onPressed: () {
+                Navigator.pop(context); // ปิด Dialog
+                Navigator.pop(context); // กลับหน้า Home (เพื่อเล่นใหม่)
+              },
+              child: const Text("Back to Menu", style: TextStyle(color: Colors.white)),
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // ถ้ากำลังโหลดไฟล์ ให้หมุนติ้วๆ ไปก่อน
     if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator(color: Colors.black)),
@@ -163,15 +260,19 @@ class _WordleScreenState extends State<WordleScreen> {
         ),
         title: const Text(
           "WORDLE",
-          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: Colors.black),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, letterSpacing: 2, color: Colors.black),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: Colors.grey.shade300, height: 1.0),
+        ),
       ),
       body: Column(
         children: [
-          const Divider(height: 1),
           Expanded(
             flex: 2,
             child: Container(
@@ -188,7 +289,6 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 
-  // ... (ส่วน _buildGrid และ _buildKeyboard เหมือนเดิมเป๊ะ ไม่ต้องแก้ครับ) ...
   Widget _buildGrid() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -249,7 +349,8 @@ class _WordleScreenState extends State<WordleScreen> {
       alignment: Alignment.center,
       child: Text(
         char,
-        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textColor),
+        style: TextStyle(
+            fontSize: 28, fontWeight: FontWeight.bold, color: textColor),
       ),
     );
   }
@@ -270,7 +371,6 @@ class _WordleScreenState extends State<WordleScreen> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: row.map((char) {
-
               Color keyColor = defaultKeyColor;
               Color textColor = Colors.black;
 
@@ -279,10 +379,18 @@ class _WordleScreenState extends State<WordleScreen> {
                 if (status != null) {
                   textColor = Colors.white;
                   switch (status) {
-                    case LetterStatus.correct: keyColor = correctColor; break;
-                    case LetterStatus.present: keyColor = presentColor; break;
-                    case LetterStatus.absent: keyColor = keyAbsentColor; break;
-                    default: keyColor = defaultKeyColor; textColor = Colors.black;
+                    case LetterStatus.correct:
+                      keyColor = correctColor;
+                      break;
+                    case LetterStatus.present:
+                      keyColor = presentColor;
+                      break;
+                    case LetterStatus.absent:
+                      keyColor = keyAbsentColor;
+                      break;
+                    default:
+                      keyColor = defaultKeyColor;
+                      textColor = Colors.black;
                   }
                 }
               }
@@ -301,15 +409,16 @@ class _WordleScreenState extends State<WordleScreen> {
                         height: 50,
                         alignment: Alignment.center,
                         child: char == "DEL"
-                            ? Icon(Icons.backspace_outlined, size: 20, color: textColor)
+                            ? Icon(Icons.backspace_outlined,
+                                size: 20, color: textColor)
                             : Text(
-                          char,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: textColor,
-                          ),
-                        ),
+                                char,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: textColor,
+                                ),
+                              ),
                       ),
                     ),
                   ),

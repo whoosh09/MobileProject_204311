@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'screens/login.dart';
-import 'screens/home.dart';
+// import 'screens/home.dart';
 
 class QuackApp extends StatelessWidget {
   const QuackApp({super.key});
@@ -18,7 +18,7 @@ class QuackApp extends StatelessWidget {
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginPage(),
-        '/': (context) => const HomePage(),
+        // '/': (context) => const HomePage(),
       },
     );
   }

@@ -119,20 +119,6 @@ class _LoginPageState extends State<LoginPage> {
                     },
                     child: const Text('CANCEL')),
                 ElevatedButton(
-                    // onPressed: () {
-                    //   if (_usernameController.text.isNotEmpty &&
-                    //       _passwordController.text.isNotEmpty) {
-                    //     // Navigate to home page
-                    //     Navigator.pushReplacementNamed(context, '/');
-                    //   } else {
-                    //     // Show error
-                    //     ScaffoldMessenger.of(context).showSnackBar(
-                    //       const SnackBar(
-                    //           content: Text(
-                    //               'Please fill in username and password')),
-                    //     );
-                    //   }
-                    // },
                     onPressed: _handleLogin, // เรียกฟังก์ชันใหม่
                     child: const Text('NEXT'))
               ],

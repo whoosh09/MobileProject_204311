@@ -18,7 +18,6 @@ class QuackApp extends StatelessWidget {
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginPage(),
-        // '/': (context) => const HomePage(),
       },
     );
   }

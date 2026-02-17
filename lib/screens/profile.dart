@@ -28,7 +28,6 @@ class ProfilePage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStatColumn("Coins", "💰 ${currentUser.coins}"),
               _buildStatColumn("Words", "📖 ${currentUser.wordsFound}"),
             ],
           ),

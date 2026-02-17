@@ -60,7 +60,6 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text("WELCOME, ${widget.currentUser.username.toUpperCase()}"),
         actions: [
           // Coins Display
           Center(

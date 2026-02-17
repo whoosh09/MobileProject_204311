@@ -6,6 +6,7 @@ import 'game_screen.dart';
 import 'store.dart';
 import 'dictionary.dart';
 import 'profile.dart';
+//test
 
 class HomePage extends StatefulWidget {
   final User currentUser;

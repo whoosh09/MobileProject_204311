@@ -13,11 +13,11 @@
  * Author: Detnarin Karinchai
  * Course: Mobile Application Development Framework
  */
- 
+import 'package:translator/translator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
-import 'mock_data.dart'; 
+import 'mock_data.dart';
 
 const Color correctColor = Color(0xFF6AAA64);
 const Color presentColor = Color(0xFFC9B458);
@@ -38,6 +38,7 @@ class WordleScreen extends StatefulWidget {
 }
 
 class _WordleScreenState extends State<WordleScreen> {
+  final translator = GoogleTranslator();
   String targetWord = "";
   // เพิ่ม Set สำหรับเก็บคำศัพท์ทั้งหมด เพื่อใช้ตรวจสอบว่ามีคำนี้จริงไหม
   Set<String> validWordsDict = {}; 
@@ -192,19 +193,28 @@ class _WordleScreenState extends State<WordleScreen> {
       currentRow++;
     });
 
+    var translation = translator.translate(targetWord, to: 'th');
+    // String thaiMeaning = translation.text;
+    String message = "✨ Y O U  W O N ! ✨\n\n"
+        "ศัพท์: $targetWord\n"
+    // "แปล: $thaiMeaning\n\n"
+        "💰 รับรางวัล +10 Coins";
     // เช็คแพ้/ชนะ
+
+
     if (guess == targetWord) {
       setState(() {
         widget.currentUser.coins += 10;
         widget.currentUser.wordsFound += 1;
         if (!widget.currentUser.foundWordsList.contains(targetWord)) {
-           widget.currentUser.foundWordsList.add(targetWord);
+          widget.currentUser.foundWordsList.add(targetWord);
         }
       });
-      widget.currentUser.saveData(); 
-      _showEndGameDialog("YOU WON! 🎉\nCorrect word: $targetWord\n(+10 Coins)", true);
+      widget.currentUser.saveData();
+      _showEndGameDialog(true, targetWord);
+      //_showEndGameDialog(true, targetWord, translation.text);
     } else if (currentRow == 6) {
-      _showEndGameDialog("Game Over \n\nThe word was $targetWord", false);
+      _showEndGameDialog(false, targetWord);
     }
   }
   
@@ -221,20 +231,79 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 
-  void _showEndGameDialog(String message, bool won) {
+  // ปรับแก้ parameter ให้รับคำศัพท์และคำแปล
+  void _showEndGameDialog(bool won, String targetWord) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Text(won ? "Nicega!" : "Oh no!", textAlign: TextAlign.center),
-        content: Text(message, textAlign: TextAlign.center),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Column(
+          children: [
+            // แสดงไอคอนตามผลแพ้/ชนะ
+            Icon(
+              won ? Icons.emoji_events_rounded : Icons.cancel_outlined,
+              color: won ? Colors.amber : Colors.redAccent,
+              size: 60,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              won ? "Nicega! (You Won)" : "Oh no! (Game Over)",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: won ? correctColor : Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        // ส่วนเนื้อหา: จัดคำศัพท์และคำแปลให้สวยงาม
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("The answer was", style: TextStyle(color: Colors.grey)),
+            const SizedBox(height: 5),
+            Text(
+              targetWord.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "test meaning",
+              // meaning, // แสดงคำแปลภาษาไทยตรงนี้
+              style: const TextStyle(fontSize: 18, color: Colors.blueAccent),
+              textAlign: TextAlign.center,
+            ),
+            if (won) ...[ // ถ้าชนะ ให้โชว์เหรียญที่ได้ด้วย
+              const Divider(height: 30),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  "💰 +10 Coins",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
+                ),
+              ),
+            ]
+          ],
+        ),
         actions: [
           Center(
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: correctColor),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: won ? correctColor : Colors.grey,
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+              ),
               onPressed: () {
                 Navigator.pop(context); // ปิด Dialog
-                Navigator.pop(context); // กลับหน้า Home (เพื่อเล่นใหม่)
+                Navigator.pop(context); // กลับหน้า Home
               },
               child: const Text("Back to Menu", style: TextStyle(color: Colors.white)),
             ),
@@ -243,6 +312,7 @@ class _WordleScreenState extends State<WordleScreen> {
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

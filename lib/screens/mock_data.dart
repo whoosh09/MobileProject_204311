@@ -21,6 +21,8 @@ class User {
   int coins;
   int wordsFound;
   List<String> foundWordsList;
+  String currentThemeId;        // <--- เพิ่ม: ธีมที่ใช้อยู่
+  List<String> ownedThemeIds;   // <--- เพิ่ม: รายชื่อธีมที่ซื้อแล้ว
 
   User({
     required this.username,
@@ -28,7 +30,10 @@ class User {
     this.coins = 0,
     this.wordsFound = 0,
     List<String>? foundWordsList,
-  }) : foundWordsList = foundWordsList ?? [];
+    this.currentThemeId = 'classic', // <--- ค่าเริ่มต้น
+    List<String>? ownedThemeIds,     // <--- ค่าเริ่มต้น
+  }) : foundWordsList = foundWordsList ?? [],
+        ownedThemeIds = ownedThemeIds ?? ['classic'];
 
   // --- (Save) ---
   Future<void> saveData() async {
@@ -36,20 +41,38 @@ class User {
     await prefs.setInt('${username}_coins', coins);
     await prefs.setInt('${username}_words_count', wordsFound);
     await prefs.setStringList('${username}_found_list', foundWordsList);
-    print("Saved data for $username: Coins=$coins, Words=$foundWordsList");
+    await prefs.setString('${username}_theme', currentThemeId); // บันทึกธีมปัจจุบัน
+    await prefs.setStringList('${username}_owned_themes', ownedThemeIds); // บันทึกธีมที่ซื้อ
+    print("""
+✨ Saved data for $username:
+💰 Coins: $coins
+🏆 Words Found: $wordsFound
+🎨 Current Theme: $currentThemeId
+🛍️ Owned Themes: $ownedThemeIds
+📝 Word List: $foundWordsList
+    """);
   }
 
   // --- (Load) ---
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     print("🔄 LOADING data for $username...");
-    
+
     // ดึงค่าจากเครื่อง ถ้าไม่มีก็ใช้ค่าเดิม
     coins = prefs.getInt('${username}_coins') ?? coins;
     wordsFound = prefs.getInt('${username}_words_count') ?? wordsFound;
     foundWordsList = prefs.getStringList('${username}_found_list') ?? foundWordsList;
-    
-    print("✨ LOADED result: Coins=$coins, Words=$foundWordsList");
+    currentThemeId = prefs.getString('${username}_theme') ?? 'classic';
+    ownedThemeIds = prefs.getStringList('${username}_owned_themes') ?? ['classic'];
+    // ปริ้นข้อมูลทั้งหมดออกมาดู
+    print("""
+✨ LOADED result for $username:
+💰 Coins: $coins
+🏆 Words Found: $wordsFound
+🎨 Current Theme: $currentThemeId
+🛍️ Owned Themes: $ownedThemeIds
+📝 Word List: $foundWordsList
+    """);
   }
 }
 
@@ -58,7 +81,7 @@ class MockDatabase {
     User(username: 'a', password: 'a', coins: 10, wordsFound: 1, foundWordsList: ['HELLO']),
     User(username: 'b', password: 'b', coins: 0, wordsFound: 0),
     User(username: 'c', password: 'c', coins: 0, wordsFound: 0),
-    User(username: 'd', password: 'd', coins: 0, wordsFound: 0),
+    User(username: 'd', password: 'd', coins: 500, wordsFound: 0),
   ];
 
   static Future<User?> login(String username, String password) async {

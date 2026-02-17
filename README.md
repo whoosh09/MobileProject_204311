@@ -24,10 +24,12 @@ A mobile word-guessing game built with **Flutter**, inspired by the popular game
 ## 🚀 How to Run
 
 1.  **Clone the repository**
-    ```HTTPS bash
+    HTTPS
+    ```bash
     git clone https://github.com/whoosh09/MobileProject_204311.git
     ```
-    ```SSH bash
+    SSH
+    ```bash
     git clone git@github.com:whoosh09/MobileProject_204311.git
     ```
 2.  **Install dependencies**

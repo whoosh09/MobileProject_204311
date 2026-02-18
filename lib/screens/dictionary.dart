@@ -59,14 +59,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
     final foundWords = widget.currentUser.foundWordsList;
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: theme.textColor),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
       backgroundColor: theme.backgroundColor, // สีพื้นหลังตามธีม
       body: Padding(
         padding: const EdgeInsets.all(20.0),

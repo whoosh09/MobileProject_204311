@@ -190,15 +190,20 @@ class _WordleScreenState extends State<WordleScreen> {
     });
 
     if (guess == targetWord) {
+      bool isUnlockedFlashcard = false; // ตัวแปรเช็คการปลดล็อค
       setState(() {
         widget.currentUser.coins += 10;
         widget.currentUser.wordsFound += 1;
         if (!widget.currentUser.foundWordsList.contains(targetWord)) {
           widget.currentUser.foundWordsList.add(targetWord);
         }
+        // เช็คว่าหาคำศัพท์ครบ 15 คำ "พอดี" ในรอบนี้ไหม
+        if (widget.currentUser.wordsFound == 15) {
+          isUnlockedFlashcard = true; // เตรียมแจ้งเตือน
+        }
       });
       widget.currentUser.saveData();
-      _showEndGameDialog(true, targetWord, targetWordTranslation);
+      _showEndGameDialog(true, targetWord, targetWordTranslation, justUnlocked: isUnlockedFlashcard);
 
     } else if (currentRow == 6) {
       _showEndGameDialog(false, targetWord, targetWordTranslation);
@@ -218,7 +223,7 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 
-  void _showEndGameDialog(bool won, String targetWord, String meaning) {
+  void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -276,7 +281,35 @@ class _WordleScreenState extends State<WordleScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
                 ),
               ),
+            ],
+            // --- 🎉 โชว์กล่องฉลอง ปลดล็อค Flashcard ---
+            if (justUnlocked) ...[
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade100,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.purple, width: 2),
+                ),
+                child: const Column(
+                  children: [
+                    Icon(Icons.lock_open_rounded, color: Colors.purple, size: 30),
+                    SizedBox(height: 5),
+                    Text(
+                      "FLASHCARD UNLOCKED!",
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple, fontSize: 16),
+                    ),
+                    Text(
+                      "You found 15 words!",
+                      style: TextStyle(color: Colors.purple, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
             ]
+            // ------------------------------------
           ],
         ),
         actions: [

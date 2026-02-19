@@ -17,7 +17,7 @@ class ProfilePage extends StatelessWidget {
           // Profile Picture Placeholder
           CircleAvatar(
             radius: 50,
-            backgroundColor: theme.correct, // สีพื้นหลังรูปตามธีม (เขียว/ส้ม/นีออน)
+            backgroundColor: theme.correct,
             child: const Icon(Icons.person, size: 50, color: Colors.white),
           ),
           const SizedBox(height: 25),
@@ -26,7 +26,7 @@ class ProfilePage extends StatelessWidget {
             style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: theme.textColor // สีชื่อ User ตามธีม
+                color: theme.textColor
             ),
           ),
           const SizedBox(height: 25),
@@ -49,9 +49,35 @@ class ProfilePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildStatColumn("Coins", "💰 ${currentUser.coins}", theme),
-                Container(width: 1, height: 40, color: theme.textColor.withOpacity(0.2)), // เส้นคั่น
+                Container(width: 1, height: 40, color: theme.textColor.withOpacity(0.2)),
                 _buildStatColumn("Words", "📖 ${currentUser.wordsFound}", theme),
               ],
+            ),
+          ),
+
+          const Spacer(), // ดันปุ่ม Logout ลงไปด้านล่าง
+
+          // ปุ่ม Logout
+          Padding(
+            padding: const EdgeInsets.only(bottom: 40),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent, // สีแดง
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              icon: const Icon(Icons.logout),
+              label: const Text(
+                  "LOGOUT",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5)
+              ),
+              onPressed: () {
+                // สั่ง Logout กลับไปหน้าแรก
+                Navigator.pushReplacementNamed(context, '/login');
+              },
             ),
           ),
         ],
@@ -67,14 +93,14 @@ class ProfilePage extends StatelessWidget {
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: theme.textColor // สีตัวเลข
+                color: theme.textColor
             )
         ),
         const SizedBox(height: 5),
         Text(
             label,
             style: TextStyle(
-                color: theme.textColor.withOpacity(0.6), // สีคำบรรยาย (จางๆ)
+                color: theme.textColor.withOpacity(0.6),
                 fontWeight: FontWeight.w500
             )
         ),

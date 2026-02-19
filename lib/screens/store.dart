@@ -18,14 +18,16 @@ class StorePage extends StatefulWidget {
 
 class _StorePageState extends State<StorePage> {
 
+  // ฟังก์ชันหลักเมื่อกดที่การ์ด
   void _buyOrEquipTheme(GameTheme theme) {
-    bool dataChanged = false;
-
-    // 1. ถ้ามีแล้ว -> ใส่เลย (Equip)
+    // 1. ถ้ามีแล้ว -> ใส่เลย (Equip) ไม่ต้องถาม
     if (widget.currentUser.ownedThemeIds.contains(theme.id)) {
       if (widget.currentUser.currentThemeId != theme.id) {
         widget.currentUser.currentThemeId = theme.id;
-        dataChanged = true;
+        widget.currentUser.saveData(); // บันทึกข้อมูล
+
+        setState(() {}); // รีเฟรชหน้าร้านค้า
+        widget.onShopAction(); // รีเฟรชหน้าหลัก
 
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -37,38 +39,89 @@ class _StorePageState extends State<StorePage> {
         );
       }
     }
-    // 2. ถ้ายังไม่มี -> เช็คเงิน -> ซื้อ (Buy)
+    // 2. ถ้ายังไม่มี -> เด้งหน้าต่าง Confirm ก่อน
     else {
-      if (widget.currentUser.coins >= theme.price) {
-        widget.currentUser.coins -= theme.price;
-        widget.currentUser.ownedThemeIds.add(theme.id);
-        widget.currentUser.currentThemeId = theme.id;
-        dataChanged = true;
-
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("ซื้อสำเร็จ!"),
-            backgroundColor: Colors.green,
-            duration: Duration(milliseconds: 800),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("เงินไม่พอ!"),
-            backgroundColor: Colors.red,
-            duration: Duration(milliseconds: 800),
-          ),
-        );
-      }
+      _showConfirmDialog(theme);
     }
-    if (dataChanged) {
-      widget.currentUser.saveData();
-      setState(() {
-      });
-      widget.onShopAction();
+  }
+
+  // --- 🆕 ฟังก์ชันหน้าต่างยืนยันการซื้อ ---
+  void _showConfirmDialog(GameTheme theme) {
+    final currentAppTheme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: currentAppTheme.backgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.shopping_cart_checkout, color: Colors.amber, size: 28),
+            const SizedBox(width: 10),
+            Text(
+              "Confirm Purchase",
+              style: TextStyle(color: currentAppTheme.textColor, fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+          ],
+        ),
+        content: Text(
+          "Do you want to buy '${theme.name}' for ${theme.price} coins?",
+          style: TextStyle(color: currentAppTheme.textColor.withOpacity(0.8), fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // ปิดหน้าต่าง (ยกเลิก)
+            child: Text("Cancel", style: TextStyle(color: currentAppTheme.textColor.withOpacity(0.5))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: currentAppTheme.correct, // สีปุ่มยืนยันตามธีม
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              Navigator.pop(context); // ปิดหน้าต่างก่อน
+              _processPurchase(theme); // ค่อยไปหักเงิน
+            },
+            child: const Text("Buy", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ฟังก์ชันจัดการระบบหักเงิน (หลังจากกดยืนยันแล้ว)
+  void _processPurchase(GameTheme theme) {
+    if (widget.currentUser.coins >= theme.price) {
+      // หักเงินและเพิ่มเข้าคอลเลกชัน
+      widget.currentUser.coins -= theme.price;
+      widget.currentUser.ownedThemeIds.add(theme.id);
+      widget.currentUser.currentThemeId = theme.id; // ซื้อปุ๊บใส่ปั๊บ
+
+      widget.currentUser.saveData(); // บันทึกข้อมูล
+
+      setState(() {}); // รีเฟรชหน้า Store
+      widget.onShopAction(); // รีเฟรชหน้า Home ทันที
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("ซื้อสำเร็จ! 🎨"),
+          backgroundColor: Colors.green,
+          duration: Duration(milliseconds: 1000),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      // เงินไม่พอ
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("ไม่ดูตังตัวเองก่อนจะซื้อวะน้อง"),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(milliseconds: 1000),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -83,11 +136,11 @@ class _StorePageState extends State<StorePage> {
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
           child: Center(
             child: Text(
-              "COLOR THEMES 🎨",
+              "Color Themes 🎨",
               style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: currentAppTheme.textColor // สีเปลี่ยนตามธีม
+                  color: currentAppTheme.textColor
               ),
             ),
           ),
@@ -98,7 +151,7 @@ class _StorePageState extends State<StorePage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemCount: ThemeDatabase.themes.length,
             itemBuilder: (context, index) {
-              final theme = ThemeDatabase.themes[index]; // ธีมของสินค้าชิ้นนั้น
+              final theme = ThemeDatabase.themes[index];
               final isOwned = widget.currentUser.ownedThemeIds.contains(theme.id);
               final isEquipped = widget.currentUser.currentThemeId == theme.id;
 
@@ -121,7 +174,7 @@ class _StorePageState extends State<StorePage> {
                     padding: const EdgeInsets.all(12.0),
                     child: Row(
                       children: [
-                        // ส่วนที่ 1: สีตัวอย่าง
+                        // สีตัวอย่าง
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -141,7 +194,7 @@ class _StorePageState extends State<StorePage> {
 
                         const SizedBox(width: 16),
 
-                        // ส่วนที่ 2: ชื่อธีม
+                        // ชื่อธีม
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +204,7 @@ class _StorePageState extends State<StorePage> {
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
-                                    color: currentAppTheme.textColor // สีเปลี่ยนตามธีม
+                                    color: currentAppTheme.textColor
                                 ),
                               ),
                               if (isEquipped)
@@ -162,12 +215,12 @@ class _StorePageState extends State<StorePage> {
                           ),
                         ),
 
-                        // ส่วนที่ 3: ปุ่ม/ราคา
+                        // ปุ่ม/ราคา
                         if (isEquipped)
                           const Icon(Icons.check_circle, color: Colors.green, size: 30)
                         else if (isOwned)
                           const Chip(
-                            label: Text("USE"),
+                            label: Text("USE", style: TextStyle(fontWeight: FontWeight.bold)),
                             backgroundColor: Colors.white,
                             side: BorderSide(color: Colors.grey),
                           )

@@ -31,7 +31,11 @@ class _LoginPageState extends State<LoginPage> {
     User? user = await MockDatabase.login(_usernameController.text, _passwordController.text);
     if (user != null) {
       if (!mounted) return;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(currentUser: user)));
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage(currentUser: user)),
+        (Route<dynamic> route) => false,
+      );
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid credentials!'), backgroundColor: Colors.red));

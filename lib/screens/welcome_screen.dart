@@ -1,7 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'login.dart';
-
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -46,10 +44,7 @@ class WelcomeScreen extends StatelessWidget {
                     elevation: 4, // Gives it that "thick" button look
                   ),
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    );
+                    Navigator.pushNamed(context, '/login');
                   },
                   child: const Text('GET STARTED', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 ),
@@ -57,7 +52,7 @@ class WelcomeScreen extends StatelessWidget {
               const SizedBox(height: 12),
               // ALREADY HAVE ACCOUNT
               TextButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage())),
+                onPressed: () => Navigator.pushNamed(context, '/login'),
                 child: const Text('I ALREADY HAVE AN ACCOUNT', style: TextStyle(color: Color(0xFF1CB0F6), fontWeight: FontWeight.bold)),
               ),
             ],

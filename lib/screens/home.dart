@@ -1,28 +1,14 @@
-/*
- * File: home.dart
- * Description: The main dashboard screen displayed after successful login.
- *
- * Responsibilities:
- * - Displays current user information (Name, Coins, wordsFound)
- * - Provides navigation to the Game Screen
- * - Handles user logout functionality (clearing session and navigation)
- * - Refreshes user data when returning from gameplay
- *
- *
- * Author: Detnarin Karinchai
- * Course: Mobile Application Development Framework
- */
-
 import 'package:flutter/material.dart';
-import 'mock_data.dart'; //
-import 'game_screen.dart'; //
+import 'package:flutter/services.dart';
+import 'mock_data.dart';
+import 'theme_data.dart';
+import 'game_screen.dart';
 import 'store.dart';
 import 'dictionary.dart';
 import 'profile.dart';
 
-// HomePage (The Container): This is the "Main Frame.
 class HomePage extends StatefulWidget {
-  final User currentUser; // Required to track coins and stats
+  final User currentUser;
 
   const HomePage({super.key, required this.currentUser});
 
@@ -32,17 +18,25 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+
   void _refreshState() {
-    setState(() {});
-  }
-  void _handleLogout() {
-    Navigator.pushReplacementNamed(context, '/login'); //
+    setState(() {
+    });
   }
 
-  // We use a getter to pass the currentUser down to the WordleMainBody
+  void _handleLogout() {
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
   List<Widget> get _pages => [
-    WordleMainBody(currentUser: widget.currentUser, onRefresh: _refreshState),
-    StorePage(currentUser: widget.currentUser),
+    WordleMainBody(
+      currentUser: widget.currentUser,
+      onRefresh: _refreshState,
+    ),
+    StorePage(
+      currentUser: widget.currentUser,
+      onShopAction: _refreshState,
+    ),
     DictionaryPage(currentUser: widget.currentUser),
     ProfilePage(currentUser: widget.currentUser),
   ];
@@ -55,55 +49,73 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        ),
+        backgroundColor: theme.backgroundColor,
         elevation: 0,
         actions: [
-          // Coins Display
           Center(
-              child: Text(
-                "💰 ${widget.currentUser.coins}", //
-                  style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold
-                  ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: theme.correct.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
               ),
+              child: Text(
+                "💰 ${widget.currentUser.coins}",
+                style: TextStyle(
+                    color: theme.textColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: 10),
-
-          // Logout Button
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            icon: const Icon(Icons.logout),
+            color: Colors.redAccent,
             onPressed: _handleLogout,
           ),
           const SizedBox(width: 10),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: theme.textColor.withOpacity(0.1), height: 1.0),
+        ),
       ),
+
       body: _pages[_selectedIndex],
-      bottomNavigationBar: Container( // Bottom Navigation Bar Container
-        decoration: BoxDecoration( //grey border at navbar
+
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(color: Colors.grey.shade200, width: 2),
+            top: BorderSide(color: theme.textColor.withOpacity(0.1), width: 1),
           ),
         ),
-        child: BottomNavigationBar( // Bottom Navigation Bar
+        child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
+          backgroundColor: theme.backgroundColor,
           elevation: 0,
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
-          selectedItemColor: const Color(0xFF58CC02), // Duolingo Green
-          unselectedItemColor: Colors.grey.shade400,
+          selectedItemColor: theme.correct,
+          unselectedItemColor: theme.textColor.withOpacity(0.4),
           showSelectedLabels: false,
           showUnselectedLabels: false,
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_rounded, size: 32), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded, size: 32), label: 'Store'),
-            BottomNavigationBarItem(icon: Icon(Icons.menu_book_rounded, size: 32), label: 'Dictionary'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_rounded, size: 32), label: 'Profile'),
+            BottomNavigationBarItem(icon: Icon(Icons.home_rounded, size: 30), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded, size: 30), label: 'Store'),
+            BottomNavigationBarItem(icon: Icon(Icons.menu_book_rounded, size: 30), label: 'Dictionary'),
+            BottomNavigationBarItem(icon: Icon(Icons.person_rounded, size: 30), label: 'Profile'),
           ],
         ),
       ),
@@ -111,64 +123,66 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-//WordleMainBody (The Content)
 class WordleMainBody extends StatelessWidget {
-  final User currentUser; // Added to handle statistics
+  final User currentUser;
   final VoidCallback onRefresh;
 
-  const WordleMainBody({super.key, required this.currentUser,required this.onRefresh,});
+  const WordleMainBody({
+    super.key,
+    required this.currentUser,
+    required this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = ThemeDatabase.getTheme(currentUser.currentThemeId);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.grid_on_rounded, size: 80, color: Color(0xFF58CC02)),
+          Icon(Icons.grid_on_rounded, size: 80, color: theme.correct),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             "WORDLE",
             style: TextStyle(
               fontSize: 48,
               fontWeight: FontWeight.bold,
               letterSpacing: 4,
-              color: Colors.black,
+              color: theme.textColor,
             ),
           ),
           const SizedBox(height: 10),
           Text(
-            "Words Found: ${currentUser.wordsFound}", // Statistics
-            style: const TextStyle(color: Colors.grey, fontSize: 16),
+            "Words Found: ${currentUser.wordsFound}",
+            style: TextStyle(color: theme.textColor.withOpacity(0.6), fontSize: 16),
           ),
           const SizedBox(height: 50),
 
-          // The Play Button with Duolingo-style rounded corners
           SizedBox(
             width: 250,
-            height: 50,
+            height: 60,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF58CC02),
+                backgroundColor: theme.correct,
                 foregroundColor: Colors.white,
-                elevation: 0,
+                elevation: 5,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                 ),
               ),
               onPressed: () async {
-                // Navigate and wait for refresh
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => WordleScreen(currentUser: currentUser),
                   ),
                 );
-                // Trigger refresh if needed (Parent should handle state)
                 onRefresh();
               },
               child: const Text(
                 "PLAY",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2),
               ),
             ),
           ),

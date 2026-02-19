@@ -11,7 +11,7 @@
  * Author: Phutawan Fongchan
  * Course: Mobile Application Development Framework
  */
- 
+
 import 'package:flutter/material.dart';
 import 'mock_data.dart';
 import 'home.dart';
@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
     if (user != null) {
       //login successful
       if (!mounted) return;
-      
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomePage(currentUser: user)),
@@ -75,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
                 const Text(
                   'ใช้Mock User นี้',
                   style: TextStyle(
-                    color: Colors.red, 
+                    color: Colors.red,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

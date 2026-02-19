@@ -28,103 +28,63 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
 
   void _handleLogin() async {
-    String username = _usernameController.text;
-    String password = _passwordController.text;
-
-    // เรียกใช้ MockDatabase เพื่อตรวจสอบ
-    User? user = await MockDatabase.login(username, password);
-
+    User? user = await MockDatabase.login(_usernameController.text, _passwordController.text);
     if (user != null) {
-      //login successful
       if (!mounted) return;
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage(currentUser: user)),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(currentUser: user)));
     } else {
-      //login failed
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid username or password!'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid credentials!'), backgroundColor: Colors.red));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(backgroundColor: Colors.white, elevation: 0, iconTheme: const IconThemeData(color: Colors.grey)),
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          children: <Widget>[
-            const SizedBox(height: 80.0),
-            Column(
-              children: <Widget>[
-                Image.asset(
-                  'assets/logo.png',
-                  height: 150,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 16.0),
-                const Text('Quackle'),
-                const SizedBox(height: 16.0),
-                const Text(
-                  'ใช้Mock User นี้',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Login', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black87)),
+              const SizedBox(height: 30),
+              _buildTextField(_usernameController, 'Username'),
+              const SizedBox(height: 16),
+              _buildTextField(_passwordController, 'Password', obscure: true),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF58CC02),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
+                  onPressed: _handleLogin,
+                  child: const Text('LOG IN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
                 ),
-                const SizedBox(height: 4.0),
-                const Text(
-                  'username/password',
-                  style: TextStyle(
-                    color: Colors.red,
-                  ),
-                ),
-                const SizedBox(height: 4.0),
-                const Text(
-                  'a/a  b/b  c/c  d/d',
-                  style: TextStyle(
-                    color: Colors.red,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 90.0),
-            TextField(
-              controller: _usernameController,
-              decoration:
-              const InputDecoration(filled: true, labelText: 'Username'),
-            ),
-            const SizedBox(height: 12.0),
-            TextField(
-              controller: _passwordController,
-              decoration:
-              const InputDecoration(filled: true, labelText: 'Password'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16.0),
-            OverflowBar(
-              alignment: MainAxisAlignment.end,
-              children: <Widget>[
-                TextButton(
-                    onPressed: () {
-                      _usernameController.clear();
-                      _passwordController.clear();
-                    },
-                    child: const Text('CANCEL')),
-                ElevatedButton(
-                    onPressed: _handleLogin, // เรียกฟังก์ชันใหม่
-                    child: const Text('NEXT'))
-              ],
-            )
-          ],
+              ),
+              const SizedBox(height: 20),
+              const Center(child: Text('Demo Account: a/a, b/b, d/d', style: TextStyle(color: Colors.redAccent))),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, {bool obscure = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: const Color(0xFFF7F7F7),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE5E5E5))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE5E5E5))),
       ),
     );
   }

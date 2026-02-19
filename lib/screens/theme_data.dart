@@ -35,7 +35,7 @@ class ThemeDatabase {
       id: 'classic',
       name: 'Classic Green',
       price: 0,
-      correct: const Color(0xFF6AAA64),
+      correct: const Color(0xFF58CC02),
       present: const Color(0xFFC9B458),
       absent: const Color(0xFF787C7E),
       // UI Colors

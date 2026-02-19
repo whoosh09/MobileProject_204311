@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
-      appBar: AppBar(
+      appBar: AppBar( //App bar
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,

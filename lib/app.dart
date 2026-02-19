@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'screens/login.dart';
-// import 'screens/home.dart';
+import 'screens/splash_screen.dart';
+import 'screens/welcome_screen.dart';
 
 class QuackApp extends StatelessWidget {
   const QuackApp({super.key});
@@ -14,9 +14,10 @@ class QuackApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
       ),
-      // Start at Login
-      initialRoute: '/login',
+      initialRoute: '/splash',
       routes: {
+        '/splash': (context) => const SplashScreen(),
+        '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginPage(),
       },
     );

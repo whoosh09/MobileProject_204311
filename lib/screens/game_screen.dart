@@ -4,12 +4,12 @@
  * Updated: FIXED Compilation Errors (appBarColor, Arguments, Constants)
  */
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
 import 'mock_data.dart';
 import 'theme_data.dart';
-import 'package:translator/translator.dart';
 
 const Color defaultLightKeyColor = Color(0xFFD3D6DA);
 const Color defaultDarkKeyColor = Color(0xFF4F4F4F);
@@ -26,10 +26,11 @@ class WordleScreen extends StatefulWidget {
 }
 
 class _WordleScreenState extends State<WordleScreen> {
-  final translator = GoogleTranslator();
   late GameTheme currentTheme;
 
   String targetWord = "";
+  String targetWordTranslation = "";
+  Map<String, String> targetWords = {};
   Set<String> validWordsDict = {};
   bool isLoading = true;
 
@@ -50,17 +51,19 @@ class _WordleScreenState extends State<WordleScreen> {
   Future<void> _loadGameData() async {
     try {
       final results = await Future.wait([
-        rootBundle.loadString('assets/targetwords.txt'),
+        rootBundle.loadString('assets/targetwords.json'),
         rootBundle.loadString('assets/validwords.txt'),
       ]);
 
       final String targetContent = results[0];
       final String validContent = results[1];
 
-      List<String> targets = targetContent.split('\n')
-          .map((w) => w.trim().toUpperCase())
-          .where((w) => w.length == 5)
-          .toList();
+      final Map<String, dynamic> targetsJson = json.decode(targetContent);
+      final List<String> targets = targetsJson.keys.map((w) => w.trim().toUpperCase()).where((w) => w.length == 5).toList();
+      targetsJson.forEach((key, value) {
+        targetWords[key.toUpperCase()] = value['th'];
+      });
+
 
       List<String> valids = validContent.split('\n')
           .map((w) => w.trim().toUpperCase())
@@ -70,13 +73,15 @@ class _WordleScreenState extends State<WordleScreen> {
       setState(() {
         if (targets.isNotEmpty) {
           targetWord = targets[Random().nextInt(targets.length)];
+          targetWordTranslation = targetWords[targetWord] ?? "";
         } else {
           targetWord = "WORLD";
+          targetWordTranslation = "โลก";
         }
         validWordsDict = valids.toSet();
         validWordsDict.addAll(targets);
         isLoading = false;
-        print("Target: $targetWord");
+        print("Target: $targetWord ($targetWordTranslation)");
       });
     } catch (e) {
       print("Error loading files: $e");
@@ -183,7 +188,7 @@ class _WordleScreenState extends State<WordleScreen> {
       }
       isAnimating = false;
     });
-    var translation = await translator.translate(targetWord, to: 'th');
+
     if (guess == targetWord) {
       setState(() {
         widget.currentUser.coins += 10;
@@ -193,10 +198,10 @@ class _WordleScreenState extends State<WordleScreen> {
         }
       });
       widget.currentUser.saveData();
-      _showEndGameDialog(true, targetWord, translation.text);
+      _showEndGameDialog(true, targetWord, targetWordTranslation);
 
     } else if (currentRow == 6) {
-      _showEndGameDialog(false, targetWord, translation.text);
+      _showEndGameDialog(false, targetWord, targetWordTranslation);
     }
   }
 

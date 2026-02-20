@@ -40,7 +40,11 @@ class _HomePageState extends State<HomePage> {
     ),
     DictionaryPage(currentUser: widget.currentUser),
     FlashcardPage(currentUser: widget.currentUser),
-    ProfilePage(currentUser: widget.currentUser),
+    // 🆕 แก้บรรทัด Profile ให้มี onProfileUpdate ด้วยครับ
+    ProfilePage(
+      currentUser: widget.currentUser,
+      onProfileUpdate: _refreshState, // สั่งให้รีเฟรชหน้า Home เมื่ออัปเดต Profile
+    ),
   ];
 
   void _onItemTapped(int index) {

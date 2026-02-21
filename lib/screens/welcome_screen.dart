@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import '../components/custom_3d_buttton.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -33,21 +34,13 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const Spacer(),
               // GET STARTED BUTTON
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF58CC02),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 4, // Gives it that "thick" button look
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/login');
-                  },
-                  child: const Text('GET STARTED', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                ),
+              Custom3DButton(
+                text: 'GET STARTED',
+                onPressed: () {
+                  Navigator.pushNamed(context, '/login');
+                },
+                backgroundColor: const Color(0xFF58CC02),
+                shadowColor: const Color(0xFF48A901), // A darker green
               ),
               const SizedBox(height: 12),
               // ALREADY HAVE ACCOUNT
@@ -62,3 +55,4 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 }
+

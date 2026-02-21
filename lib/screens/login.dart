@@ -13,6 +13,7 @@
  */
 
 import 'package:flutter/material.dart';
+import '../components/custom_3d_buttton.dart';
 import 'mock_data.dart';
 import 'home.dart';
 
@@ -34,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => HomePage(currentUser: user)),
-        (Route<dynamic> route) => false,
+            (Route<dynamic> route) => false,
       );
     } else {
       if (!mounted) return;
@@ -58,17 +59,11 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 16),
               _buildTextField(_passwordController, 'Password', obscure: true),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF58CC02),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  onPressed: _handleLogin,
-                  child: const Text('LOG IN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
-                ),
+              Custom3DButton(
+                text: 'LOG IN',
+                onPressed: _handleLogin,
+                backgroundColor: const Color(0xFF58CC02),
+                shadowColor: const Color(0xFF48A901),
               ),
               const SizedBox(height: 20),
               const Center(child: Text('Demo Account: a/a, b/b, d/d', style: TextStyle(color: Colors.redAccent))),

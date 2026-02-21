@@ -197,6 +197,7 @@ class _WordleScreenState extends State<WordleScreen> {
         if (!widget.currentUser.foundWordsList.contains(targetWord)) {
           widget.currentUser.foundWordsList.add(targetWord);
         }
+        widget.currentUser.guessDistribution[currentRow - 1]++; // บันทึกว่าทายถูกในแถวที่เท่าไหร่
         // เช็คว่าหาคำศัพท์ครบ 15 คำ "พอดี" ในรอบนี้ไหม
         if (widget.currentUser.wordsFound == 15) {
           isUnlockedFlashcard = true; // เตรียมแจ้งเตือน
@@ -206,6 +207,13 @@ class _WordleScreenState extends State<WordleScreen> {
       _showEndGameDialog(true, targetWord, targetWordTranslation, justUnlocked: isUnlockedFlashcard);
 
     } else if (currentRow == 6) {
+      // --- แพ้ ---
+      setState(() {
+        // 🆕 อัปเดตสถิติการเล่น (Lose)
+        widget.currentUser.gamesPlayed++;
+        widget.currentUser.currentStreak = 0; // สตรีคขาด!
+      });
+      widget.currentUser.saveData();
       _showEndGameDialog(false, targetWord, targetWordTranslation);
     }
   }

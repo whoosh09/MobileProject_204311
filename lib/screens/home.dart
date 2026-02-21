@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: theme.correct.withOpacity(0.2),
+                color: theme.correct.withAlpha((255 * 0.2).round()),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: theme.textColor.withOpacity(0.1), height: 1.0),
+          child: Container(color: theme.textColor.withAlpha((255 * 0.1).round()), height: 1.0),
         ),
       ),
 
@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(color: theme.textColor.withOpacity(0.1), width: 1),
+            top: BorderSide(color: theme.textColor.withAlpha((255 * 0.1).round()), width: 1),
           ),
         ),
         child: BottomNavigationBar(
@@ -104,14 +104,14 @@ class _HomePageState extends State<HomePage> {
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           selectedItemColor: theme.correct,
-          unselectedItemColor: theme.textColor.withOpacity(0.4),
+          unselectedItemColor: theme.textColor.withAlpha((255 * 0.4).round()),
           showSelectedLabels: false,
           showUnselectedLabels: false,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home_rounded, size: 30), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded, size: 30), label: 'Store'),
             BottomNavigationBarItem(icon: Icon(Icons.menu_book_rounded, size: 30), label: 'Dictionary'),
             BottomNavigationBarItem(icon: Icon(Icons.style_rounded, size: 30), label: 'Flashcard'),
+            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded, size: 30), label: 'Store'),
             BottomNavigationBarItem(icon: Icon(Icons.person_rounded, size: 30), label: 'Profile'),
           ],
         ),
@@ -152,7 +152,7 @@ class WordleMainBody extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             "Words Found: ${currentUser.wordsFound}",
-            style: TextStyle(color: theme.textColor.withOpacity(0.6), fontSize: 16),
+            style: TextStyle(color: theme.textColor.withAlpha((255 * 0.6).round()), fontSize: 16),
           ),
           const SizedBox(height: 50),
 

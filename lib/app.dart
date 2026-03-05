@@ -13,6 +13,7 @@ class QuackApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
+        fontFamily: 'DINNextRounded',
       ),
       initialRoute: '/splash',
       routes: {

@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'dart:math';
 import 'mock_data.dart';
 import 'theme_data.dart';
+import '../components/custom_keyboard_key.dart';
 
 const Color defaultLightKeyColor = Color(0xFFD3D6DA);
 const Color defaultDarkKeyColor = Color(0xFF4F4F4F);
@@ -488,34 +489,13 @@ class _WordleScreenState extends State<WordleScreen> {
                 }
               }
 
-              return Expanded(
+              // Calling your new component here!
+              return Custom3DKey(
+                char: char,
+                keyColor: keyColor,
+                textColor: textColor,
                 flex: (char == "ENTER" || char == "DEL") ? 2 : 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: Material(
-                    color: keyColor,
-                    borderRadius: BorderRadius.circular(4),
-                    child: InkWell(
-                      onTap: () => onKeyPressed(char),
-                      borderRadius: BorderRadius.circular(4),
-                      child: Container(
-                        height: 50,
-                        alignment: Alignment.center,
-                        child: char == "DEL"
-                            ? Icon(Icons.backspace_outlined,
-                            size: 20, color: textColor)
-                            : Text(
-                          char,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: textColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                onTap: () => onKeyPressed(char),
               );
             }).toList(),
           );

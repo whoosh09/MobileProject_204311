@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'mock_data.dart';
-import 'theme_data.dart';
+import '../models/mock_data.dart';
+import '../services/audio_helper.dart';
+import '../theme/theme_data.dart';
 
 class ProfilePage extends StatefulWidget {
   final User currentUser;
@@ -183,25 +184,55 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
                 const SizedBox(height: 12),
 
-                // Logout
+// Vibration toggle (เพิ่มใหม่)
                 GestureDetector(
-                  onTap: () => Navigator.pushReplacementNamed(context, '/login'),
-                  child: Container(
+                  onTap: () {
+                    setState(() => widget.currentUser.isVibrationEnabled = !widget.currentUser.isVibrationEnabled);
+                    setModalState(() {});
+                    widget.currentUser.saveData();
+                    AppFeedback.triggerHaptic(widget.currentUser); // สั่นทดสอบตอนกดเปิด/ปิด
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                     decoration: BoxDecoration(
-                      color: Colors.redAccent.withOpacity(0.07),
+                      color: widget.currentUser.isVibrationEnabled
+                          ? theme.correct.withOpacity(0.12)
+                          : theme.textColor.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.redAccent.withOpacity(0.25)),
+                      border: Border.all(
+                        color: widget.currentUser.isVibrationEnabled
+                            ? theme.correct.withOpacity(0.4)
+                            : theme.textColor.withOpacity(0.12),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 22),
+                        Icon(
+                          Icons.vibration_rounded,
+                          color: widget.currentUser.isVibrationEnabled ? theme.correct : theme.textColor.withOpacity(0.4),
+                          size: 22,
+                        ),
                         const SizedBox(width: 14),
-                        Text("Logout",
-                            style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: theme.textColor)),
+                        Expanded(
+                          child: Text("Vibration Feedback",
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: theme.textColor)),
+                        ),
+                        // Toggle pill
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          width: 48, height: 26,
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: widget.currentUser.isVibrationEnabled ? theme.correct : theme.textColor.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                          child: AnimatedAlign(
+                            duration: const Duration(milliseconds: 250),
+                            alignment: widget.currentUser.isVibrationEnabled ? Alignment.centerRight : Alignment.centerLeft,
+                            child: Container(width: 20, height: 20, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                          ),
+                        ),
                       ],
                     ),
                   ),

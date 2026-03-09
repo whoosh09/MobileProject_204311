@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:math';
-import 'mock_data.dart';
-import 'theme_data.dart';
+import '../models/mock_data.dart';
+import '../services/audio_helper.dart';
+import '../theme/theme_data.dart';
 
 class FlashcardPage extends StatefulWidget {
   final User currentUser;
@@ -62,16 +63,19 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
 
   void _flipCard() {
     if (_controller.isAnimating) return;
-    if (isFront) {
-      _controller.forward();
-    } else {
-      _controller.reverse();
-    }
+
+    // ✨ เสียงและสั่นตอนพลิกการ์ด
+    AppFeedback.playFlip(widget.currentUser);
+    AppFeedback.triggerHaptic(widget.currentUser);
+
+    if (isFront) _controller.forward();
+    else _controller.reverse();
     isFront = !isFront;
   }
 
   void _nextCard() {
     if (currentIndex < unlockedWords.length - 1) {
+      AppFeedback.playClick(widget.currentUser); // ✨ เสียงตอนเปลี่ยนใบ
       setState(() {
         currentIndex++;
         _resetCard();
@@ -80,10 +84,11 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
   }
 
   void _prevCard() {
-    if (currentIndex > 0) {
-      setState(() {
-        currentIndex--;
-        _resetCard();
+        if (currentIndex > 0) {
+          AppFeedback.playClick(widget.currentUser); // ✨ เสียงตอนย้อนกลับ
+          setState(() {
+            currentIndex--;
+            _resetCard();
       });
     }
   }

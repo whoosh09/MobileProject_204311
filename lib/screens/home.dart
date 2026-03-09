@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../components/custom_3d_buttton.dart';
-import 'mock_data.dart';
-import 'theme_data.dart';
+import '../models/mock_data.dart';
+import '../theme/theme_data.dart';
 import 'game_screen.dart';
 import 'store.dart';
 import 'dictionary.dart';
 import 'profile.dart';
 import 'flashcard.dart';
+import '../services/audio_helper.dart';
 
 class HomePage extends StatefulWidget {
   final User currentUser;
@@ -69,43 +70,45 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: theme.backgroundColor,
         elevation: 0,
         actions: [
-          // ── Coin badge (always visible) ───────────────────────────────
+          // ── Coin badge (เพิ่ม GestureDetector เพื่อให้มีเสียง) ───────────────────────────────
           Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFB700), Color(0xFFFF8C00)],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.amber.withAlpha(89),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+            child: GestureDetector(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFB700), Color(0xFFFF8C00)],
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text("💰", style: TextStyle(fontSize: 14)),
-                  const SizedBox(width: 4),
-                  Text(
-                    "${widget.currentUser.coins}",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'monospace',
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.amber.withAlpha(89),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text("💰", style: TextStyle(fontSize: 14)),
+                    const SizedBox(width: 4),
+                    Text(
+                      "${widget.currentUser.coins}",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
 
-          // ── Settings button (only on Profile tab) ─────────────────────
+          // ── Settings button (เพิ่มเสียงและสั่น) ─────────────────────
           if (_onProfileTab)
             Padding(
               padding: const EdgeInsets.only(left: 6),
@@ -117,6 +120,10 @@ class _HomePageState extends State<HomePage> {
                 ),
                 tooltip: "Settings",
                 onPressed: () {
+                  // ✨ เพิ่มเสียงและสั่นก่อนเปิด Settings
+                  AppFeedback.playClick(widget.currentUser);
+                  AppFeedback.triggerHaptic(widget.currentUser);
+
                   // Reach into ProfilePage and open the settings bottom sheet
                   _profileKey.currentState?.showSettings(theme);
                 },
@@ -148,7 +155,11 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: theme.backgroundColor,
           elevation: 0,
           currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
+          onTap: (index) {
+            AppFeedback.playClick(widget.currentUser);   // เสียงคลิก
+            AppFeedback.triggerHaptic(widget.currentUser); // สั่น
+            _onItemTapped(index);                        // เปลี่ยนหน้า (ฟังก์ชันเดิม)
+          },
           selectedItemColor: theme.correct,
           unselectedItemColor: theme.textColor.withAlpha(102),
           showSelectedLabels: false,
@@ -166,6 +177,7 @@ class _HomePageState extends State<HomePage> {
                 label: 'Store'),
             BottomNavigationBarItem(
                 icon: Icon(Icons.person_rounded, size: 30), label: 'Profile'),
+
           ],
         ),
       ),
@@ -213,10 +225,17 @@ class WordleMainBody extends StatelessWidget {
                 color: theme.textColor.withAlpha(153), fontSize: 16),
           ),
           const SizedBox(height: 50),
+
+          // --- ปุ่ม PLAY ที่แก้ไขแล้ว ---
           Custom3DButton(
             width: 260.0,
             text: 'PLAY',
             onPressed: () async {
+              // ✨ 1. เล่นเสียงและสั่นทันทีที่กด
+              AppFeedback.playStartGame(currentUser);
+              AppFeedback.triggerHaptic(currentUser);
+
+              // 2. เข้าหน้าเกม
               await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -224,6 +243,8 @@ class WordleMainBody extends StatelessWidget {
                       WordleScreen(currentUser: currentUser),
                 ),
               );
+
+              // 3. รีเฟรชหน้า Home เมื่อกลับมาจากเกม (เช่น อัปเดตจำนวนคำที่เจอ)
               onRefresh();
             },
             backgroundColor: theme.correct,

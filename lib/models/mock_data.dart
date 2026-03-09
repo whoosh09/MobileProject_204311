@@ -62,7 +62,7 @@ class User {
     await prefs.setInt('${username}_maxStreak', maxStreak);
     await prefs.setString('${username}_guessDist', guessDistribution.join(','));
     await prefs.setBool('${username}_isSound', isSoundEnabled);
-    await prefs.setBool('${username}_isSound', isVibrationEnabled);
+    await prefs.setBool('${username}_isVibrate', isVibrationEnabled);
     await prefs.setString('${username}_avatar', avatarEmoji);
     await prefs.setStringList('${username}_owned_avatars', ownedAvatars); // 🆕
 
@@ -97,7 +97,8 @@ class User {
       guessDistribution = distStr.split(',').map((e) => int.parse(e)).toList();
     }
 
-    isSoundEnabled = prefs.getBool('${username}_isSound') ?? isSoundEnabled;
+    isSoundEnabled = prefs.getBool('${username}_isSound') ?? true;
+    isVibrationEnabled = prefs.getBool('${username}_isVibrate') ?? true;
     avatarEmoji = prefs.getString('${username}_avatar') ?? avatarEmoji;
 
     // 🆕 Load owned avatars; always ensure free avatars are included

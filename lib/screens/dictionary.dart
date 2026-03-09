@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'mock_data.dart';
-import 'theme_data.dart';
+import '../models/mock_data.dart';
+import '../theme/theme_data.dart';
 
 class DictionaryPage extends StatefulWidget {
   final User currentUser;

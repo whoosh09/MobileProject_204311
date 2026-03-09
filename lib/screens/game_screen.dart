@@ -8,8 +8,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
-import 'mock_data.dart';
-import 'theme_data.dart';
+import '../models/mock_data.dart';
+import '../services/audio_helper.dart';
+import '../theme/theme_data.dart';
 import '../components/custom_keyboard_key.dart';
 
 const Color defaultLightKeyColor = Color(0xFFD3D6DA);
@@ -116,8 +117,10 @@ class _WordleScreenState extends State<WordleScreen> {
 
     setState(() {
       if (val == "ENTER") {
+        AppFeedback.playKeyboardTap(widget.currentUser);
         _checkWord();
       } else if (val == "DEL") {
+        AppFeedback.playKeyboardTap(widget.currentUser);
         if (guesses[currentRow].isNotEmpty) {
           guesses[currentRow] =
               guesses[currentRow].substring(0, guesses[currentRow].length - 1);
@@ -126,6 +129,9 @@ class _WordleScreenState extends State<WordleScreen> {
         }
       } else {
         if (guesses[currentRow].length < 5) {
+          // ✨ เสียงและสั่นตอนพิมพ์ตัวอักษรลงตาราง
+          AppFeedback.playKeyboardTap(widget.currentUser);
+
           int currentIndex = guesses[currentRow].length;
           guesses[currentRow] += val;
           gridStatus[currentRow][currentIndex] = LetterStatus.entered;
@@ -209,6 +215,7 @@ class _WordleScreenState extends State<WordleScreen> {
     });
 
     if (guess == targetWord) {
+      AppFeedback.playWin(widget.currentUser);
       bool isUnlockedFlashcard = false; // ตัวแปรเช็คการปลดล็อค
       setState(() {
         widget.currentUser.coins += 10;
@@ -227,6 +234,7 @@ class _WordleScreenState extends State<WordleScreen> {
 
     } else if (currentRow == 6) {
       // --- แพ้ ---
+      AppFeedback.playLose(widget.currentUser);
       setState(() {
         // 🆕 อัปเดตสถิติการเล่น (Lose)
         widget.currentUser.gamesPlayed++;
@@ -398,7 +406,7 @@ class _WordleScreenState extends State<WordleScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          "WORDLE",
+          "QUACKLE",
           style: TextStyle(
               fontWeight: FontWeight.bold, letterSpacing: 2, color: currentTheme.textColor),
         ),
@@ -487,6 +495,7 @@ class _WordleScreenState extends State<WordleScreen> {
       status: status,
       currentTheme: currentTheme, // ส่งธีมเข้าไป
       delayIndex: delayIndex,     // ส่งลำดับคอลัมน์เข้าไป (0-4)
+      currentUser: widget.currentUser,
     );
   }
 
@@ -544,6 +553,7 @@ class FlipTile extends StatefulWidget {
   final LetterStatus status;
   final GameTheme currentTheme;
   final int delayIndex; // ลำดับคอลัมน์ (0,1,2,3,4) เพื่อถ่วงเวลาให้พลิกไม่พร้อมกัน
+  final User currentUser;
 
   const FlipTile({
     super.key,
@@ -551,6 +561,7 @@ class FlipTile extends StatefulWidget {
     required this.status,
     required this.currentTheme,
     required this.delayIndex,
+    required this.currentUser,
   });
 
   @override
@@ -592,6 +603,8 @@ class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin
       Future.delayed(Duration(milliseconds: widget.delayIndex * 200), () {
         if (mounted) {
           _controller.forward(from: 0.0);
+          AppFeedback.playClick(widget.currentUser);
+          AppFeedback.triggerHaptic(widget.currentUser);
         }
       });
     }

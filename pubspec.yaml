@@ -43,7 +43,7 @@ flutter:
     - assets/logo.png
     - assets/targetwords.json
     - assets/validwords.txt
-    - assets/keyboard_sound.ogg
+    - assets/sounds/
 
   fonts:
     - family: DINNextRounded

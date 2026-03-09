@@ -14,7 +14,7 @@
 
 import 'package:flutter/material.dart';
 import '../components/custom_3d_buttton.dart';
-import 'mock_data.dart';
+import '../models/mock_data.dart';
 import 'home.dart';
 
 class LoginPage extends StatefulWidget {

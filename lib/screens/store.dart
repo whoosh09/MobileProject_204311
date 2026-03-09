@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'mock_data.dart';
-import 'theme_data.dart';
+import '../models/mock_data.dart';
+import '../theme/theme_data.dart';
 
 class StorePage extends StatefulWidget {
   final User currentUser;

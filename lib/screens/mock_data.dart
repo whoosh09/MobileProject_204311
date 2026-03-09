@@ -20,6 +20,7 @@ class User {
   int maxStreak;
   List<int> guessDistribution;
   bool isSoundEnabled;
+  bool isVibrationEnabled; // สั่น
   String avatarEmoji;
   List<String> ownedAvatars; // 🆕 tracks purchased avatars across restarts
 
@@ -37,6 +38,7 @@ class User {
     this.maxStreak = 0,
     List<int>? guessDistribution,
     this.isSoundEnabled = true,
+    this.isVibrationEnabled = true,
     this.avatarEmoji = '🧑',
     List<String>? ownedAvatars,
   })  : foundWordsList = foundWordsList ?? [],
@@ -60,6 +62,7 @@ class User {
     await prefs.setInt('${username}_maxStreak', maxStreak);
     await prefs.setString('${username}_guessDist', guessDistribution.join(','));
     await prefs.setBool('${username}_isSound', isSoundEnabled);
+    await prefs.setBool('${username}_isSound', isVibrationEnabled);
     await prefs.setString('${username}_avatar', avatarEmoji);
     await prefs.setStringList('${username}_owned_avatars', ownedAvatars); // 🆕
 

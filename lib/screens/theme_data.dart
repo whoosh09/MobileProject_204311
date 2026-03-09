@@ -62,7 +62,7 @@ class ThemeDatabase {
       name: 'Cyber Neon',
       price: 100,
       correct: const Color(0xFF00FF00),
-      present: const Color(0xFFFF00FF),
+      present: const Color(0xFFFFD166),
       absent: Colors.grey.shade500,
       // UI Colors (พื้นหลังดำสนิท)
       backgroundColor: const Color(0xFF121212),
@@ -74,8 +74,8 @@ class ThemeDatabase {
       id: 'dark',
       name: 'Dark Mode',
       price: 200,
-      correct: Color(0xFF81C784),
-      present: Colors.purpleAccent,
+      correct: const Color(0xFF81C784),
+      present: const Color(0xFFFFD166),
       absent: Colors.grey.shade500,
       // UI Colors (พื้นหลังเทาเข้ม)
       backgroundColor: const Color(0xFF212121),

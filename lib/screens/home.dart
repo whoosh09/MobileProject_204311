@@ -198,7 +198,7 @@ class WordleMainBody extends StatelessWidget {
           Icon(Icons.grid_on_rounded, size: 80, color: theme.correct),
           const SizedBox(height: 20),
           Text(
-            "WORDLE",
+            "QUACKLE",
             style: TextStyle(
               fontSize: 48,
               fontWeight: FontWeight.bold,

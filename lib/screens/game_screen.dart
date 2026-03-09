@@ -92,6 +92,24 @@ class _WordleScreenState extends State<WordleScreen> {
       });
     }
   }
+  void _resetGame() {
+    setState(() {
+      // 1. สุ่มคำศัพท์ใหม่จาก Map targetWords ที่โหลดมาแล้ว
+      final List<String> keys = targetWords.keys.toList();
+      if (keys.isNotEmpty) {
+        targetWord = keys[Random().nextInt(keys.length)];
+        targetWordTranslation = targetWords[targetWord] ?? "";
+      }
+
+      // 2. ล้างข้อมูลการเล่นเก่า
+      guesses = List.filled(6, "");
+      currentRow = 0;
+      gridStatus = List.generate(6, (_) => List.filled(5, LetterStatus.initial));
+      keyStatus = {};
+      isAnimating = false;
+    });
+    print("New Target: $targetWord ($targetWordTranslation)");
+  }
 
   void onKeyPressed(String val) {
     if (currentRow >= 6 || isLoading) return;
@@ -322,19 +340,34 @@ class _WordleScreenState extends State<WordleScreen> {
           ],
         ),
         actions: [
-          Center(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: won ? currentTheme.correct : currentTheme.absent,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly, // จัดให้ปุ่มอยู่ห่างกันพอดี
+            children: [
+              // --- ปุ่มกลับหน้าเมนู ---
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // ปิด Dialog
+                  Navigator.pop(context); // ออกจาก GameScreen กลับไปหน้าหลัก
+                },
+                child: Text("Menu", style: TextStyle(color: currentTheme.textColor.withOpacity(0.6))),
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: const Text("Back to Menu", style: TextStyle(color: Colors.white)),
-            ),
-          )
+
+              // --- ปุ่มเล่นอีกครั้ง (Replay) ---
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: won ? currentTheme.correct : Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  Navigator.pop(context); // 1. ปิด Dialog ก่อน
+                  _resetGame();           // 2. เรียกฟังก์ชันรีเซ็ตเกมที่เราสร้างไว้ใน Step 1
+                },
+                child: const Text("Play Again", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10), // เพิ่มช่องว่างด้านล่างนิดนึงให้ดูสวย
         ],
       ),
     );
@@ -545,6 +578,11 @@ class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin
   void didUpdateWidget(FlipTile oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    // ถ้าสถานะกลับเป็น initial ให้รีเซ็ตแอนิเมชั่นทันที
+    if (widget.status == LetterStatus.initial) {
+      _controller.reset();
+      return;
+    }
     // เช็คว่าสถานะเปลี่ยนจาก "พิมพ์เฉยๆ" เป็น "เฉลยผล" หรือไม่
     if (widget.status != oldWidget.status &&
         widget.status != LetterStatus.initial &&

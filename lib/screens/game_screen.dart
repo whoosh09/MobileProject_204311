@@ -98,26 +98,6 @@ class _WordleScreenState extends State<WordleScreen> {
     });
   }
 
-// เพิ่มตัวแปรกันเบิ้ล (ถ้ายังไม่มีให้ประกาศเพิ่มด้านบน class)
-  bool isAnimating = false;
-
-  Future<void> _checkWord() async {
-    String guess = guesses[currentRow];
-
-    // 1. เช็คความถูกต้องเบื้องต้น
-    if (guess.length != 5) {
-      _showMessage("Not enough letters");
-      AppFeedback.triggerHaptic(widget.currentUser); // ✅ เพิ่มบรรทัดนี้ (สั่นเตือน)
-      return;
-    }
-    if (!validWordsDict.contains(guess)) {
-      _showMessage("Not in word list");
-      AppFeedback.triggerHaptic(widget.currentUser); // ✅ เพิ่มบรรทัดนี้ (สั่นเตือน)
-      return;
-    }
-
-    // ถ้ากำลังหมุนอยู่ ห้ามกดซ้ำ
-    if (isAnimating) return;
   // --- Power-ups Logic ---
   void _useHint() {
     if (widget.currentUser.hintCount <= 0 || guesses[currentRow].length >= 5) return;
@@ -128,103 +108,6 @@ class _WordleScreenState extends State<WordleScreen> {
       guesses[currentRow] += correctLetter;
       gridStatus[currentRow][emptyIndex] = LetterStatus.entered;
     });
-
-    List<String> targetChars = targetWord.split('');
-    List<LetterStatus> rowStatus = List.filled(5, LetterStatus.absent);
-
-    // รอบ 1: สีเขียว (Correct)
-    for (int i = 0; i < 5; i++) {
-      if (guess[i] == targetChars[i]) {
-        rowStatus[i] = LetterStatus.correct;
-        targetChars[i] = '';
-      }
-    }
-
-    // รอบ 2: สีเหลือง (Present)
-    for (int i = 0; i < 5; i++) {
-      if (rowStatus[i] != LetterStatus.correct) {
-        String char = guess[i];
-        int indexInTarget = targetChars.indexOf(char);
-        if (indexInTarget != -1) {
-          rowStatus[i] = LetterStatus.present;
-          targetChars[indexInTarget] = '';
-        }
-      }
-    }
-    setState(() {
-      for (int i = 0; i < 5; i++) {
-        gridStatus[currentRow][i] = rowStatus[i];
-      }
-      currentRow++;
-    });
-
-    await Future.delayed(const Duration(milliseconds: 1600));
-    if (!mounted) return;
-
-    setState(() {
-      for (int i = 0; i < 5; i++) {
-        String char = guess[i];
-        LetterStatus currentStatus = rowStatus[i];
-
-        if (keyStatus[char] != LetterStatus.correct) {
-          if (currentStatus == LetterStatus.correct) {
-            keyStatus[char] = LetterStatus.correct;
-          } else if (keyStatus[char] != LetterStatus.present &&
-              currentStatus == LetterStatus.present) {
-            keyStatus[char] = LetterStatus.present;
-          } else if (keyStatus[char] == null &&
-              currentStatus == LetterStatus.absent) {
-            keyStatus[char] = LetterStatus.absent;
-          }
-        }
-      }
-      isAnimating = false;
-    });
-
-    if (guess == targetWord) {
-      AppFeedback.playWin(widget.currentUser);
-      bool isUnlockedFlashcard = false; // ตัวแปรเช็คการปลดล็อค
-
-      setState(() {
-        // 🆕 --- MISSING STAT UPDATES ADDED HERE ---
-        widget.currentUser.gamesPlayed++;
-        widget.currentUser.gamesWon++;
-        widget.currentUser.currentStreak++;
-
-        // Update max streak if the current streak beats the record
-        if (widget.currentUser.currentStreak > widget.currentUser.maxStreak) {
-          widget.currentUser.maxStreak = widget.currentUser.currentStreak;
-        }
-        // ------------------------------------------
-
-        widget.currentUser.coins += 10;
-        widget.currentUser.wordsFound += 1;
-
-        if (!widget.currentUser.foundWordsList.contains(targetWord)) {
-          widget.currentUser.foundWordsList.add(targetWord);
-        }
-        widget.currentUser.guessDistribution[currentRow - 1]++; // บันทึกว่าทายถูกในแถวที่เท่าไหร่
-
-        // เช็คว่าหาคำศัพท์ครบ 15 คำ "พอดี" ในรอบนี้ไหม
-        if (widget.currentUser.wordsFound == 15) {
-          isUnlockedFlashcard = true; // เตรียมแจ้งเตือน
-        }
-      });
-
-      widget.currentUser.saveData();
-      _showEndGameDialog(true, targetWord, targetWordTranslation, justUnlocked: isUnlockedFlashcard);
-
-    } else if (currentRow == 6) {
-      // --- แพ้ ---
-      AppFeedback.playLose(widget.currentUser);
-      setState(() {
-        // 🆕 อัปเดตสถิติการเล่น (Lose)
-        widget.currentUser.gamesPlayed++;
-        widget.currentUser.currentStreak = 0; // สตรีคขาด!
-      });
-      widget.currentUser.saveData();
-      _showEndGameDialog(false, targetWord, targetWordTranslation);
-    }
     widget.currentUser.saveData();
     AppFeedback.playClick(widget.currentUser);
   }
@@ -262,202 +145,6 @@ class _WordleScreenState extends State<WordleScreen> {
     AppFeedback.playClick(widget.currentUser);
     showDialog(
       context: context,
-      barrierDismissible: false, // บังคับให้ต้องกดปุ่มเพื่อออก
-      builder: (context) => Stack(
-        alignment: Alignment.center,
-        children: [
-          // --- 1. กล่อง Popup Dialog (เลเยอร์ด้านหลัง) ---
-          Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: currentTheme.backgroundColor,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: won ? currentTheme.correct.withOpacity(0.5) : Colors.redAccent.withOpacity(0.4),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: won ? currentTheme.correct.withOpacity(0.25) : Colors.redAccent.withOpacity(0.2),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // --- 🏆 ICON & TITLE ---
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: won ? currentTheme.correct.withOpacity(0.15) : Colors.redAccent.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      won ? Icons.emoji_events_rounded : Icons.sentiment_dissatisfied_rounded,
-                      color: won ? currentTheme.correct : Colors.redAccent,
-                      size: 52,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    won ? "SPLENDID!" : "GAME OVER",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: won ? currentTheme.correct : Colors.redAccent,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    won ? "You guessed the word correctly." : "The hidden word was...",
-                    style: TextStyle(color: currentTheme.textColor.withOpacity(0.6), fontSize: 14),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // --- 🔠 THE WORD DISPLAY ---
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      color: currentTheme.textColor.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: currentTheme.textColor.withOpacity(0.1)),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          targetWord.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 4,
-                            color: currentTheme.textColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          meaning,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.blueAccent
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // --- 🎁 REWARDS SECTION ---
-                  if (won) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.monetization_on_rounded, color: Colors.amber, size: 24),
-                        const SizedBox(width: 8),
-                        Text(
-                          "+10 Coins",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: currentTheme.textColor
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-
-                  // --- 🎉 FLASHCARD UNLOCKED ALERt ---
-                  if (justUnlocked) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.purple.shade400, Colors.deepPurple.shade600],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(color: Colors.purple.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))
-                        ],
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.style_rounded, color: Colors.white, size: 28),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "FLASHCARD UNLOCKED!",
-                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
-                                ),
-                                Text(
-                                  "15 words milestone reached ✨",
-                                  style: TextStyle(color: Colors.white70, fontSize: 11),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 32),
-
-                  // --- 🕹️ BUTTONS ---
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: Custom3DButton(
-                          text: "MENU",
-                          backgroundColor: Colors.grey.shade400,
-                          shadowColor: Colors.grey.shade600,
-                          onPressed: () {
-                            Navigator.pop(context); // ปิด Dialog
-                            Navigator.pop(context); // กลับหน้าหลัก
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: Custom3DButton(
-                          text: won ? "PLAY AGAIN" : "TRY AGAIN",
-                          backgroundColor: won ? currentTheme.correct : Colors.blueAccent,
-                          shadowColor: won ? Colors.green.shade700 : Colors.blue.shade700,
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _resetGame();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // --- 2. ✨ เอฟเฟกต์พลุกระจาย (เลเยอร์ด้านหน้าสุด จะทำงานเมื่อ won == true เท่านั้น) ---
-          if (won) const VictoryEffect(),
       builder: (context) => AlertDialog(
         backgroundColor: currentTheme.backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -690,8 +377,8 @@ class _WordleScreenState extends State<WordleScreen> {
 
   Future<void> _checkWord() async {
     String guess = guesses[currentRow];
-    if (guess.length != 5) { _showMessage("Not enough letters"); return; }
-    if (!validWordsDict.contains(guess)) { _showMessage("Not in word list"); return; }
+    if (guess.length != 5) { _showMessage("Not enough letters"); AppFeedback.triggerHaptic(widget.currentUser); return; }
+    if (!validWordsDict.contains(guess)) { _showMessage("Not in word list"); AppFeedback.triggerHaptic(widget.currentUser); return; }
     if (isAnimating) return;
 
     setState(() { isAnimating = true; });
@@ -740,6 +427,12 @@ class _WordleScreenState extends State<WordleScreen> {
       AppFeedback.playWin(widget.currentUser);
       bool isUnlockedFlashcard = false;
       setState(() {
+        widget.currentUser.gamesPlayed++;
+        widget.currentUser.gamesWon++;
+        widget.currentUser.currentStreak++;
+        if (widget.currentUser.currentStreak > widget.currentUser.maxStreak) {
+          widget.currentUser.maxStreak = widget.currentUser.currentStreak;
+        }
         widget.currentUser.coins += 10;
         widget.currentUser.wordsFound += 1;
         if (!widget.currentUser.foundWordsList.contains(targetWord)) widget.currentUser.foundWordsList.add(targetWord);
@@ -774,43 +467,202 @@ class _WordleScreenState extends State<WordleScreen> {
   void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false}) {
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: currentTheme.backgroundColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Column(
-          children: [
-            Icon(won ? Icons.emoji_events_rounded : Icons.cancel_outlined, color: won ? currentTheme.correct : Colors.redAccent, size: 60),
-            const SizedBox(height: 10),
-            Text(won ? "Nicega! (You Won)" : "Oh no! (Game Over)", textAlign: TextAlign.center, style: TextStyle(color: won ? currentTheme.correct : Colors.redAccent, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("The answer was", style: TextStyle(color: currentTheme.textColor.withOpacity(0.7))),
-            Text(targetWord.toUpperCase(), style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 2, color: currentTheme.textColor)),
-            Text(meaning, style: const TextStyle(fontSize: 18, color: Colors.blueAccent), textAlign: TextAlign.center),
-            if (won) ...[
-              const Divider(height: 30),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.amber.shade100, borderRadius: BorderRadius.circular(20)), child: const Text("💰 +10 Coins", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown))),
-            ],
-            if (justUnlocked) ...[
-              const SizedBox(height: 20),
-              Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.purple, width: 2)),
-                child: const Column(children: [Icon(Icons.lock_open_rounded, color: Colors.purple, size: 30), Text("FLASHCARD UNLOCKED!", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple))]),
+      barrierDismissible: false, // บังคับให้ต้องกดปุ่มเพื่อออก
+      builder: (context) => Stack(
+        alignment: Alignment.center,
+        children: [
+          // --- 1. กล่อง Popup Dialog (เลเยอร์ด้านหลัง) ---
+          Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: currentTheme.backgroundColor,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: won ? currentTheme.correct.withOpacity(0.5) : Colors.redAccent.withOpacity(0.4),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: won ? currentTheme.correct.withOpacity(0.25) : Colors.redAccent.withOpacity(0.2),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                  ),
+                ],
               ),
-            ]
-          ],
-        ),
-        actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              TextButton(onPressed: () { AppFeedback.playKeyboardTap(widget.currentUser); Navigator.pop(context); Navigator.pop(context); }, child: const Text("Menu")),
-              ElevatedButton(onPressed: () { AppFeedback.playClick(widget.currentUser); Navigator.pop(context); _resetGame(); }, child: const Text("Play Again")),
-            ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // --- 🏆 ICON & TITLE ---
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: won ? currentTheme.correct.withOpacity(0.15) : Colors.redAccent.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      won ? Icons.emoji_events_rounded : Icons.sentiment_dissatisfied_rounded,
+                      color: won ? currentTheme.correct : Colors.redAccent,
+                      size: 52,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    won ? "SPLENDID!" : "GAME OVER",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: won ? currentTheme.correct : Colors.redAccent,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    won ? "You guessed the word correctly." : "The hidden word was...",
+                    style: TextStyle(color: currentTheme.textColor.withOpacity(0.6), fontSize: 14),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // --- 🔠 THE WORD DISPLAY ---
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: currentTheme.textColor.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: currentTheme.textColor.withOpacity(0.1)),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          targetWord.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 4,
+                            color: currentTheme.textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          meaning,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blueAccent
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // --- 🎁 REWARDS SECTION ---
+                  if (won) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.monetization_on_rounded, color: Colors.amber, size: 24),
+                        const SizedBox(width: 8),
+                        Text(
+                          "+10 Coins",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: currentTheme.textColor
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  // --- 🎉 FLASHCARD UNLOCKED ALERt ---
+                  if (justUnlocked) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.purple.shade400, Colors.deepPurple.shade600],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(color: Colors.purple.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))
+                        ],
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.style_rounded, color: Colors.white, size: 28),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "FLASHCARD UNLOCKED!",
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                                ),
+                                Text(
+                                  "15 words milestone reached ✨",
+                                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 32),
+
+                  // --- 🕹️ BUTTONS ---
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: Custom3DButton(
+                          text: "MENU",
+                          backgroundColor: Colors.grey.shade400,
+                          shadowColor: Colors.grey.shade600,
+                          onPressed: () {
+                            Navigator.pop(context); // ปิด Dialog
+                            Navigator.pop(context); // กลับหน้าหลัก
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: Custom3DButton(
+                          text: won ? "PLAY AGAIN" : "TRY AGAIN",
+                          backgroundColor: won ? currentTheme.correct : Colors.blueAccent,
+                          shadowColor: won ? Colors.green.shade700 : Colors.blue.shade700,
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _resetGame();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
+
+          // --- 2. ✨ เอฟเฟกต์พลุกระจาย (เลเยอร์ด้านหน้าสุด จะทำงานเมื่อ won == true เท่านั้น) ---
+          if (won) const VictoryEffect(),
         ],
       ),
     );

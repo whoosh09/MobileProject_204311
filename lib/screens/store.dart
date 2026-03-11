@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/mock_data.dart';
 import '../theme/theme_data.dart';
-<<<<<<< HEAD
-import '../services/audio_helper.dart'; // ✅ เพิ่มบรรทัดนี้เพื่อให้เรียกใช้ AppFeedback ได้
-=======
 import '../services/audio_helper.dart';
->>>>>>> 9aefe741f3c8e21bb22f812f5cc83b7dab30ea42
 
 class StorePage extends StatefulWidget {
   final User currentUser;
@@ -90,53 +86,6 @@ class _StorePageState extends State<StorePage> {
         final bool isOwned = widget.currentUser.ownedThemeIds.contains(theme.id);
         final bool isEquipped = widget.currentUser.currentThemeId == theme.id;
 
-      widget.currentUser.saveData(); // บันทึกข้อมูล
-
-      setState(() {}); // รีเฟรชหน้า Store
-      widget.onShopAction(); // รีเฟรชหน้า Home ทันที
-
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("ซื้อสำเร็จ! 🎨"),
-          backgroundColor: Colors.green,
-          duration: Duration(milliseconds: 1000),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
-      // เงินไม่พอ
-      AppFeedback.triggerHaptic(widget.currentUser); // ✅ เพิ่มบรรทัดนี้ (สั่นเตือน)
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("ไม่ดูตังตัวเองก่อนจะซื้อวะน้อง"),
-          backgroundColor: Colors.redAccent,
-          duration: Duration(milliseconds: 1000),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final currentAppTheme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-          child: Center(
-            child: Text(
-              "COLOR THEMES",
-              style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: currentAppTheme.textColor
-              ),
-            ),
         return Card(
           color: currentAppTheme.brightness == Brightness.dark ? Colors.grey.shade900 : Colors.white,
           margin: const EdgeInsets.only(bottom: 12),
@@ -257,9 +206,6 @@ class _StorePageState extends State<StorePage> {
       ),
     );
   }
-<<<<<<< HEAD
-}
-=======
 
   void _processThemePurchase(GameTheme theme) {
     if (widget.currentUser.coins >= theme.price) {
@@ -271,10 +217,10 @@ class _StorePageState extends State<StorePage> {
       });
       widget.currentUser.saveData();
       widget.onShopAction();
-      _showSnackBar("Theme unlocked successfully!");
+      _showSnackBar("ซื้อสำเร็จ! 🎨");
     } else {
       AppFeedback.triggerHaptic(widget.currentUser);
-      _showSnackBar("Insufficient coins!", isError: true);
+      _showSnackBar("ไม่ดูตังตัวเองก่อนจะซื้อวะน้อง", isError: true);
     }
   }
 
@@ -283,10 +229,8 @@ class _StorePageState extends State<StorePage> {
       AppFeedback.playWin(widget.currentUser);
 
       setState(() {
-        // 1. หักเงิน
         widget.currentUser.coins -= (item['price'] as int);
 
-        // 2. ✨ เพิ่มจำนวนไอเทมตาม ID ที่กำหนดไว้ในลิสต์ powerUps
         if (item['id'] == 'hint') {
           widget.currentUser.hintCount++;
         } else if (item['id'] == 'cleaner') {
@@ -296,16 +240,13 @@ class _StorePageState extends State<StorePage> {
         }
       });
 
-      // 3. บันทึกลง SharedPreferences ทันที
       widget.currentUser.saveData();
-
-      // 4. สั่ง Refresh หน้า Home (เพื่อให้เลขเงินใน App Bar อัปเดต)
       widget.onShopAction();
 
-      _showSnackBar("Success! You now have more ${item['name']}.");
+      _showSnackBar("ซื้อสำเร็จ! ได้ ${item['name']} เพิ่มแล้ว 🎨");
     } else {
       AppFeedback.triggerHaptic(widget.currentUser);
-      _showSnackBar("Not enough coins!", isError: true);
+      _showSnackBar("ไม่ดูตังตัวเองก่อนจะซื้อวะน้อง", isError: true);
     }
   }
 
@@ -342,4 +283,3 @@ class _StorePageState extends State<StorePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: isError ? Colors.redAccent : Colors.green, behavior: SnackBarBehavior.floating));
   }
 }
->>>>>>> 9aefe741f3c8e21bb22f812f5cc83b7dab30ea42

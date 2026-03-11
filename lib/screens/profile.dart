@@ -115,122 +115,58 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                 ),
                 const SizedBox(height: 24),
 
-                // Sound toggle 3D Button
-                Custom3DButton(
-                  text: widget.currentUser.isSoundEnabled ? '🔊 SOUND: ON' : '🔇 SOUND: OFF',
-                  backgroundColor: widget.currentUser.isSoundEnabled ? theme.correct : Colors.grey.shade400,
-                  shadowColor: widget.currentUser.isSoundEnabled ? Colors.green.shade700 : Colors.grey.shade600,
-                  onPressed: () {
-                    // Play sound BEFORE turning it off, or play sound if turning it back on
-                    if (widget.currentUser.isSoundEnabled) {
-                       // Replace with your exact audio helper method
-                       // AudioHelper.playTapSound();
-                    }
-
-                    setState(() => widget.currentUser.isSoundEnabled = !widget.currentUser.isSoundEnabled);
-                    setModalState(() {});
-                    widget.currentUser.saveData();
-
-                    // If they just turned it on, play a sound to confirm
-                    if (widget.currentUser.isSoundEnabled) {
-                       // Replace with your exact audio helper method
-                       // AudioHelper.playTapSound();
-                    }
-                // --- 1. Sound toggle ---
-                _buildSettingToggle(
-                  icon: widget.currentUser.isSoundEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-                  label: "Sound Effects",
-                  value: widget.currentUser.isSoundEnabled,
-                  theme: theme,
-                  onTap: () {
-                    setState(() => widget.currentUser.isSoundEnabled = !widget.currentUser.isSoundEnabled);
-                    setModalState(() {});
-                    widget.currentUser.saveData();
-                    AppFeedback.playClick(widget.currentUser);
-                  },
+                // --- 1. Sound toggle (3D Button) ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: Custom3DButton(
+                    text: widget.currentUser.isSoundEnabled ? "🔊 SOUND: ON" : "🔈 SOUND: OFF",
+                    backgroundColor: widget.currentUser.isSoundEnabled ? theme.correct : Colors.grey.shade500,
+                    shadowColor: widget.currentUser.isSoundEnabled ? Colors.green.shade700 : Colors.grey.shade700,
+                    onPressed: () {
+                      setState(() => widget.currentUser.isSoundEnabled = !widget.currentUser.isSoundEnabled);
+                      setModalState(() {});
+                      widget.currentUser.saveData();
+                      AppFeedback.playClick(widget.currentUser);
+                    },
+                  ),
                 ),
                 const SizedBox(height: 16),
 
-                // Vibration toggle 3D Button
-                Custom3DButton(
-                  text: widget.currentUser.isVibrationEnabled ? '📳 VIBRATION: ON' : '📴 VIBRATION: OFF',
-                  backgroundColor: widget.currentUser.isVibrationEnabled ? theme.correct : Colors.grey.shade400,
-                  shadowColor: widget.currentUser.isVibrationEnabled ? Colors.green.shade700 : Colors.grey.shade600,
-                  onPressed: () {
-                    // 🎵 ADD SOUND EFFECT HERE
-                    if (widget.currentUser.isSoundEnabled) {
-                       // AudioHelper.playTapSound();
-                    }
-
-                // --- 2. Vibration toggle ---
-                _buildSettingToggle(
-                  icon: Icons.vibration_rounded,
-                  label: "Vibration Feedback",
-                  value: widget.currentUser.isVibrationEnabled,
-                  theme: theme,
-                  onTap: () {
-                    setState(() => widget.currentUser.isVibrationEnabled = !widget.currentUser.isVibrationEnabled);
-                    setModalState(() {});
-                    widget.currentUser.saveData();
-                    AppFeedback.triggerHaptic(widget.currentUser);
-                  },
-                ),
-                const SizedBox(height: 32),
-
-                // LOGOUT 3D BUTTON
-                Custom3DButton(
-                  text: 'LOG OUT',
-                  backgroundColor: Colors.redAccent,
-                  shadowColor: Colors.red.shade700,
-                  onPressed: () {
-                    // 🎵 ADD SOUND EFFECT HERE
-                    if (widget.currentUser.isSoundEnabled) {
-                       // AudioHelper.playTapSound();
-                    }
-
-                    Navigator.pop(context);
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                      (Route<dynamic> route) => false,
-                    );
-                  },
-                  },
+                // --- 2. Vibration toggle (3D Button) ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: Custom3DButton(
+                    text: widget.currentUser.isVibrationEnabled ? "📳 VIBRATION: ON" : "📴 VIBRATION: OFF",
+                    backgroundColor: widget.currentUser.isVibrationEnabled ? theme.correct : Colors.grey.shade500,
+                    shadowColor: widget.currentUser.isVibrationEnabled ? Colors.green.shade700 : Colors.grey.shade700,
+                    onPressed: () {
+                      setState(() => widget.currentUser.isVibrationEnabled = !widget.currentUser.isVibrationEnabled);
+                      setModalState(() {});
+                      widget.currentUser.saveData();
+                      AppFeedback.triggerHaptic(widget.currentUser);
+                    },
+                  ),
                 ),
 
                 const SizedBox(height: 24),
                 Divider(color: theme.textColor.withOpacity(0.1)),
                 const SizedBox(height: 12),
 
-                // --- 3. 🆕 LOGOUT BUTTON ---
-                GestureDetector(
-                  onTap: () {
-                    AppFeedback.playClick(widget.currentUser);
-                    Navigator.pop(context); // ปิด BottomSheet ก่อน
-                    _showLogoutConfirmDialog(theme); // เปิดหน้าต่างยืนยัน
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
-                        SizedBox(width: 10),
-                        Text(
-                          "LOGOUT",
-                          style: TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ],
-                    ),
+                // --- 3. LOGOUT BUTTON (3D Button) ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: Custom3DButton(
+                    text: "LOGOUT",
+                    backgroundColor: Colors.redAccent,
+                    shadowColor: Colors.red.shade800,
+                    onPressed: () {
+                      AppFeedback.playClick(widget.currentUser);
+                      Navigator.pop(context); // ปิด BottomSheet ก่อน
+                      _showLogoutConfirmDialog(theme); // เปิดหน้าต่างยืนยัน
+                    },
                   ),
                 ),
               ],
@@ -241,7 +177,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
-  // --- 🆕 ฟังก์ชันช่วยสร้าง UI Toggle (เพื่อให้โค้ดดูสะอาดขึ้น) ---
+  // --- ฟังก์ชันช่วยสร้าง UI Toggle ---
   Widget _buildSettingToggle({
     required IconData icon,
     required String label,
@@ -286,7 +222,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
-  // --- 🆕 หน้าต่างยืนยันการ Logout ---
+// --- หน้าต่างยืนยันการ Logout ---
   void _showLogoutConfirmDialog(GameTheme theme) {
     showDialog(
       context: context,
@@ -294,26 +230,42 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
         backgroundColor: theme.backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text("Logout?", style: TextStyle(color: theme.textColor, fontWeight: FontWeight.bold)),
-        content: Text("Are you sure you want to sign out of your account?",
-            style: TextStyle(color: theme.textColor.withOpacity(0.7))),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel", style: TextStyle(color: theme.textColor.withOpacity(0.5))),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Are you sure you want to sign out of your account?",
+              style: TextStyle(color: theme.textColor.withOpacity(0.7)),
             ),
-            onPressed: () {
-              // TODO: ใส่ Logic การ Logout จริง (เช่น Clear Session / ลบ Local Data)
-              // ตัวอย่าง: ย้อนกลับไปหน้า Login
-              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-            },
-            child: const Text("Logout", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
+            const SizedBox(height: 30),
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Custom3DButton(
+                    text: "CANCEL",
+                    backgroundColor: Colors.grey.shade400,
+                    shadowColor: Colors.grey.shade600,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 1,
+                  child: Custom3DButton(
+                    text: "LOGOUT",
+                    backgroundColor: Colors.redAccent,
+                    shadowColor: Colors.red.shade800,
+                    onPressed: () {
+                      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: const [], // ปล่อยว่างไว้เพราะเราย้ายปุ่มไปอยู่ใน content แทนเพื่อให้จัด Layout 3D ง่ายขึ้น
       ),
     );
   }
@@ -361,7 +313,6 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                             color: theme.textColor,
                             fontFamily: 'monospace')),
                     const Spacer(),
-                    // Live coin badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
@@ -391,7 +342,6 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                     final String emoji = av['emoji'] as String;
                     final int price = av['price'] as int;
 
-                    // ✅ FIX 1: Check ownedAvatars list, not just currently equipped avatar
                     final bool isOwned = price == 0 ||
                         widget.currentUser.ownedAvatars.contains(emoji);
                     final bool isEquipped = widget.currentUser.avatarEmoji == emoji;
@@ -399,13 +349,11 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                     return GestureDetector(
                       onTap: () {
                         if (isOwned) {
-                          // Just equip — free, save once
                           setState(() => widget.currentUser.avatarEmoji = emoji);
                           setModalState(() {});
                           widget.currentUser.saveData();
                           widget.onProfileUpdate();
                         } else {
-                          // Show confirm; sheet stays open
                           _showConfirmAvatarDialog(av, theme, setModalState);
                         }
                       },
@@ -500,7 +448,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10))),
             onPressed: () {
-              Navigator.pop(context); // close dialog only; sheet stays open
+              Navigator.pop(context);
               _processAvatarPurchase(emoji, price, setModalState);
             },
             child: const Text("Buy!",
@@ -515,16 +463,13 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     if (widget.currentUser.coins >= price) {
       setState(() {
         widget.currentUser.coins -= price;
-        // ✅ FIX 2: Add to ownedAvatars so it's remembered after switching avatars
         widget.currentUser.ownedAvatars.add(emoji);
         widget.currentUser.avatarEmoji = emoji;
       });
 
-      // Single save after all fields are updated
       widget.currentUser.saveData();
-
-      setModalState(() {}); // refresh sheet → button changes to OWNED/EQUIPPED
-      widget.onProfileUpdate(); // refresh AppBar coin display
+      setModalState(() {});
+      widget.onProfileUpdate();
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -535,7 +480,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             behavior: SnackBarBehavior.floating),
       );
     } else {
-      AppFeedback.triggerHaptic(widget.currentUser); // ✅ เพิ่มบรรทัดนี้ (สั่นเตือน)
+      AppFeedback.triggerHaptic(widget.currentUser);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -868,6 +813,7 @@ class _StatCard extends StatelessWidget {
   final bool isBig;
 
   const _StatCard({
+    super.key,
     required this.label,
     required this.value,
     required this.icon,

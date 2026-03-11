@@ -14,7 +14,15 @@ class QuackApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         fontFamily: 'DINNextRounded',
+        // Smooth page transitions
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
+      // Always start at splash — it handles its own timer & navigation
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => const SplashScreen(),

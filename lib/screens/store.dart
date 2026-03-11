@@ -129,26 +129,74 @@ class _StorePageState extends State<StorePage> {
       itemCount: powerUps.length,
       itemBuilder: (context, index) {
         final item = powerUps[index];
+        final String id = item['id'];
+
+        // 🆕 เช็คจำนวนไอเทมที่ผู้เล่นมีอยู่ในกระเป๋า
+        int ownedCount = 0;
+        if (id == 'hint') ownedCount = widget.currentUser.hintCount;
+        else if (id == 'cleaner') ownedCount = widget.currentUser.cleanerCount;
+        else if (id == 'extra_life') ownedCount = widget.currentUser.extraRowCount;
+
         return Card(
           color: currentAppTheme.brightness == Brightness.dark ? Colors.grey.shade900 : Colors.white,
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(
-              backgroundColor: (item['color'] as Color).withOpacity(0.2),
-              child: Icon(item['icon'], color: item['color']),
-            ),
-            title: Text(item['name'], style: TextStyle(fontWeight: FontWeight.bold, color: currentAppTheme.textColor)),
-            subtitle: Text(item['description'], style: TextStyle(fontSize: 12, color: currentAppTheme.textColor.withOpacity(0.6))),
-            trailing: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber.shade700,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Column(
+            children: [
+              // 🆕 แถบแสดงจำนวนที่มีอยู่ (อยู่ด้านบนของการ์ด)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: currentAppTheme.correct.withOpacity(0.15), // 🎨 สีพื้นหลังจางๆ ตามธีม
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(15),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "📦 INVENTORY",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: currentAppTheme.correct, // 🎨 สีข้อความตามธีม
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    Text(
+                      "Owned: $ownedCount",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: currentAppTheme.correct, // 🎨 สีตัวเลขตามธีม
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              onPressed: () => _confirmPurchase(item, true),
-              child: Text("💰 ${item['price']}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
+
+              // ℹ️ ข้อมูลไอเทม (ปุ่มซื้อ / ชื่อ / คำอธิบาย)
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                leading: CircleAvatar(
+                  backgroundColor: (item['color'] as Color).withOpacity(0.2),
+                  child: Icon(item['icon'], color: item['color']),
+                ),
+                title: Text(item['name'], style: TextStyle(fontWeight: FontWeight.bold, color: currentAppTheme.textColor)),
+                subtitle: Text(item['description'], style: TextStyle(fontSize: 12, color: currentAppTheme.textColor.withOpacity(0.6))),
+                trailing: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber.shade700,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                  onPressed: () => _confirmPurchase(item, true),
+                  child: Text("💰 ${item['price']}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -209,7 +257,7 @@ class _StorePageState extends State<StorePage> {
 
   void _processThemePurchase(GameTheme theme) {
     if (widget.currentUser.coins >= theme.price) {
-      AppFeedback.playWin(widget.currentUser);
+      AppFeedback.playCash(widget.currentUser);
       setState(() {
         widget.currentUser.coins -= theme.price;
         widget.currentUser.ownedThemeIds.add(theme.id);
@@ -217,16 +265,16 @@ class _StorePageState extends State<StorePage> {
       });
       widget.currentUser.saveData();
       widget.onShopAction();
-      _showSnackBar("ซื้อสำเร็จ! 🎨");
+      _showSnackBar("Purchase successful! 🎨");
     } else {
       AppFeedback.triggerHaptic(widget.currentUser);
-      _showSnackBar("ไม่ดูตังตัวเองก่อนจะซื้อวะน้อง", isError: true);
+      _showSnackBar("Not enough coins.", isError: true);
     }
   }
 
   void _processItemPurchase(Map<String, dynamic> item) {
     if (widget.currentUser.coins >= item['price']) {
-      AppFeedback.playWin(widget.currentUser);
+      AppFeedback.playCash(widget.currentUser);
 
       setState(() {
         widget.currentUser.coins -= (item['price'] as int);
@@ -243,10 +291,10 @@ class _StorePageState extends State<StorePage> {
       widget.currentUser.saveData();
       widget.onShopAction();
 
-      _showSnackBar("ซื้อสำเร็จ! ได้ ${item['name']} เพิ่มแล้ว 🎨");
+      _showSnackBar("Purchase successful! You received ${item['name']} 🎁");
     } else {
       AppFeedback.triggerHaptic(widget.currentUser);
-      _showSnackBar("ไม่ดูตังตัวเองก่อนจะซื้อวะน้อง", isError: true);
+      _showSnackBar("Not enough coins.", isError: true);
     }
   }
 

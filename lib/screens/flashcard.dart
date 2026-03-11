@@ -312,7 +312,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
       ),
     );
   }
-
   // ==========================================
   // 📖 UI: STUDY MODE (พลิกการ์ด)
   // ==========================================
@@ -326,31 +325,36 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
           "Card ${studyIndex + 1} of ${unlockedWords.length}",
           style: TextStyle(color: theme.textColor.withOpacity(0.6), fontSize: 14),
         ),
-        const Spacer(),
-        GestureDetector(
-          onTap: _flipCard,
-          child: AnimatedBuilder(
-            animation: _flipAnimation,
-            builder: (context, child) {
-              final angle = _flipAnimation.value * pi;
-              bool showFront = angle < (pi / 2);
-              return Transform(
-                transform: Matrix4.identity()
-                  ..setEntry(3, 2, 0.001)
-                  ..rotateY(angle),
-                alignment: Alignment.center,
-                child: showFront
-                    ? _buildCardSide(currentWord.toUpperCase(), true, theme)
-                    : Transform(
-                        transform: Matrix4.identity()..rotateY(pi),
-                        alignment: Alignment.center,
-                        child: _buildCardSide(currentMeaning, false, theme),
-                      ),
-              );
-            },
+        const SizedBox(height: 20), // 🆕 เปลี่ยน Spacer เป็น SizedBox
+
+        // 🆕 ใช้ Expanded ครอบการ์ด เพื่อให้ขยายเต็มพื้นที่ที่เหลืออัตโนมัติ (Responsive)
+        Expanded(
+          child: GestureDetector(
+            onTap: _flipCard,
+            child: AnimatedBuilder(
+              animation: _flipAnimation,
+              builder: (context, child) {
+                final angle = _flipAnimation.value * pi;
+                bool showFront = angle < (pi / 2);
+                return Transform(
+                  transform: Matrix4.identity()
+                    ..setEntry(3, 2, 0.001)
+                    ..rotateY(angle),
+                  alignment: Alignment.center,
+                  child: showFront
+                      ? _buildCardSide(currentWord.toUpperCase(), true, theme)
+                      : Transform(
+                          transform: Matrix4.identity()..rotateY(pi),
+                          alignment: Alignment.center,
+                          child: _buildCardSide(currentMeaning, false, theme),
+                        ),
+                );
+              },
+            ),
           ),
         ),
-        const Spacer(),
+
+        const SizedBox(height: 24), // 🆕 เปลี่ยน Spacer เป็น SizedBox
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -368,47 +372,69 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
       ],
     );
   }
 
+  // --- อัปเกรดดีไซน์การ์ดให้ Responsive ---
   Widget _buildCardSide(String text, bool isFrontSide, GameTheme theme) {
-    bool isDark = theme.brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      height: 350,
       decoration: BoxDecoration(
-        color: isFrontSide
-            ? (isDark ? Colors.grey.shade800 : Colors.white)
-            : theme.correct,
+        color: theme.textColor.withOpacity(0.05),
         borderRadius: BorderRadius.circular(32),
-        boxShadow: [BoxShadow(color: theme.textColor.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10))],
-        border: Border.all(color: isFrontSide ? theme.correct.withOpacity(0.5) : Colors.transparent, width: 2),
+        border: Border.all(color: theme.textColor.withOpacity(0.1), width: 2),
+        boxShadow: isFrontSide ? [] : [
+          BoxShadow(color: theme.correct.withOpacity(0.15), blurRadius: 30, spreadRadius: 5)
+        ],
       ),
       alignment: Alignment.center,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // 🆕 เพิ่มกรอบ Padding ให้สมดุล
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            isFrontSide ? "TAP TO REVEAL MEANING" : "MEANING",
-            style: TextStyle(
-              color: isFrontSide ? theme.textColor.withOpacity(0.4) : Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.5,
+          Container(
+            padding: const EdgeInsets.all(12), // 🔽 ลดขนาดกล่องไอคอนลงนิดนึง
+            decoration: BoxDecoration(
+              color: isFrontSide ? theme.textColor.withOpacity(0.1) : theme.correct.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isFrontSide ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+              color: isFrontSide ? theme.textColor.withOpacity(0.5) : theme.correct,
+              size: 32,
             ),
           ),
-          const SizedBox(height: 20),
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: isFrontSide ? 36 : 28,
-              fontWeight: FontWeight.w900,
-              letterSpacing: isFrontSide ? 2 : 0,
-              color: isFrontSide ? theme.textColor : Colors.white,
+          const SizedBox(height: 16),
+          // 🆕 ใช้ FittedBox กันล้น
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              isFrontSide ? "WHAT DOES THIS MEAN?" : "TRANSLATION",
+              style: TextStyle(
+                color: isFrontSide ? theme.textColor.withOpacity(0.4) : theme.correct.withOpacity(0.8),
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // 🆕 ให้ตัวหนังสือคำศัพท์ยืดหยุ่นและย่ออัตโนมัติถ้ายาวเกินไป
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: isFrontSide ? 42 : 32,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: isFrontSide ? 4 : 0,
+                  color: isFrontSide ? theme.textColor : theme.correct,
+                ),
+              ),
             ),
           ),
         ],
@@ -417,7 +443,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
   }
 
   // ==========================================
-  // 🎮 UI: QUIZ MODE (ทายคำศัพท์)
+  // 🎮 UI: QUIZ MODE (ทายคำศัพท์) - 🎨 RESPONSIVE
   // ==========================================
   Widget _buildQuizMode(GameTheme theme) {
     bool isDark = theme.brightness == Brightness.dark;
@@ -427,36 +453,69 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("BRAIN TEST", style: TextStyle(fontWeight: FontWeight.w900, color: theme.correct, letterSpacing: 1.0)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(color: theme.textColor.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+              child: Text("${quizIndex + 1} / ${unlockedWords.length}", style: TextStyle(fontWeight: FontWeight.bold, color: theme.textColor.withOpacity(0.6))),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(
             value: (quizIndex + 1) / unlockedWords.length,
             backgroundColor: theme.textColor.withOpacity(0.1),
             valueColor: AlwaysStoppedAnimation<Color>(theme.correct),
-            minHeight: 6,
+            minHeight: 8,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16), // 🔽 ลดระยะห่างลง
+
+        // --- 2. VIBRANT QUESTION CARD ---
         Expanded(
           flex: 4,
           child: Container(
+            padding: const EdgeInsets.all(16), // 🆕 เพิ่ม Padding ไม่ให้ตัวหนังสือชนขอบ
             decoration: BoxDecoration(
-              color: isDark ? Colors.grey.shade800 : Colors.white,
+              gradient: LinearGradient(colors: [theme.correct, theme.correct.withOpacity(0.7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.circular(32),
-              boxShadow: [BoxShadow(color: theme.textColor.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
-              border: Border.all(color: theme.textColor.withOpacity(0.05), width: 2),
+              boxShadow: [BoxShadow(color: theme.correct.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("What does this word mean?", style: TextStyle(color: theme.textColor.withOpacity(0.5), fontSize: 14, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 16),
-                Text(currentWord.toUpperCase(), style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: theme.textColor, letterSpacing: 2)),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                  child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 28),
+                ),
+                const SizedBox(height: 12),
+                const FittedBox( // 🆕 กันข้อความทะลุจอด้านข้าง
+                  fit: BoxFit.scaleDown,
+                  child: Text("What does this word mean?", style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(height: 8),
+                Flexible( // 🆕 ป้องกันการล้นแนวตั้ง
+                  child: FittedBox( // 🆕 ถ้าคำศัพท์ยาวไป ให้ย่อออโต้
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      currentWord.toUpperCase(),
+                      style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 3)
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20), // 🔽 ลดระยะห่างลงให้สมดุล
+
+        // --- 3. ANSWER OPTIONS ---
         Expanded(
           flex: 6,
           child: SingleChildScrollView(
@@ -466,33 +525,35 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
               children: currentOptions.map((option) {
                 ButtonState buttonState = ButtonState.normal;
                 Color currentTextColor = theme.textColor;
+                Color currentBgColor = isDark ? Colors.grey.shade800 : Colors.white;
+                Color currentShadowColor = isDark ? Colors.grey.shade900 : Colors.grey.shade300;
 
-                // 🆕 เพิ่มการคำนวณสีพื้นหลังและสีเงาของปุ่มตามธีม (มืด/สว่าง)
-                Color currentBgColor = isDark ? Colors.grey.shade700 : const Color(0xFFF0F0F0);
-                Color currentShadowColor = isDark ? Colors.grey.shade900 : const Color(0xFFD6D6D6);
+                String displayText = option;
 
                 if (isAnswering) {
                   if (option == correctMeaning) {
                     buttonState = ButtonState.correct;
                     currentTextColor = Colors.white;
+                    displayText = "✅  $option";
                   } else if (option == selectedAnswer) {
                     buttonState = ButtonState.incorrect;
                     currentTextColor = Colors.white;
+                    displayText = "❌  $option";
                   } else {
                     currentTextColor = theme.textColor.withOpacity(0.3);
+                    currentShadowColor = Colors.transparent;
                   }
                 }
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
+                  padding: const EdgeInsets.only(bottom: 12.0), // 🔽 ลดระยะห่างระหว่างปุ่มลงนิดหน่อย
                   child: SizedBox(
                     width: double.infinity,
-                    height: 65,
                     child: Custom3DButton(
-                      text: option,
+                      text: displayText,
                       state: buttonState,
-                      backgroundColor: currentBgColor, // 🆕 ส่งสีพื้นหลังให้ปุ่ม
-                      shadowColor: currentShadowColor, // 🆕 ส่งสีเงาให้ปุ่ม
+                      backgroundColor: currentBgColor,
+                      shadowColor: currentShadowColor,
                       textColor: currentTextColor,
                       onPressed: () => _checkAnswer(option),
                     ),

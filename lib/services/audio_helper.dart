@@ -3,13 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/mock_data.dart';
 
 class AppFeedback {
-  // เสียงคลิกมาตรฐาน
-  // static void playClick(User user) {
-  //   if (user.isSoundEnabled) {
-  //     SystemSound.play(SystemSoundType.click);
-  //   }
-  // }
-  // สร้าง Player ตัวเดียวใช้ร่วมกัน
+
   static final AudioPlayer _player = AudioPlayer();
 
   // เสียงจากระบบ (เผื่อเลือกใช้)
@@ -53,6 +47,9 @@ class AppFeedback {
     _playSound('keyboard_sound.ogg', user.isSoundEnabled);
   }
 
+  static void playCash(User user) {
+    _playSound('buy.mp3', user.isSoundEnabled);
+  }
   // การสั่นมาตรฐาน
   static void triggerHaptic(User user) {
     if (user.isVibrationEnabled) {
@@ -66,15 +63,4 @@ class AppFeedback {
     if (user.isVibrationEnabled) HapticFeedback.lightImpact();
   }
 
-  // static Future<void> _playFile(String fileName, bool isEnabled) async {
-  //   if (isEnabled) {
-  //     try {
-  //       print("🔊 Attempting to play: sounds/$fileName"); // ดูใน Console ว่าบรรทัดนี้ขึ้นไหม
-  //       await _player.stop();
-  //       await _player.play(AssetSource('sounds/$fileName'));
-  //     } catch (e) {
-  //       print("❌ Audio Error: $e");
-  //     }
-  //   }
-  // }
 }

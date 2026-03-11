@@ -48,7 +48,19 @@ class _WordleScreenState extends State<WordleScreen> {
   @override
   void initState() {
     super.initState();
-    currentTheme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
+    GameTheme userTheme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
+    currentTheme = GameTheme(
+      id: userTheme.id,
+      name: userTheme.name,
+      price: userTheme.price,
+      correct: const Color(0xFF58CC02),
+      present: const Color(0xFFC9B458),
+      absent: const Color(0xFF787C7E),
+      backgroundColor: userTheme.backgroundColor,
+      textColor: userTheme.textColor,
+      brightness: userTheme.brightness,
+    );
+
     _loadGameData();
   }
 
@@ -166,6 +178,7 @@ class _WordleScreenState extends State<WordleScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDark = currentTheme.brightness == Brightness.dark;
+
     Color keyColor = isDark ? defaultDarkKeyColor : defaultLightKeyColor;
     Color keyTextColor = isDark ? Colors.white : Colors.black;
 
@@ -176,44 +189,54 @@ class _WordleScreenState extends State<WordleScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: currentTheme.backgroundColor,
-      appBar: AppBar(
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: currentTheme.textColor),
-          onPressed: () { AppFeedback.playClick(widget.currentUser); Navigator.pop(context); },
-        ),
-        title: Text("QUACKLE", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: currentTheme.textColor)),
-        centerTitle: true,
+    // 🆕 ใช้ WillPopScope ครอบ Scaffold เพื่อดักจับปุ่ม Back ของเครื่องมือถือ
+    return WillPopScope(
+      onWillPop: _showExitConfirmDialog, // 🆕 เรียกฟังก์ชันยืนยันเมื่อกด Back
+      child: Scaffold(
         backgroundColor: currentTheme.backgroundColor,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          // 1. Game Grid
-          Expanded(
-            flex: 3,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              child: _buildGrid(keyTextColor),
+        appBar: AppBar(
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          ),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: currentTheme.textColor),
+            onPressed: () async {
+              // 🆕 ดักจับปุ่ม Back บน AppBar
+              bool shouldExit = await _showExitConfirmDialog();
+              if (shouldExit && mounted) {
+                Navigator.pop(context); // ถ้ากดยืนยันถึงจะให้ออก
+              }
+            },
+          ),
+          title: Text("QUACKLE", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: currentTheme.textColor)),
+          centerTitle: true,
+          backgroundColor: currentTheme.backgroundColor,
+          elevation: 0,
+        ),
+        body: Column(
+          children: [
+            // 1. Game Grid
+            Expanded(
+              flex: 3,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                child: _buildGrid(keyTextColor), //
+              ),
             ),
-          ),
 
-          // 2. Power-up Bar
-          _buildPowerUpBar(),
+            // 2. Power-up Bar
+            _buildPowerUpBar(), //
 
-          // 3. Keyboard
-          Expanded(
-            flex: 2,
-            child: _buildKeyboard(keyColor, keyTextColor),
-          ),
-        ],
-      ),
-    );
+            // 3. Keyboard
+            Expanded(
+              flex: 2,
+              child: _buildKeyboard(keyColor, keyTextColor), //
+            ),
+          ],
+        ),
+      ), // ✅ เพิ่มวงเล็บปิดของ Scaffold ตรงนี้
+    );   // ✅ วงเล็บปิดของ WillPopScope
   }
 
   // --- UI Sub-widgets ---
@@ -462,6 +485,50 @@ class _WordleScreenState extends State<WordleScreen> {
         backgroundColor: currentTheme.textColor,
       ),
     );
+  }
+  // --- ฟังก์ชันสำหรับโชว์หน้าต่างยืนยันการออกเกม ---
+  Future<bool> _showExitConfirmDialog() async {
+    AppFeedback.playClick(widget.currentUser);
+
+    // โชว์ Dialog และรอค่า true (กดออก) หรือ false (กดยกเลิก)
+    bool? shouldExit = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: currentTheme.backgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            const SizedBox(width: 10),
+            Text("Quit Game?", style: TextStyle(color: currentTheme.textColor, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Text("Are you sure you want to leave?\nYour current progress will be lost.",
+            style: TextStyle(color: currentTheme.textColor.withOpacity(0.8))),
+        actions: [
+            ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+            ),
+            onPressed: () {
+              AppFeedback.playClick(widget.currentUser);
+              Navigator.of(context).pop(true); // ส่งค่า true กลับไป (ยืนยันการออก)
+            },
+            child: const Text("Quit", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+          TextButton(
+            onPressed: () {
+              AppFeedback.playClick(widget.currentUser);
+              Navigator.of(context).pop(false); // ส่งค่า false กลับไป (ไม่ให้ออก)
+            },
+            child: Text("Cancel", style: TextStyle(color: currentTheme.textColor.withOpacity(0.5))),
+          ),
+        ],
+      ),
+    );
+
+    return shouldExit ?? false; // ถ้าปัดจอทิ้งให้ถือว่า false
   }
 
   void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false}) {

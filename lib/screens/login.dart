@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../components/custom_3d_buttton.dart';
 import '../models/mock_data.dart';
 import 'home.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 🆕 นำเข้า package นี้
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -46,6 +47,10 @@ class _LoginPageState extends State<LoginPage> {
 
     // 5. Handle success or failure
     if (user != null) {
+      // 🆕 บันทึกสถานะการล็อกอินลงในเครื่อง
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('loggedInUser', user.username);
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => HomePage(currentUser: user)),

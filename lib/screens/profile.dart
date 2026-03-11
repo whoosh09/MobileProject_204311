@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/mock_data.dart';
 import '../services/audio_helper.dart';
 import '../theme/theme_data.dart';
-import 'login.dart'; // Add this line! (adjust path if your login.dart is elsewhere)
+import 'login.dart';
 import '../components/custom_3d_buttton.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   final User currentUser;
@@ -243,22 +244,27 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                 Expanded(
                   flex: 1,
                   child: Custom3DButton(
-                    text: "CANCEL",
-                    backgroundColor: Colors.grey.shade400,
-                    shadowColor: Colors.grey.shade600,
-                    onPressed: () => Navigator.pop(context),
+                    text: "LOGOUT",
+                    backgroundColor: Colors.redAccent,
+                    shadowColor: Colors.red.shade800,
+                    onPressed: () async {
+                      // 🆕 ลบความจำเมื่อผู้เล่นกดออกจากระบบ
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove('loggedInUser');
+
+                      if (!context.mounted) return;
+                      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   flex: 1,
                   child: Custom3DButton(
-                    text: "LOGOUT",
-                    backgroundColor: Colors.redAccent,
-                    shadowColor: Colors.red.shade800,
-                    onPressed: () {
-                      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-                    },
+                    text: "CANCEL",
+                    backgroundColor: Colors.grey.shade400,
+                    shadowColor: Colors.grey.shade600,
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
               ],
@@ -461,6 +467,10 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
   void _processAvatarPurchase(String emoji, int price, StateSetter setModalState) {
     if (widget.currentUser.coins >= price) {
+
+      // 🆕 เพิ่มเสียง ชิ้ง! ตอนกดซื้ออวาตาร์สำเร็จ
+      AppFeedback.playCash(widget.currentUser);
+
       setState(() {
         widget.currentUser.coins -= price;
         widget.currentUser.ownedAvatars.add(emoji);

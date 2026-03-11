@@ -125,56 +125,89 @@ class User {
 
 class MockDatabase {
   static List<User> users = [
-    // 1. ยูสเซอร์ a: เล่นมาสักพักแล้ว (ยศ Bookworm)
+    // 👑 1. User: master (สายโชว์ของ - ปลดล็อคครบทุกอย่าง ยศ Legend)
+    // เอาไว้โชว์: กราฟสถิติสวยๆ, ของที่ซื้อครบแล้ว, ยศสูงสุด
     User(
       username: 'a',
       password: 'a',
-      coins: 350,
-      wordsFound: 18,
-      foundWordsList: ['HELLO', 'WORLD', 'APPLE', 'MANGO', 'TIGER', 'SMART', 'GHOST', 'PLANT', 'WATER', 'CHAIR', 'TABLE', 'BREAD', 'GRAPE', 'LEMON', 'MONEY', 'SUGAR', 'SMILE', 'SLEEP'],
-      currentThemeId: 'pastel',
-      ownedThemeIds: ['classic', 'pastel'],
-      gamesPlayed: 20,
-      gamesWon: 18,
-      currentStreak: 5,
-      maxStreak: 12,
-      guessDistribution: [0, 2, 5, 6, 3, 2],
-      avatarEmoji: '🐱',
-      ownedAvatars: ['🧑', '👧', '🐱'], // 🆕 already bought 🐱
+      coins: 9999,
+      wordsFound: 125, // ยศ 👑 Legend (100+)
+      foundWordsList: [
+        'APPLE', 'MANGO', 'TIGER', 'SMART', 'GHOST', 'PLANT', 'WATER', 'CHAIR',
+        'TABLE', 'BREAD', 'GRAPE', 'LEMON', 'MONEY', 'SUGAR', 'SMILE', 'SLEEP',
+        'BRAIN', 'HEART', 'HOUSE', 'TRAIN', 'LIGHT', 'NIGHT', 'DREAM', 'MAGIC'
+      ],
+      currentThemeId: 'neon',
+      ownedThemeIds: ['classic', 'pastel', 'dark', 'neon'], // มีทุกธีม
+      gamesPlayed: 150,
+      gamesWon: 125,
+      currentStreak: 42,
+      maxStreak: 55,
+      guessDistribution: [5, 15, 45, 30, 20, 10], // กราฟแบบโค้งระฆังคว่ำสวยๆ
+      avatarEmoji: '🦄',
+      ownedAvatars: ['🧑', '👧', '🐱', '🐶', '🤖', '👽', '👑', '🦄'], // มีทุกอวาตาร์
+      isSoundEnabled: true,
+      isVibrationEnabled: true,
     ),
 
-    // 2. ยูสเซอร์ b: เพิ่งเริ่มเล่น
+    // 🎯 2. User: demo (สายจัดฉาก - รอโชว์ฟีเจอร์ Flashcard ให้อาจารย์ดู)
+    // เอาไว้โชว์: เล่นชนะ 1 ตา แล้วมันจะครบ 15 คำพอดี เพื่อโชว์ Popup Unlocked Flashcard!
     User(
       username: 'b',
       password: 'b',
-      coins: 50,
-      wordsFound: 5,
-      foundWordsList: ['BLACK', 'WHITE', 'GREEN', 'BLUES', 'BROWN'],
-      gamesPlayed: 10,
-      gamesWon: 5,
-      currentStreak: 1,
-      maxStreak: 3,
-      guessDistribution: [0, 0, 1, 2, 1, 1],
+      coins: 140,
+      wordsFound: 14, // ขาดอีกแค่ 1 คำจะครบ 15 (เพื่อปลดล็อค Flashcard)
+      foundWordsList: [
+        'BLACK', 'WHITE', 'GREEN', 'BLUES', 'BROWN', 'CLEAN', 'DIRTY',
+        'HAPPY', 'SADLY', 'QUICK', 'SLOWS', 'BRAVE', 'COWARD', 'PROUD'
+      ],
+      currentThemeId: 'pastel',
+      ownedThemeIds: ['classic', 'pastel'],
+      gamesPlayed: 18,
+      gamesWon: 14,
+      currentStreak: 3,
+      maxStreak: 8,
+      guessDistribution: [0, 1, 4, 5, 3, 1],
+      avatarEmoji: '🐱',
+      ownedAvatars: ['🧑', '👧', '🐱'],
     ),
 
-    // 3. ยูสเซอร์ c: มือใหม่แกะกล่อง
-    User(username: 'c', password: 'c', coins: 0, wordsFound: 0),
+    // 🛍️ 3. User: shop (สายเปย์ - เอาไว้โชว์ระบบร้านค้า)
+    // เอาไว้โชว์: กดเข้า Avatar Shop แล้วกดซื้อของให้ดูว่าเงินลด และเปลี่ยนรูปได้
+    User(
+      username: 'c',
+      password: 'c',
+      coins: 1000, // เงินเยอะแต่ยังไม่ค่อยได้ซื้อ
+      wordsFound: 35, // ยศ 🎓 Scholar
+      foundWordsList: List.generate(35, (index) => 'WORD$index'), // mock คำศัพท์ง่ายๆ
+      currentThemeId: 'classic',
+      ownedThemeIds: ['classic'],
+      gamesPlayed: 40,
+      gamesWon: 35,
+      currentStreak: 12,
+      maxStreak: 15,
+      guessDistribution: [1, 4, 10, 12, 5, 3],
+      avatarEmoji: '🧑',
+      ownedAvatars: ['🧑', '👧'], // มีแค่ของฟรีรอซื้อเพิ่ม
+    ),
 
-    // 4. ยูสเซอร์ d: เซียนเกม Wordle (ยศ Word Master)
+    // 🌱 4. User: new (สายเริ่มต้น - ผู้เล่นใหม่แกะกล่อง)
+    // เอาไว้โชว์: หน้าตาแอปตอนเริ่มต้นเล่นครั้งแรก สถิติเป็น 0 หมด
     User(
       username: 'd',
       password: 'd',
-      coins: 1500,
-      wordsFound: 75,
-      gamesPlayed: 80,
-      gamesWon: 75,
-      currentStreak: 20,
-      maxStreak: 35,
-      guessDistribution: [5, 10, 30, 20, 5, 5],
-      currentThemeId: 'dark',
-      ownedThemeIds: ['classic', 'dark', 'neon'],
-      avatarEmoji: '👑',
-      ownedAvatars: ['🧑', '👧', '🐱', '🐶', '🤖', '👽', '👑'], // 🆕 bought everything
+      coins: 0,
+      wordsFound: 0,
+      foundWordsList: [],
+      currentThemeId: 'classic',
+      ownedThemeIds: ['classic'],
+      gamesPlayed: 0,
+      gamesWon: 0,
+      currentStreak: 0,
+      maxStreak: 0,
+      guessDistribution: [0, 0, 0, 0, 0, 0],
+      avatarEmoji: '🧑',
+      ownedAvatars: ['🧑', '👧'],
     ),
   ];
 

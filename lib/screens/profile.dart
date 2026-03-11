@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/mock_data.dart';
 import '../services/audio_helper.dart';
 import '../theme/theme_data.dart';
+import 'login.dart'; // Add this line! (adjust path if your login.dart is elsewhere)
+import '../components/custom_3d_buttton.dart';
 
 class ProfilePage extends StatefulWidget {
   final User currentUser;
@@ -76,7 +78,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     return Colors.amber.shade400;
   }
 
-  // ── Settings bottom sheet (called from AppBar in home.dart) ──────────────
+// ── Settings bottom sheet (called from AppBar in home.dart) ──────────────
 
   void showSettings(GameTheme theme) {
     showModalBottomSheet(
@@ -111,131 +113,70 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                             color: theme.textColor)),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
-                // Sound toggle
-                GestureDetector(
-                  onTap: () {
-                    setState(() => widget.currentUser.isSoundEnabled =
-                    !widget.currentUser.isSoundEnabled);
+                // Sound toggle 3D Button
+                Custom3DButton(
+                  text: widget.currentUser.isSoundEnabled ? '🔊 SOUND: ON' : '🔇 SOUND: OFF',
+                  backgroundColor: widget.currentUser.isSoundEnabled ? theme.correct : Colors.grey.shade400,
+                  shadowColor: widget.currentUser.isSoundEnabled ? Colors.green.shade700 : Colors.grey.shade600,
+                  onPressed: () {
+                    // Play sound BEFORE turning it off, or play sound if turning it back on
+                    if (widget.currentUser.isSoundEnabled) {
+                       // Replace with your exact audio helper method
+                       // AudioHelper.playTapSound();
+                    }
+
+                    setState(() => widget.currentUser.isSoundEnabled = !widget.currentUser.isSoundEnabled);
                     setModalState(() {});
                     widget.currentUser.saveData();
+
+                    // If they just turned it on, play a sound to confirm
+                    if (widget.currentUser.isSoundEnabled) {
+                       // Replace with your exact audio helper method
+                       // AudioHelper.playTapSound();
+                    }
                   },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: widget.currentUser.isSoundEnabled
-                          ? theme.correct.withOpacity(0.12)
-                          : theme.textColor.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: widget.currentUser.isSoundEnabled
-                            ? theme.correct.withOpacity(0.4)
-                            : theme.textColor.withOpacity(0.12),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          widget.currentUser.isSoundEnabled
-                              ? Icons.volume_up_rounded
-                              : Icons.volume_off_rounded,
-                          color: widget.currentUser.isSoundEnabled
-                              ? theme.correct
-                              : theme.textColor.withOpacity(0.4),
-                          size: 22,
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Text("Sound Effects",
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.textColor)),
-                        ),
-                        // Toggle pill
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          width: 48, height: 26,
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: widget.currentUser.isSoundEnabled
-                                ? theme.correct
-                                : theme.textColor.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(13),
-                          ),
-                          child: AnimatedAlign(
-                            duration: const Duration(milliseconds: 250),
-                            alignment: widget.currentUser.isSoundEnabled
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
-                            child: Container(
-                              width: 20, height: 20,
-                              decoration: const BoxDecoration(
-                                  color: Colors.white, shape: BoxShape.circle),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
+                const SizedBox(height: 16),
 
-                const SizedBox(height: 12),
+                // Vibration toggle 3D Button
+                Custom3DButton(
+                  text: widget.currentUser.isVibrationEnabled ? '📳 VIBRATION: ON' : '📴 VIBRATION: OFF',
+                  backgroundColor: widget.currentUser.isVibrationEnabled ? theme.correct : Colors.grey.shade400,
+                  shadowColor: widget.currentUser.isVibrationEnabled ? Colors.green.shade700 : Colors.grey.shade600,
+                  onPressed: () {
+                    // 🎵 ADD SOUND EFFECT HERE
+                    if (widget.currentUser.isSoundEnabled) {
+                       // AudioHelper.playTapSound();
+                    }
 
-// Vibration toggle (เพิ่มใหม่)
-                GestureDetector(
-                  onTap: () {
                     setState(() => widget.currentUser.isVibrationEnabled = !widget.currentUser.isVibrationEnabled);
                     setModalState(() {});
                     widget.currentUser.saveData();
-                    AppFeedback.triggerHaptic(widget.currentUser); // สั่นทดสอบตอนกดเปิด/ปิด
+                    AppFeedback.triggerHaptic(widget.currentUser);
                   },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: widget.currentUser.isVibrationEnabled
-                          ? theme.correct.withOpacity(0.12)
-                          : theme.textColor.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: widget.currentUser.isVibrationEnabled
-                            ? theme.correct.withOpacity(0.4)
-                            : theme.textColor.withOpacity(0.12),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.vibration_rounded,
-                          color: widget.currentUser.isVibrationEnabled ? theme.correct : theme.textColor.withOpacity(0.4),
-                          size: 22,
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Text("Vibration Feedback",
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: theme.textColor)),
-                        ),
-                        // Toggle pill
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          width: 48, height: 26,
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: widget.currentUser.isVibrationEnabled ? theme.correct : theme.textColor.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(13),
-                          ),
-                          child: AnimatedAlign(
-                            duration: const Duration(milliseconds: 250),
-                            alignment: widget.currentUser.isVibrationEnabled ? Alignment.centerRight : Alignment.centerLeft,
-                            child: Container(width: 20, height: 20, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // LOGOUT 3D BUTTON
+                Custom3DButton(
+                  text: 'LOG OUT',
+                  backgroundColor: Colors.redAccent,
+                  shadowColor: Colors.red.shade700,
+                  onPressed: () {
+                    // 🎵 ADD SOUND EFFECT HERE
+                    if (widget.currentUser.isSoundEnabled) {
+                       // AudioHelper.playTapSound();
+                    }
+
+                    Navigator.pop(context);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                      (Route<dynamic> route) => false,
+                    );
+                  },
                 ),
               ],
             ),
@@ -462,6 +403,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             behavior: SnackBarBehavior.floating),
       );
     } else {
+      AppFeedback.triggerHaptic(widget.currentUser); // ✅ เพิ่มบรรทัดนี้ (สั่นเตือน)
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

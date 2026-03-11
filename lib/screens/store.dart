@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/mock_data.dart';
 import '../theme/theme_data.dart';
+import '../services/audio_helper.dart'; // ✅ เพิ่มบรรทัดนี้เพื่อให้เรียกใช้ AppFeedback ได้
 
 class StorePage extends StatefulWidget {
   final User currentUser;
@@ -113,6 +114,7 @@ class _StorePageState extends State<StorePage> {
       );
     } else {
       // เงินไม่พอ
+      AppFeedback.triggerHaptic(widget.currentUser); // ✅ เพิ่มบรรทัดนี้ (สั่นเตือน)
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -136,9 +138,9 @@ class _StorePageState extends State<StorePage> {
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
           child: Center(
             child: Text(
-              "Color Themes 🎨",
+              "COLOR THEMES",
               style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: currentAppTheme.textColor
               ),

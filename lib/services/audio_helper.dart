@@ -50,6 +50,12 @@ class AppFeedback {
   static void playCash(User user) {
     _playSound('buy.mp3', user.isSoundEnabled);
   }
+  static void playCorrect(User user) {
+    _playSound('correct.mp3', user.isSoundEnabled);
+  }
+    static void playWrong(User user) {
+    _playSound('wrong.mp3', user.isSoundEnabled);
+  }
   // การสั่นมาตรฐาน
   static void triggerHaptic(User user) {
     if (user.isVibrationEnabled) {

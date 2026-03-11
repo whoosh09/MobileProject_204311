@@ -29,14 +29,20 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   @override
   void initState() {
     super.initState();
+    // แอนิเมชันหัวใจเต้นตรง Avatar
     _pulseController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
     _pulseAnim = Tween<double>(begin: 0.9, end: 1.05).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
+    // แอนิเมชันหลอด Progress
     _barController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
     _barAnim = CurvedAnimation(parent: _barController, curve: Curves.easeOutCubic);
+
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) _barController.forward();
     });
+
+    // 🆕 ตรวจสอบการปลดล็อกฉายาใหม่ทันทีที่เข้าหน้า Profile
+    _checkAndUnlockRanks();
   }
 
   @override
@@ -46,6 +52,81 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     super.dispose();
   }
 
+  void _checkAndUnlockRanks() {
+    // rank ทั้งหมดที่ควรได้ตาม wordsFound
+    final allRanks = ["🌱 Novice", "📖 Bookworm", "🎓 Scholar", "🧙‍♂️ Word Master", "👑 Legend"];
+    final thresholds = [0, 10, 30, 50, 100];
+
+    bool changed = false;
+    for (int i = 0; i < allRanks.length; i++) {
+      if (widget.currentUser.wordsFound >= thresholds[i] &&
+          !widget.currentUser.unlockedRanks.contains(allRanks[i])) {
+        widget.currentUser.unlockedRanks.add(allRanks[i]);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      Future.microtask(() {
+        setState(() {});
+        widget.currentUser.saveData();
+      });
+    }
+  }
+
+  // 🆕 หน้าต่างเลือกฉายา (แก้ไข Scope ให้อยู่นอก build)
+  void _showRankPicker(GameTheme theme) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.backgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "SELECT YOUR TITLE",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: theme.textColor, letterSpacing: 1.2),
+              ),
+              const SizedBox(height: 20),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: widget.currentUser.unlockedRanks.map((title) {
+                    bool isSelected = widget.currentUser.selectedRankTitle == title;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? theme.correct.withOpacity(0.1) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        leading: Text(title.split(' ')[0], style: const TextStyle(fontSize: 22)),
+                        title: Text(
+                          title.split(' ')[1],
+                          style: TextStyle(color: theme.textColor, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+                        ),
+                        trailing: isSelected ? Icon(Icons.check_circle, color: theme.correct) : null,
+                        onTap: () {
+                          setState(() => widget.currentUser.selectedRankTitle = title);
+                          widget.currentUser.saveData();
+                          Navigator.pop(context);
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Logic การคำนวณ Rank
   String getRankTitle(int words) {
     if (words < 10) return "🌱 Novice";
     if (words < 30) return "📖 Bookworm";
@@ -71,22 +152,20 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   }
 
   Color _rankColor(GameTheme theme) {
-    int w = widget.currentUser.wordsFound;
-    if (w < 10) return Colors.green.shade400;
-    if (w < 30) return Colors.blue.shade400;
-    if (w < 50) return Colors.purple.shade400;
-    if (w < 100) return Colors.orange.shade400;
-    return Colors.amber.shade400;
+    final title = widget.currentUser.selectedRankTitle;
+    if (title.contains("Novice")) return Colors.green.shade400;
+    if (title.contains("Bookworm")) return Colors.blue.shade400;
+    if (title.contains("Scholar")) return Colors.purple.shade400;
+    if (title.contains("Word Master")) return Colors.orange.shade400;
+    return Colors.amber.shade400; // Legend
   }
 
-// ── Settings bottom sheet (called from AppBar in home.dart) ──────────────
-
+  // Settings Bottom Sheet
   void showSettings(GameTheme theme) {
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.backgroundColor,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) {
         return StatefulBuilder(builder: (context, setModalState) {
           return Padding(
@@ -94,29 +173,16 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(
-                      color: theme.textColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(2)),
-                ),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: theme.textColor.withOpacity(0.2), borderRadius: BorderRadius.circular(2))),
                 const SizedBox(height: 20),
                 Row(
                   children: [
                     Icon(Icons.settings_rounded, color: theme.correct),
                     const SizedBox(width: 8),
-                    Text("SETTINGS",
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'monospace',
-                            letterSpacing: 1.5,
-                            color: theme.textColor)),
+                    Text("SETTINGS", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'monospace', letterSpacing: 1.5, color: theme.textColor)),
                   ],
                 ),
                 const SizedBox(height: 24),
-
-                // --- 1. Sound toggle (3D Button) ---
                 SizedBox(
                   width: double.infinity,
                   height: 55,
@@ -133,8 +199,6 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // --- 2. Vibration toggle (3D Button) ---
                 SizedBox(
                   width: double.infinity,
                   height: 55,
@@ -150,12 +214,9 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                     },
                   ),
                 ),
-
                 const SizedBox(height: 24),
                 Divider(color: theme.textColor.withOpacity(0.1)),
                 const SizedBox(height: 12),
-
-                // --- 3. LOGOUT BUTTON (3D Button) ---
                 SizedBox(
                   width: double.infinity,
                   height: 55,
@@ -165,8 +226,8 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                     shadowColor: Colors.red.shade800,
                     onPressed: () {
                       AppFeedback.playClick(widget.currentUser);
-                      Navigator.pop(context); // ปิด BottomSheet ก่อน
-                      _showLogoutConfirmDialog(theme); // เปิดหน้าต่างยืนยัน
+                      Navigator.pop(context);
+                      _showLogoutConfirmDialog(theme);
                     },
                   ),
                 ),
@@ -178,52 +239,6 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
-  // --- ฟังก์ชันช่วยสร้าง UI Toggle ---
-  Widget _buildSettingToggle({
-    required IconData icon,
-    required String label,
-    required bool value,
-    required GameTheme theme,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        decoration: BoxDecoration(
-          color: value ? theme.correct.withOpacity(0.12) : theme.textColor.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: value ? theme.correct.withOpacity(0.4) : theme.textColor.withOpacity(0.12)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: value ? theme.correct : theme.textColor.withOpacity(0.4), size: 22),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: theme.textColor)),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              width: 48, height: 26,
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: value ? theme.correct : theme.textColor.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 250),
-                alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-                child: Container(width: 20, height: 20, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-// --- หน้าต่างยืนยันการ Logout ---
   void _showLogoutConfirmDialog(GameTheme theme) {
     showDialog(
       context: context,
@@ -234,32 +249,25 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              "Are you sure you want to sign out of your account?",
-              style: TextStyle(color: theme.textColor.withOpacity(0.7)),
-            ),
+            Text("Are you sure you want to sign out of your account?", style: TextStyle(color: theme.textColor.withOpacity(0.7))),
             const SizedBox(height: 30),
             Row(
               children: [
                 Expanded(
-                  flex: 1,
                   child: Custom3DButton(
                     text: "LOGOUT",
                     backgroundColor: Colors.redAccent,
                     shadowColor: Colors.red.shade800,
                     onPressed: () async {
-                      // 🆕 ลบความจำเมื่อผู้เล่นกดออกจากระบบ
                       final prefs = await SharedPreferences.getInstance();
                       await prefs.remove('loggedInUser');
-
                       if (!context.mounted) return;
-                      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                      Navigator.of(context).pushNamedAndRemoveUntil('/splash', (route) => false);
                     },
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  flex: 1,
                   child: Custom3DButton(
                     text: "CANCEL",
                     backgroundColor: Colors.grey.shade400,
@@ -271,146 +279,102 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             ),
           ],
         ),
-        actions: const [], // ปล่อยว่างไว้เพราะเราย้ายปุ่มไปอยู่ใน content แทนเพื่อให้จัด Layout 3D ง่ายขึ้น
       ),
     );
   }
 
-  // ── Avatar shop ───────────────────────────────────────────────────────────
-
   void _showAvatarShop(GameTheme theme) {
+    // รายการ Avatar
     final avatars = [
-      {'emoji': '🧑', 'price': 0},
-      {'emoji': '👧', 'price': 0},
-      {'emoji': '🐱', 'price': 50},
-      {'emoji': '🐶', 'price': 50},
-      {'emoji': '🤖', 'price': 100},
-      {'emoji': '👽', 'price': 100},
-      {'emoji': '👑', 'price': 200},
-      {'emoji': '🦄', 'price': 300},
+      {'emoji': '🦆', 'price': 0}, {'emoji': '🐔', 'price': 0},
+      {'emoji': '🥷🏿', 'price': 10}, {'emoji': '🐧', 'price': 50},
+      {'emoji': '🍁', 'price': 50}, {'emoji': '🦋', 'price': 50},
+      {'emoji': '🐼', 'price': 50}, {'emoji': '🦖', 'price': 100},
+      {'emoji': '👽', 'price': 100}, {'emoji': '🪼', 'price': 100},
+      {'emoji': '🦚', 'price': 100}, {'emoji': '👑', 'price': 250},
+      {'emoji': '🌈', 'price': 250}, {'emoji': '🔱', 'price': 250},
+      {'emoji': '🐦‍🔥', 'price': 250}, {'emoji': '🦄', 'price': 500},
+      {'emoji': '🌟', 'price': 500}, {'emoji': '🫧', 'price': 500},
+      {'emoji': '🎮', 'price': 500},
     ];
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: theme.backgroundColor,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) {
         return StatefulBuilder(builder: (context, setModalState) {
-          return Padding(
-            padding: const EdgeInsets.all(24),
+          return Container(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+            padding: const EdgeInsets.only(top: 24, left: 24, right: 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                    width: 40, height: 4,
-                    decoration: BoxDecoration(
-                        color: theme.textColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(2))),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: theme.textColor.withOpacity(0.2), borderRadius: BorderRadius.circular(2))),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Icon(Icons.storefront_rounded, color: theme.correct),
                     const SizedBox(width: 8),
-                    Text("Avatar Shop",
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: theme.textColor,
-                            fontFamily: 'monospace')),
+                    Text("Avatar Shop", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.textColor, fontFamily: 'monospace')),
                     const Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [Colors.amber.shade600, Colors.orange.shade400]),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text("💰", style: TextStyle(fontSize: 14)),
-                          const SizedBox(width: 4),
-                          Text("${widget.currentUser.coins}",
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14)),
-                        ],
-                      ),
+                      decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.amber.shade600, Colors.orange.shade400]), borderRadius: BorderRadius.circular(20)),
+                      child: Text("💰 ${widget.currentUser.coins}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: avatars.map((av) {
-                    final String emoji = av['emoji'] as String;
-                    final int price = av['price'] as int;
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0),
+                      child: Wrap(
+                        spacing: 12, runSpacing: 12, alignment: WrapAlignment.center,
+                        children: avatars.map((av) {
+                          final emoji = av['emoji'] as String;
+                          final price = av['price'] as int;
+                          final bool isOwned = price == 0 || widget.currentUser.ownedAvatars.contains(emoji);
+                          final bool isEquipped = widget.currentUser.avatarEmoji == emoji;
 
-                    final bool isOwned = price == 0 ||
-                        widget.currentUser.ownedAvatars.contains(emoji);
-                    final bool isEquipped = widget.currentUser.avatarEmoji == emoji;
-
-                    return GestureDetector(
-                      onTap: () {
-                        if (isOwned) {
-                          setState(() => widget.currentUser.avatarEmoji = emoji);
-                          setModalState(() {});
-                          widget.currentUser.saveData();
-                          widget.onProfileUpdate();
-                        } else {
-                          _showConfirmAvatarDialog(av, theme, setModalState);
-                        }
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isEquipped
-                              ? theme.correct.withOpacity(0.15)
-                              : theme.textColor.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isEquipped
-                                ? theme.correct
-                                : theme.textColor.withOpacity(0.15),
-                            width: isEquipped ? 2.5 : 1,
-                          ),
-                          boxShadow: isEquipped
-                              ? [BoxShadow(color: theme.correct.withOpacity(0.3), blurRadius: 12)]
-                              : null,
-                        ),
-                        child: Column(
-                          children: [
-                            Text(emoji, style: const TextStyle(fontSize: 36)),
-                            const SizedBox(height: 6),
-                            isOwned
-                                ? Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          return GestureDetector(
+                            onTap: () {
+                              if (isOwned) {
+                                setState(() => widget.currentUser.avatarEmoji = emoji);
+                                setModalState(() {});
+                                widget.currentUser.saveData();
+                                widget.onProfileUpdate();
+                              } else {
+                                _showConfirmAvatarDialog(av, theme, setModalState);
+                              }
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                  color: theme.correct.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(8)),
-                              child: Text(
-                                isEquipped ? "EQUIPPED" : "OWNED",
-                                style: TextStyle(
-                                    fontSize: 10,
-                                    color: theme.correct,
-                                    fontWeight: FontWeight.bold),
+                                color: isEquipped ? theme.correct.withOpacity(0.15) : theme.textColor.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: isEquipped ? theme.correct : theme.textColor.withOpacity(0.15), width: isEquipped ? 2.5 : 1),
                               ),
-                            )
-                                : Text("💰 $price",
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.orange,
-                                    fontWeight: FontWeight.bold)),
-                          ],
-                        ),
+                              child: Column(
+                                children: [
+                                  Text(emoji, style: const TextStyle(fontSize: 36)),
+                                  const SizedBox(height: 6),
+                                  isOwned
+                                      ? Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: theme.correct.withOpacity(0.2), borderRadius: BorderRadius.circular(8)), child: Text(isEquipped ? "EQUIPPED" : "OWNED", style: TextStyle(fontSize: 10, color: theme.correct, fontWeight: FontWeight.bold)))
+                                      : Text("💰 $price", style: const TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 8),
               ],
             ),
           );
@@ -419,46 +383,25 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
-  void _showConfirmAvatarDialog(
-      Map<String, Object> av, GameTheme theme, StateSetter setModalState) {
+  void _showConfirmAvatarDialog(Map<String, Object> av, GameTheme theme, StateSetter setModalState) {
     final int price = av['price'] as int;
     final String emoji = av['emoji'] as String;
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: theme.backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.shopping_bag_rounded, color: Colors.amber, size: 28),
-            const SizedBox(width: 10),
-            Text("Confirm Purchase",
-                style: TextStyle(
-                    color: theme.textColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18)),
-          ],
-        ),
-        content: Text("Buy avatar '$emoji' for $price coins?",
-            style: TextStyle(color: theme.textColor.withOpacity(0.8))),
+        title: Text("Confirm Purchase", style: TextStyle(color: theme.textColor, fontWeight: FontWeight.bold)),
+        content: Text("Buy avatar '$emoji' for $price coins?", style: TextStyle(color: theme.textColor.withOpacity(0.8))),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel",
-                style: TextStyle(color: theme.textColor.withOpacity(0.5))),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: theme.correct,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10))),
+            style: ElevatedButton.styleFrom(backgroundColor: theme.correct),
             onPressed: () {
               Navigator.pop(context);
               _processAvatarPurchase(emoji, price, setModalState);
             },
-            child: const Text("Buy!",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text("Buy!", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -467,39 +410,126 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
   void _processAvatarPurchase(String emoji, int price, StateSetter setModalState) {
     if (widget.currentUser.coins >= price) {
-
-      // 🆕 เพิ่มเสียง ชิ้ง! ตอนกดซื้ออวาตาร์สำเร็จ
       AppFeedback.playCash(widget.currentUser);
-
       setState(() {
         widget.currentUser.coins -= price;
         widget.currentUser.ownedAvatars.add(emoji);
         widget.currentUser.avatarEmoji = emoji;
       });
-
       widget.currentUser.saveData();
       setModalState(() {});
       widget.onProfileUpdate();
-
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("Avatar Unlocked! ✨"),
-            backgroundColor: Colors.green,
-            duration: Duration(milliseconds: 1200),
-            behavior: SnackBarBehavior.floating),
-      );
-    } else {
-      AppFeedback.triggerHaptic(widget.currentUser);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("Not enough coins! 💰"),
-            backgroundColor: Colors.redAccent,
-            duration: Duration(milliseconds: 1200),
-            behavior: SnackBarBehavior.floating),
-      );
     }
+  }
+  void _showEditUsernameDialog(GameTheme theme) {
+    final controller = TextEditingController(text: widget.currentUser.username);
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.backgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.edit_rounded, color: theme.correct, size: 20),
+            const SizedBox(width: 8),
+            Text("Edit Username", style: TextStyle(color: theme.textColor, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // แสดงราคา
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.amber.withOpacity(0.4)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("💰", style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Cost: 100 coins  (You have: ${widget.currentUser.coins})",
+                      style: TextStyle(fontSize: 12, color: theme.textColor.withOpacity(0.7)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: controller,
+                style: TextStyle(color: theme.textColor, fontWeight: FontWeight.bold),
+                maxLength: 12,
+                decoration: InputDecoration(
+                  hintText: "New username",
+                  hintStyle: TextStyle(color: theme.textColor.withOpacity(0.3)),
+                  counterStyle: TextStyle(color: theme.textColor.withOpacity(0.4)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.textColor.withOpacity(0.2)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.correct),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.redAccent),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.redAccent),
+                  ),
+                ),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return "Please enter a username";
+                  if (val.trim().length < 3) return "At least 3 characters";
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel", style: TextStyle(color: theme.textColor.withOpacity(0.5))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: widget.currentUser.coins >= 100 ? theme.correct : Colors.grey,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              if (widget.currentUser.coins < 100) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Not enough coins! 💸"), backgroundColor: Colors.redAccent),
+                );
+                return;
+              }
+              if (formKey.currentState!.validate()) {
+                setState(() {
+                  widget.currentUser.username = controller.text.trim(); // ⚠️ ต้องเปลี่ยน username เป็น non-final ก่อน
+                  widget.currentUser.coins -= 100;
+                });
+                widget.currentUser.saveData();
+                widget.onProfileUpdate();
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Confirm  💰100", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -507,33 +537,18 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     final theme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
     final isDark = theme.brightness == Brightness.dark;
     final rankColor = _rankColor(theme);
-
-    int winRate = widget.currentUser.gamesPlayed > 0
-        ? ((widget.currentUser.gamesWon / widget.currentUser.gamesPlayed) * 100).round()
-        : 0;
-
+    int winRate = widget.currentUser.gamesPlayed > 0 ? ((widget.currentUser.gamesWon / widget.currentUser.gamesPlayed) * 100).round() : 0;
     int maxCount = widget.currentUser.guessDistribution.reduce((a, b) => a > b ? a : b);
     if (maxCount == 0) maxCount = 1;
 
     return ListView(
       padding: EdgeInsets.zero,
       children: [
-        // ── HERO HEADER ───────────────────────────────────────────────
         Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                rankColor.withOpacity(isDark ? 0.35 : 0.2),
-                theme.backgroundColor,
-              ],
-            ),
-          ),
+          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [rankColor.withOpacity(isDark ? 0.35 : 0.2), theme.backgroundColor])),
           padding: const EdgeInsets.fromLTRB(20, 52, 20, 28),
           child: Column(
             children: [
-              // Avatar
               ScaleTransition(
                 scale: _pulseAnim,
                 child: GestureDetector(
@@ -542,84 +557,60 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                     alignment: Alignment.bottomRight,
                     children: [
                       Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(colors: [
-                            rankColor.withOpacity(0.4),
-                            rankColor.withOpacity(0.05)
-                          ]),
-                          border: Border.all(color: rankColor, width: 3),
-                          boxShadow: [BoxShadow(color: rankColor.withOpacity(0.5), blurRadius: 20)],
-                        ),
-                        child: Center(
-                          child: Text(widget.currentUser.avatarEmoji,
-                              style: const TextStyle(fontSize: 52)),
-                        ),
+                        width: 100, height: 100,
+                        decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [rankColor.withOpacity(0.4), rankColor.withOpacity(0.05)]), border: Border.all(color: rankColor, width: 3), boxShadow: [BoxShadow(color: rankColor.withOpacity(0.5), blurRadius: 20)]),
+                        child: Center(child: Text(widget.currentUser.avatarEmoji, style: const TextStyle(fontSize: 52))),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: theme.correct,
-                          shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: theme.correct.withOpacity(0.5), blurRadius: 8)],
-                        ),
-                        child: const Icon(Icons.edit_rounded, color: Colors.white, size: 14),
-                      ),
+                      Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: theme.correct, shape: BoxShape.circle), child: const Icon(Icons.edit_rounded, color: Colors.white, size: 14)),
                     ],
                   ),
                 ),
               ),
-
               const SizedBox(height: 14),
-
-              Text(
-                widget.currentUser.username.toUpperCase(),
-                style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    color: theme.textColor,
-                    fontFamily: 'monospace',
-                    letterSpacing: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.currentUser.username.toUpperCase(),
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace', letterSpacing: 2),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _showEditUsernameDialog(theme),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: rankColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                      child: Icon(Icons.edit_rounded, size: 16, color: rankColor),
+                    ),
+                  ),
+                ],
               ),
-
               const SizedBox(height: 6),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                decoration: BoxDecoration(
-                  color: rankColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: rankColor.withOpacity(0.4)),
-                ),
-                child: Text(
-                  getRankTitle(widget.currentUser.wordsFound),
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: rankColor),
+              // 🆕 ส่วนแสดงฉายาที่กดเลือกได้ (แก้ไข UI ใหม่)
+              GestureDetector(
+                onTap: () => _showRankPicker(theme),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  decoration: BoxDecoration(color: rankColor.withOpacity(0.15), borderRadius: BorderRadius.circular(20), border: Border.all(color: rankColor.withOpacity(0.4))),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(widget.currentUser.selectedRankTitle, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: rankColor)),
+                      const SizedBox(width: 4),
+                      Icon(Icons.unfold_more_rounded, size: 14, color: rankColor),
+                    ],
+                  ),
                 ),
               ),
-
               const SizedBox(height: 18),
-
-              // XP bar
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                          "Progress to ${getRankNext(widget.currentUser.wordsFound)}",
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: theme.textColor.withOpacity(0.5),
-                              fontFamily: 'monospace')),
-                      Text("${widget.currentUser.wordsFound} words",
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: rankColor,
-                              fontFamily: 'monospace',
-                              fontWeight: FontWeight.bold)),
+                      Text("Progress to ${getRankNext(widget.currentUser.wordsFound)}", style: TextStyle(fontSize: 11, color: theme.textColor.withOpacity(0.5), fontFamily: 'monospace')),
+                      Text("${widget.currentUser.wordsFound} words", style: TextStyle(fontSize: 11, color: rankColor, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -632,14 +623,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                           animation: _barAnim,
                           builder: (_, __) => FractionallySizedBox(
                             widthFactor: getProgressToNextRank(widget.currentUser.wordsFound) * _barAnim.value,
-                            child: Container(
-                              height: 12,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                    colors: [rankColor.withOpacity(0.7), rankColor]),
-                                boxShadow: [BoxShadow(color: rankColor.withOpacity(0.6), blurRadius: 6)],
-                              ),
-                            ),
+                            child: Container(height: 12, decoration: BoxDecoration(gradient: LinearGradient(colors: [rankColor.withOpacity(0.7), rankColor]), boxShadow: [BoxShadow(color: rankColor.withOpacity(0.6), blurRadius: 6)])),
                           ),
                         ),
                       ],
@@ -650,8 +634,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             ],
           ),
         ),
-
-        // ── STATISTICS ────────────────────────────────────────────────
+        // Statistics & Distribution
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
           child: Column(
@@ -677,8 +660,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             ],
           ),
         ),
-
-        // ── GUESS DISTRIBUTION ────────────────────────────────────────
+        // Guess Distribution
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
           child: Column(
@@ -689,100 +671,40 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
               ...List.generate(6, (index) {
                 int count = widget.currentUser.guessDistribution[index];
                 double widthFactor = count / maxCount;
-
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Row(
                     children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: count > 0 ? theme.correct.withOpacity(0.15) : theme.textColor.withOpacity(0.06),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                              color: count > 0
-                                  ? theme.correct.withOpacity(0.4)
-                                  : theme.textColor.withOpacity(0.1)),
-                        ),
-                        child: Center(
-                          child: Text("${index + 1}",
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'monospace',
-                                  color: count > 0
-                                      ? theme.correct
-                                      : theme.textColor.withOpacity(0.3))),
-                        ),
-                      ),
+                      Container(width: 28, height: 28, decoration: BoxDecoration(color: count > 0 ? theme.correct.withOpacity(0.15) : theme.textColor.withOpacity(0.06), borderRadius: BorderRadius.circular(6)), child: Center(child: Text("${index + 1}", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: count > 0 ? theme.correct : theme.textColor.withOpacity(0.3))))),
                       const SizedBox(width: 10),
                       Expanded(
                         child: AnimatedBuilder(
                           animation: _barAnim,
-                          builder: (_, __) {
-                            double animatedFactor = widthFactor * _barAnim.value;
-                            return LayoutBuilder(builder: (ctx, constraints) {
-                              double fullWidth = constraints.maxWidth;
-                              double barWidth = count > 0
-                                  ? (animatedFactor * fullWidth).clamp(36.0, fullWidth)
-                                  : 36.0 * _barAnim.value.clamp(0.0, 1.0);
-                              return Stack(
-                                children: [
-                                  Container(
-                                    height: 28,
-                                    decoration: BoxDecoration(
-                                        color: theme.textColor.withOpacity(0.05),
-                                        borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  if (count > 0)
-                                    Container(
-                                      width: barWidth,
-                                      height: 28,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(colors: [
-                                          theme.correct.withOpacity(0.7),
-                                          theme.correct
-                                        ]),
-                                        borderRadius: BorderRadius.circular(8),
-                                        boxShadow: [BoxShadow(color: theme.correct.withOpacity(0.35), blurRadius: 6, offset: const Offset(0, 2))],
-                                      ),
-                                    ),
-                                  Positioned.fill(
+                          builder: (_, __) => LayoutBuilder(builder: (ctx, constraints) {
+                            double barWidth = count > 0 ? (widthFactor * _barAnim.value * constraints.maxWidth).clamp(36.0, constraints.maxWidth) : 36.0;
+                            return Stack(
+                              children: [
+                                Container(height: 28, decoration: BoxDecoration(color: theme.textColor.withOpacity(0.05), borderRadius: BorderRadius.circular(8))),
+                                if (count > 0) Container(width: barWidth, height: 28, decoration: BoxDecoration(gradient: LinearGradient(colors: [theme.correct.withOpacity(0.7), theme.correct]), borderRadius: BorderRadius.circular(8))),
+                                Positioned.fill(
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            children: List.generate(6, (i) => Container(
-                                              margin: const EdgeInsets.only(right: 2),
-                                              width: 5,
-                                              height: 14,
-                                              decoration: BoxDecoration(
-                                                color: i < (index + 1)
-                                                    ? Colors.white.withOpacity(count > 0 ? 0.5 : 0.15)
-                                                    : Colors.white.withOpacity(0.08),
-                                                borderRadius: BorderRadius.circular(1),
-                                              ),
-                                            )),
-                                          ),
-                                          Text("$count",
-                                              style: TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'monospace',
-                                                  color: count > 0
-                                                      ? Colors.white
-                                                      : theme.textColor.withOpacity(0.25))),
-                                        ],
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: Text(
+                                        "$count",
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark ? Colors.white70 : Colors.black87,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ],
-                              );
-                            });
-                          },
+                                ),
+                              ],
+                            );
+                          }),
                         ),
                       ),
                     ],
@@ -792,83 +714,34 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             ],
           ),
         ),
-
         const SizedBox(height: 40),
       ],
     );
   }
 
   Widget _sectionLabel(String text, GameTheme theme) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        fontFamily: 'monospace',
-        letterSpacing: 1.5,
-        color: theme.textColor.withOpacity(0.45),
-      ),
-    );
+    return Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace', letterSpacing: 1.5, color: theme.textColor.withOpacity(0.45)));
   }
 }
 
-// ── STAT CARD ─────────────────────────────────────────────────────────────────
-
+// Stat Card Widget
 class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
+  final String label, value;
   final IconData icon;
   final Color color;
   final GameTheme theme;
   final bool isBig;
-
-  const _StatCard({
-    super.key,
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-    required this.theme,
-    this.isBig = false,
-  });
-
+  const _StatCard({required this.label, required this.value, required this.icon, required this.color, required this.theme, this.isBig = false});
   @override
   Widget build(BuildContext context) {
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? color.withOpacity(0.08) : color.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.25)),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
-      ),
+      decoration: BoxDecoration(color: theme.brightness == Brightness.dark ? color.withOpacity(0.08) : color.withOpacity(0.06), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.25))),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: color, size: 20),
-          ),
+          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: 20)),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(value,
-                  style: TextStyle(
-                      fontSize: isBig ? 20 : 22,
-                      fontWeight: FontWeight.w900,
-                      color: theme.textColor,
-                      fontFamily: 'monospace')),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: theme.textColor.withOpacity(0.5),
-                      fontFamily: 'monospace')),
-            ],
-          ),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(value, style: TextStyle(fontSize: isBig ? 20 : 22, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace')), Text(label, style: TextStyle(fontSize: 11, color: theme.textColor.withOpacity(0.5), fontFamily: 'monospace'))]),
         ],
       ),
     );

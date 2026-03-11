@@ -1,12 +1,7 @@
-/*
- * File: mock_data.dart
- * Description: Data model and simulated database for user management.
- */
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class User {
-  final String username;
+  String username;
   final String password;
   int coins;
   int wordsFound;
@@ -20,12 +15,14 @@ class User {
   int maxStreak;
   List<int> guessDistribution;
   bool isSoundEnabled;
-  bool isVibrationEnabled; // สั่น
+  bool isVibrationEnabled;
   String avatarEmoji;
-  List<String> ownedAvatars; // 🆕 tracks purchased avatars across restarts
+  List<String> ownedAvatars;
   int hintCount;
   int cleanerCount;
   int extraRowCount;
+  String selectedRankTitle;
+  List<String> unlockedRanks;
 
   User({
     required this.username,
@@ -47,56 +44,41 @@ class User {
     this.isVibrationEnabled = true,
     this.avatarEmoji = '🧑',
     List<String>? ownedAvatars,
+    this.selectedRankTitle = "🌱 Novice",
+    List<String>? unlockedRanks,
   })  : foundWordsList = foundWordsList ?? [],
         ownedThemeIds = ownedThemeIds ?? ['classic'],
         guessDistribution = guessDistribution ?? [0, 0, 0, 0, 0, 0],
-  // Free avatars (🧑 👧) are always owned by default
-        ownedAvatars = ownedAvatars != null ? List<String>.from(ownedAvatars) : ['🧑', '👧'];
-
+        ownedAvatars = ownedAvatars ?? ['🧑', '👧'],
+        unlockedRanks = unlockedRanks ?? ["🌱 Novice"];
 
   Future<void> saveData() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('${username}_password', password);
     await prefs.setInt('${username}_coins', coins);
     await prefs.setInt('${username}_words_count', wordsFound);
     await prefs.setStringList('${username}_found_list', foundWordsList);
     await prefs.setString('${username}_theme', currentThemeId);
     await prefs.setStringList('${username}_owned_themes', ownedThemeIds);
-
     await prefs.setInt('${username}_gamesPlayed', gamesPlayed);
     await prefs.setInt('${username}_gamesWon', gamesWon);
     await prefs.setInt('${username}_currentStreak', currentStreak);
     await prefs.setInt('${username}_maxStreak', maxStreak);
     await prefs.setString('${username}_guessDist', guessDistribution.join(','));
-    await prefs.setInt('${username}_hints', hintCount);
-    await prefs.setInt('${username}_cleaners', cleanerCount);
-    await prefs.setInt('${username}_extraRows', extraRowCount);
     await prefs.setBool('${username}_isSound', isSoundEnabled);
     await prefs.setBool('${username}_isVibrate', isVibrationEnabled);
     await prefs.setString('${username}_avatar', avatarEmoji);
     await prefs.setStringList('${username}_owned_avatars', ownedAvatars);
-
-    print("""
-✨ Saved data for $username:
-💰 Coins: $coins
-🏆 Words Found: $wordsFound
-🎨 Current Theme: $currentThemeId
-🛍️ Owned Themes: $ownedThemeIds
-🖼️ Avatar: $avatarEmoji | Owned Avatars: $ownedAvatars
-📝 Word List: $foundWordsList
-📊 Played: $gamesPlayed | Won: $gamesWon | Streak: $currentStreak
-    """);
+    await prefs.setString('${username}_selectedRank', selectedRankTitle);
+    await prefs.setStringList('${username}_unlockedRanks', unlockedRanks);
   }
 
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
-
     coins = prefs.getInt('${username}_coins') ?? coins;
     wordsFound = prefs.getInt('${username}_words_count') ?? wordsFound;
     foundWordsList = prefs.getStringList('${username}_found_list') ?? foundWordsList;
     currentThemeId = prefs.getString('${username}_theme') ?? currentThemeId;
     ownedThemeIds = prefs.getStringList('${username}_owned_themes') ?? ownedThemeIds;
-
     gamesPlayed = prefs.getInt('${username}_gamesPlayed') ?? gamesPlayed;
     gamesWon = prefs.getInt('${username}_gamesWon') ?? gamesWon;
     currentStreak = prefs.getInt('${username}_currentStreak') ?? currentStreak;
@@ -106,105 +88,191 @@ class User {
     if (distStr != null && distStr.isNotEmpty) {
       guessDistribution = distStr.split(',').map((e) => int.parse(e)).toList();
     }
-    hintCount = prefs.getInt('${username}_hints') ?? 0;
-    cleanerCount = prefs.getInt('${username}_cleaners') ?? 0;
-    extraRowCount = prefs.getInt('${username}_extraRows') ?? 0;
+
     isSoundEnabled = prefs.getBool('${username}_isSound') ?? true;
     isVibrationEnabled = prefs.getBool('${username}_isVibrate') ?? true;
     avatarEmoji = prefs.getString('${username}_avatar') ?? avatarEmoji;
-
-    // 🆕 Load owned avatars; always ensure free avatars are included
-    final savedAvatars = prefs.getStringList('${username}_owned_avatars');
-    if (savedAvatars != null) {
-      ownedAvatars = List<String>.from(savedAvatars);
-      // Safety: make sure free avatars are never lost
-      if (!ownedAvatars.contains('🧑')) ownedAvatars.add('🧑');
-      if (!ownedAvatars.contains('👧')) ownedAvatars.add('👧');
+    selectedRankTitle = prefs.getString('${username}_selectedRank') ?? selectedRankTitle;
+    final savedAvatars = prefs.getStringList('${username}_owned_avatars') ?? [];
+    for (final a in savedAvatars) {
+      if (!ownedAvatars.contains(a)) ownedAvatars.add(a);
     }
 
-    print("""
-✨ LOADED result for $username:
-💰 Coins: $coins
-🏆 Words Found: $wordsFound
-🎨 Current Theme: $currentThemeId
-🛍️ Owned Themes: $ownedThemeIds
-🖼️ Avatar: $avatarEmoji | Owned Avatars: $ownedAvatars
-📝 Word List: $foundWordsList
-📊 Played: $gamesPlayed | Won: $gamesWon | Streak: $currentStreak
-    """);
+    final savedRanks = prefs.getStringList('${username}_unlockedRanks') ?? [];
+    for (final r in savedRanks) {
+      if (!unlockedRanks.contains(r)) unlockedRanks.add(r);
+    }
   }
 }
 
 class MockDatabase {
   static List<User> users = [
-    // 👑 1. User: master (สายโชว์ของ - ปลดล็อคครบทุกอย่าง ยศ Legend)
-    // เอาไว้โชว์: กราฟสถิติสวยๆ, ของที่ซื้อครบแล้ว, ยศสูงสุด
+
+    // ═══════════════════════════════════════════════════════
+    // 💎  user: god / pass: god  —  "FULL DEMO USER"
+    // ครบทุกอย่าง: เงิน 1 ล้าน, ยศ Legend, ธีมครบ 14, avatar ครบ,
+    // ฉายาครบ 5 ระดับ, power-up เยอะ, กราฟสวย, win rate สูง
+    // ═══════════════════════════════════════════════════════
+    User(
+      username: 'god',
+      password: 'god',
+      coins: 1000000,
+      wordsFound: 200,
+      foundWordsList: [
+        'ABATE','ABYSS','ADORN','AFIRE','ALERT','ANGER','ANNOY','ARENA','ARRAY','AUDIT',
+        'AVOID','AWAKE','AWARD','BELCH','BETEL','BIDDY','BLITZ','BLUER','BOBBY','BOOBY',
+        'BORNE','BRAKE','BRASH','BRIAR','BRINE','BROKE','BROOD','BRUSH','BUDDY','CAGEY',
+        'CANAL','CHAIN','CHARD','CHILI','CHOKE','CHUCK','CHURN','CLAMP','CLANG','CLEAR',
+        'CLOCK','CLOUT','CLOVE','CONCH','COVER','CRAMP','CRANK','CREED','CRUMP','DADDY',
+        'DALLY','DEBUT','DEPOT','DODGY','DONUT','DRAPE','EASEL','EJECT','ELUDE','ENACT',
+        'ENEMA','ENTRY','EQUIP','ERODE','ETHOS','FANCY','FIGHT','FLUTE','FOLLY','FROST',
+        'FUNKY','GLADE','GLEAN','GLOAT','GLORY','GOING','GONER','GRANT','GRASP','GRASS',
+        'GRAVY','GROAN','GROUT','GUILE','GULLY','GUMBO','GUSTY','HARRY','HARSH','HENCE',
+        'HITCH','HONEY','HOVEL','HUMUS','HUNCH','HYENA','IDEAL','INDEX','KNAVE','KNEED',
+        'KNOLL','KNOWN','KOALA','LANCE','LANKY','LARGE','LEACH','LIBEL','LIVER','LIVID',
+        'LLAMA','MAMBO','MASON','MATCH','METER','MOULT','MUSHY','NAVEL','NERVE','OFFER',
+        'OFTEN','OVINE','PATIO','PEACE','PERCH','PIGGY','POSER','POUND','PRISM','PROXY',
+        'PRUDE','PUDGY','PURER','QUILL','RAINY','RAJAH','REARM','REBUT','RECUR','REIGN',
+        'RETCH','RUDER','SALSA','SALTY','SATYR','SAVOY','SCOPE','SEIZE','SHELF','SHOCK',
+        'SHONE','SHOOT','SHORN','SHORT','SINGE','SKULK','SLIDE','SLYLY','SOUND','SPEAK',
+        'SPERM','SPICE','SPORT','SPRAY','STAID','STEAM','STEIN','STORE','STORK','STRUT',
+        'SWORE','SWUNG','TAKER','TEMPO','THONG','THROW','TODDY','TORUS','TOXIN','TRICK',
+        'TRUNK','UNTIL','URINE','USURP','VAPID','VENUE','VILLA','VIPER','VIXEN','VOCAL',
+        'VODKA','WEAVE','WEDGE','WHIRL','WIELD','WINCH','WISER','WORRY','WRUNG','WRYLY',
+      ],
+      currentThemeId: 'legendary',
+      ownedThemeIds: [
+        'classic','pastel','dark','neon','midnight','sunset',
+        'sakura','ice','ocean','candy','matrix','galaxy','lava','legendary',
+      ],
+      gamesPlayed: 250,
+      gamesWon: 200,
+      currentStreak: 99,
+      maxStreak: 99,
+      guessDistribution: [10, 30, 80, 50, 20, 10],
+      avatarEmoji: '🐦‍🔥',
+      ownedAvatars: [
+        '🧑','👧','🦆','🐔','🥷🏿','🐧','🍁','🦋','🐼',
+        '🦖','👽','🪼','🦚','👑','🌈','🔱','🐦‍🔥','🦄','🌟','🫧','🎮',
+      ],
+      hintCount: 99,
+      cleanerCount: 99,
+      extraRowCount: 99,
+      isSoundEnabled: true,
+      isVibrationEnabled: true,
+      selectedRankTitle: "👑 Legend",
+      unlockedRanks: [
+        "🌱 Novice","📖 Bookworm","🎓 Scholar","🧙‍♂️ Word Master","👑 Legend",
+      ],
+    ),
+
+    // ═══════════════════════════════════════════════════════
+    // 👑  user: a / pass: a  —  "THE LEGEND"
+    // โชว์: ยศสูงสุด, กราฟสวย, ธีม Cyber Neon, avatar หายาก,
+    //       ฉายาครบทุกระดับ, power-up ในกระเป๋าเยอะ
+    // ═══════════════════════════════════════════════════════
     User(
       username: 'a',
       password: 'a',
-      coins: 9999,
-      wordsFound: 125, // ยศ 👑 Legend (100+)
+      coins: 8888,
+      wordsFound: 120,           // ยศ 👑 Legend (≥100)
       foundWordsList: [
-        'APPLE', 'MANGO', 'TIGER', 'SMART', 'GHOST', 'PLANT', 'WATER', 'CHAIR',
-        'TABLE', 'BREAD', 'GRAPE', 'LEMON', 'MONEY', 'SUGAR', 'SMILE', 'SLEEP',
-        'BRAIN', 'HEART', 'HOUSE', 'TRAIN', 'LIGHT', 'NIGHT', 'DREAM', 'MAGIC'
+        'ALONE','BLANK','BONUS','BUTCH','CHOSE','CLASS','COURT','DOUGH','ETHER','EVICT',
+        'FLANK','FLUTE','FOGGY','GNOME','HEAVY','IDLER','IMBUE','LLAMA','PENAL','SATIN',
+        'SCOLD','SHOCK','SNARL','SOOTY','STAIN','SWASH','SWORN','VILLA','VOTER','WHOLE',
       ],
       currentThemeId: 'neon',
-      ownedThemeIds: ['classic', 'pastel', 'dark', 'neon'], // มีทุกธีม
-      gamesPlayed: 150,
-      gamesWon: 125,
-      currentStreak: 42,
-      maxStreak: 55,
-      guessDistribution: [5, 15, 45, 30, 20, 10], // กราฟแบบโค้งระฆังคว่ำสวยๆ
-      avatarEmoji: '🦄',
-      ownedAvatars: ['🧑', '👧', '🐱', '🐶', '🤖', '👽', '👑', '🦄'], // มีทุกอวาตาร์
+      ownedThemeIds: [
+        'classic','pastel','dark','neon','midnight','sunset',
+        'sakura','ice','ocean','candy','matrix','galaxy','lava','legendary',
+      ], // ครบทุกธีม → โชว์ว่า store ซื้อได้จริง
+      gamesPlayed: 145,
+      gamesWon: 120,
+      currentStreak: 30,
+      maxStreak: 52,
+      guessDistribution: [8, 20, 48, 28, 16, 5], // โค้งระฆังคว่ำสวยๆ
+      avatarEmoji: '👑',
+      ownedAvatars: [
+        '🧑','👧','🥷🏿','🐧','🦋','🐼','🦖','👽','🪼',
+        '🦚','👑','🌈','🔱','🐦‍🔥','🦄','🌟','🫧','🎮',
+      ], // ครบเกือบทุก avatar
+      hintCount: 5,
+      cleanerCount: 3,
+      extraRowCount: 2,
       isSoundEnabled: true,
       isVibrationEnabled: true,
+      selectedRankTitle: "👑 Legend",
+      unlockedRanks: [
+        "🌱 Novice","📖 Bookworm","🎓 Scholar","🧙‍♂️ Word Master","👑 Legend",
+      ], // ปลดล็อกครบทุกฉายา → โชว์ rank picker ได้ครบ
     ),
 
-    // 🎯 2. User: demo (สายจัดฉาก - รอโชว์ฟีเจอร์ Flashcard ให้อาจารย์ดู)
-    // เอาไว้โชว์: เล่นชนะ 1 ตา แล้วมันจะครบ 15 คำพอดี เพื่อโชว์ Popup Unlocked Flashcard!
+    // ═══════════════════════════════════════════════════════
+    // 🎯  user: b / pass: b  —  "FLASHCARD TRIGGER"
+    // โชว์: เล่นชนะ 1 ตา → wordsFound ครบ 15 → popup ปลดล็อก Flashcard
+    // ═══════════════════════════════════════════════════════
     User(
       username: 'b',
       password: 'b',
-      coins: 140,
-      wordsFound: 14, // ขาดอีกแค่ 1 คำจะครบ 15 (เพื่อปลดล็อค Flashcard)
+      coins: 150,
+      wordsFound: 14,            // ขาดอีก 1 คำ → เล่นชนะ 1 ตา แล้ว popup จะขึ้น
       foundWordsList: [
-        'BLACK', 'WHITE', 'GREEN', 'BLUES', 'BROWN', 'CLEAN', 'DIRTY',
-        'HAPPY', 'SADLY', 'QUICK', 'SLOWS', 'BRAVE', 'COWARD', 'PROUD'
+        'ABODE','BONGO','EGRET','FLUNK','GRAFT',
+        'KRILL','LURCH','MELEE','REBEL','ROACH',
+        'SHORE','SPIKY','TABBY','WOOER',
       ],
       currentThemeId: 'pastel',
-      ownedThemeIds: ['classic', 'pastel'],
-      gamesPlayed: 18,
+      ownedThemeIds: ['classic','pastel'],
+      gamesPlayed: 17,
       gamesWon: 14,
-      currentStreak: 3,
-      maxStreak: 8,
+      currentStreak: 4,
+      maxStreak: 7,
       guessDistribution: [0, 1, 4, 5, 3, 1],
-      avatarEmoji: '🐱',
-      ownedAvatars: ['🧑', '👧', '🐱'],
+      avatarEmoji: '🦆',
+      ownedAvatars: ['🦆','🐔','🥷🏿'],
+      hintCount: 1,
+      cleanerCount: 0,
+      extraRowCount: 0,
+      selectedRankTitle: "📖 Bookworm",
+      unlockedRanks: ["🌱 Novice","📖 Bookworm"],
     ),
 
-    // 🛍️ 3. User: shop (สายเปย์ - เอาไว้โชว์ระบบร้านค้า)
-    // เอาไว้โชว์: กดเข้า Avatar Shop แล้วกดซื้อของให้ดูว่าเงินลด และเปลี่ยนรูปได้
+    // ═══════════════════════════════════════════════════════
+    // 🛍️  user: c / pass: c  —  "RICH SHOPPER"
+    // โชว์: ระบบ Store — ซื้อ Theme / Avatar / Power-up ให้อาจารย์ดู
+    //       เงินเยอะ แต่ยังไม่ได้ซื้ออะไร → เห็นปุ่ม "💰 Buy" ครบทุกไอเทม
+    // ═══════════════════════════════════════════════════════
     User(
       username: 'c',
       password: 'c',
-      coins: 1000, // เงินเยอะแต่ยังไม่ค่อยได้ซื้อ
-      wordsFound: 35, // ยศ 🎓 Scholar
-      foundWordsList: List.generate(35, (index) => 'WORD$index'), // mock คำศัพท์ง่ายๆ
+      coins: 9999,               // เงินเยอะพอซื้อได้ทุกอย่าง
+      wordsFound: 35,            // ยศ 🎓 Scholar
+      foundWordsList: [
+        'AGING','BAWDY','BLAME','BLURB','BLUSH','BOSOM','BRINK','BRISK','BUILT','CANNY',
+        'CAROL','CROWN','DELVE','ELIDE','FLINT','GAUGE','HEADY','HINGE','HUTCH','KARMA',
+        'LABEL','MILKY','NASAL','NATAL','NEWLY','RUGBY','SCALP','SHEIK','SPOIL','STUNK',
+        'TIGHT','TOTAL','TYING','VAGUE','WAGER',
+      ],
       currentThemeId: 'classic',
-      ownedThemeIds: ['classic'],
-      gamesPlayed: 40,
+      ownedThemeIds: ['classic'], // ยังไม่มีธีมอื่นเลย → เห็นราคาครบ
+      gamesPlayed: 42,
       gamesWon: 35,
-      currentStreak: 12,
-      maxStreak: 15,
+      currentStreak: 10,
+      maxStreak: 14,
       guessDistribution: [1, 4, 10, 12, 5, 3],
-      avatarEmoji: '🧑',
-      ownedAvatars: ['🧑', '👧'], // มีแค่ของฟรีรอซื้อเพิ่ม
+      avatarEmoji: '🦆',
+      ownedAvatars: ['🦆','🐔'], // มีแค่ของฟรี → เห็นราคา avatar ครบ
+      hintCount: 0,
+      cleanerCount: 0,
+      extraRowCount: 0,
+      selectedRankTitle: "🎓 Scholar",
+      unlockedRanks: ["🌱 Novice","📖 Bookworm","🎓 Scholar"],
     ),
 
-    // 🌱 4. User: new (สายเริ่มต้น - ผู้เล่นใหม่แกะกล่อง)
-    // เอาไว้โชว์: หน้าตาแอปตอนเริ่มต้นเล่นครั้งแรก สถิติเป็น 0 หมด
+    // ═══════════════════════════════════════════════════════
+    // 🌱  user: d / pass: d  —  "BRAND NEW PLAYER"
+    // โชว์: หน้าตาแอปตอนเริ่มต้น สถิติเป็น 0 ทั้งหมด
+    // ═══════════════════════════════════════════════════════
     User(
       username: 'd',
       password: 'd',
@@ -218,15 +286,98 @@ class MockDatabase {
       currentStreak: 0,
       maxStreak: 0,
       guessDistribution: [0, 0, 0, 0, 0, 0],
-      avatarEmoji: '🧑',
-      ownedAvatars: ['🧑', '👧'],
+      avatarEmoji: '🥷🏿',
+      ownedAvatars: ['🦆','🐔','🥷🏿'],
+      hintCount: 0,
+      cleanerCount: 0,
+      extraRowCount: 0,
+      selectedRankTitle: "🌱 Novice",
+      unlockedRanks: ["🌱 Novice"],
     ),
+
+    // ═══════════════════════════════════════════════════════
+    // ⚡  user: e / pass: e  —  "POWER-UP DEMO"
+    // โชว์: ระบบ Power-up ระหว่างเล่น — มี hint / cleaner / extra row ในกระเป๋าเยอะ
+    //       เข้าเกมแล้วกดใช้ power-up ให้อาจารย์เห็น effect ได้เลย
+    // ═══════════════════════════════════════════════════════
+    User(
+      username: 'e',
+      password: 'e',
+      coins: 500,
+      wordsFound: 48,            // ยศ 🎓 Scholar (ใกล้ขึ้น Word Master)
+      foundWordsList: [
+        'ACORN','AFTER','BELLY','BLARE','BROAD','BULLY','CHOIR','CLIMB','CLUNG','COPSE',
+        'CREME','DELTA','DEPTH','DIGIT','EJECT','ELOPE','ENTRY','GAMUT','GLAZE','GLYPH',
+        'HUMOR','INCUR','KINKY','KNIFE','KNOLL','KRILL','LEDGE','LINEN','LOUSE','LUPUS',
+        'MIDST','MOCHA','PANSY','PIANO','PLATE','QUEUE','SHORT','SLYLY','SPOON','TAKER',
+        'TOKEN','TONGA','URBAN','VISIT','WARTY','WINCH','WITTY','ZEBRA',
+      ],
+      currentThemeId: 'dark',
+      ownedThemeIds: ['classic','dark'],
+      gamesPlayed: 55,
+      gamesWon: 48,
+      currentStreak: 8,
+      maxStreak: 20,
+      guessDistribution: [2, 8, 15, 14, 6, 3],
+      avatarEmoji: '🐧',
+      ownedAvatars: ['🦆','🐔','🥷🏿','🐧'],
+      hintCount: 5,              // มี hint เยอะ → กดใช้ในเกมได้เลย
+      cleanerCount: 5,           // มี cleaner เยอะ → โชว์ effect keyboard
+      extraRowCount: 5,          // มี extra row → โชว์ว่าได้แถว 7
+      isSoundEnabled: true,
+      isVibrationEnabled: true,
+      selectedRankTitle: "🎓 Scholar",
+      unlockedRanks: ["🌱 Novice","📖 Bookworm","🎓 Scholar"],
+    ),
+
+    // ═══════════════════════════════════════════════════════
+    // 🎨  user: f / pass: f  —  "THEME SHOWCASE"
+    // โชว์: เปลี่ยนธีม dark/galaxy/lava ให้อาจารย์เห็น UI เปลี่ยนสีทั้งแอป
+    //       มีธีมหลายตัวแล้ว แค่กด apply ดูได้เลย
+    // ═══════════════════════════════════════════════════════
+    User(
+      username: 'f',
+      password: 'f',
+      coins: 2000,
+      wordsFound: 65,            // ยศ 🧙‍♂️ Word Master
+      foundWordsList: [
+        'AGLOW','APPLE','ARDOR','ASHEN','BALMY','BATCH','BAYOU','BEGAN','BROOD','BUTCH',
+        'CLUCK','COUCH','CRANK','CREME','DEBAR','DRUNK','DULLY','EERIE','EMPTY','EQUAL',
+        'FICUS','FIGHT','FILLY','FORGO','FROZE','GLARE','GRIMY','GRIPE','GUILD','HEDGE',
+        'IDIOM','IMAGE','KAYAK','LANCE','LOAMY','LOBBY','MOOSE','MOURN','OTTER','OWNER',
+        'PAGAN','PLEAT','PLUMP','POOCH','PRIED','PUREE','QUEST','RELIC','SALLY','SALVO',
+        'SCOLD','SEPIA','SERUM','SILLY','SKIER','SMOTE','SPURN','STOIC','TOXIC','VILLA',
+        'WEEDY','WIDOW','WILLY','WRING','WROTE',
+      ],
+      currentThemeId: 'galaxy',
+      ownedThemeIds: [
+        'classic','pastel','dark','neon',
+        'midnight','sunset','sakura','galaxy','lava',
+      ], // ธีมหลากหลายทั้ง light/dark → สลับให้ดูได้
+      gamesPlayed: 80,
+      gamesWon: 65,
+      currentStreak: 15,
+      maxStreak: 30,
+      guessDistribution: [3, 10, 25, 18, 7, 2],
+      avatarEmoji: '🦚',
+      ownedAvatars: ['🦆','🐔','🦋','🦚','🌈','🌟'],
+      hintCount: 2,
+      cleanerCount: 1,
+      extraRowCount: 1,
+      isSoundEnabled: true,
+      isVibrationEnabled: false,
+      selectedRankTitle: "🧙‍♂️ Word Master",
+      unlockedRanks: [
+        "🌱 Novice","📖 Bookworm","🎓 Scholar","🧙‍♂️ Word Master",
+      ],
+    ),
+
   ];
 
   static Future<User?> login(String username, String password) async {
     try {
       User user = users.firstWhere(
-            (u) => u.username == username && u.password == password,
+        (u) => u.username == username && u.password == password,
       );
       await user.loadData();
       return user;

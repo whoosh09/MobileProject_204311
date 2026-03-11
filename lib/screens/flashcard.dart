@@ -162,11 +162,11 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
 
     if (answer == correctMeaning) {
       // ✅ ตอบถูก! โชว์พลุกระจาย
-      AppFeedback.playWin(widget.currentUser);
+      AppFeedback.playCorrect(widget.currentUser);
       setState(() => showVictory = true);
     } else {
       // ❌ ตอบผิด
-      AppFeedback.playLose(widget.currentUser);
+      AppFeedback.playWrong(widget.currentUser);
       AppFeedback.triggerHaptic(widget.currentUser);
     }
 

@@ -42,12 +42,6 @@ class WelcomeScreen extends StatelessWidget {
                 backgroundColor: const Color(0xFF58CC02),
                 shadowColor: const Color(0xFF48A901), // A darker green
               ),
-              const SizedBox(height: 12),
-              // ALREADY HAVE ACCOUNT
-              TextButton(
-                onPressed: () => Navigator.pushNamed(context, '/login'),
-                child: const Text('I ALREADY HAVE AN ACCOUNT', style: TextStyle(color: Color(0xFF1CB0F6), fontWeight: FontWeight.bold)),
-              ),
             ],
           ),
         ),

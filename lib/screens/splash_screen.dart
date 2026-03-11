@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
-
+import '../theme/theme_data.dart';
 import '../models/mock_data.dart';
 import 'home.dart';
 
@@ -15,6 +15,8 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _bounceAnimation;
+  Color _backgroundColor = const Color(0xFF58CC02); // ตั้งค่า Default เป็นสีเขียว Classic
+  Color _textColor = Colors.white; // ✅ ประกาศค่าเริ่มต้นไว้ก่อน
 
   @override
   void initState() {
@@ -48,6 +50,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       try {
         loggedInUser = MockDatabase.users.firstWhere((u) => u.username == savedUsername);
         await loggedInUser.loadData();
+
+        // 🆕 ดึงธีมที่ผู้ใช้ตั้งไว้มาเปลี่ยนสี Splash Screen ทันที
+        final theme = ThemeDatabase.getTheme(loggedInUser.currentThemeId);
+        setState(() {
+          _backgroundColor = theme.backgroundColor;
+          _textColor = theme.textColor;
+        });
       } catch (e) {
         loggedInUser = null;
       }
@@ -76,17 +85,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF58CC02),
+      backgroundColor: _backgroundColor,
       body: Center(
         child: ScaleTransition(
           scale: _bounceAnimation,
-          child: const Text(
+          child: Text(
             "Quackle",
             style: TextStyle(
-              fontSize: 56,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-              letterSpacing: -2.0,
+              fontSize: 48,
+              fontWeight: FontWeight.bold,
+              color: _textColor,
+              letterSpacing: 2,
             ),
           ),
         ),

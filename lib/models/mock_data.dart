@@ -23,6 +23,9 @@ class User {
   bool isVibrationEnabled; // สั่น
   String avatarEmoji;
   List<String> ownedAvatars; // 🆕 tracks purchased avatars across restarts
+  int hintCount;
+  int cleanerCount;
+  int extraRowCount;
 
   User({
     required this.username,
@@ -36,6 +39,9 @@ class User {
     this.gamesWon = 0,
     this.currentStreak = 0,
     this.maxStreak = 0,
+    this.hintCount = 0,
+    this.cleanerCount = 0,
+    this.extraRowCount = 0,
     List<int>? guessDistribution,
     this.isSoundEnabled = true,
     this.isVibrationEnabled = true,
@@ -46,6 +52,7 @@ class User {
         guessDistribution = guessDistribution ?? [0, 0, 0, 0, 0, 0],
   // Free avatars (🧑 👧) are always owned by default
         ownedAvatars = ownedAvatars != null ? List<String>.from(ownedAvatars) : ['🧑', '👧'];
+
 
   Future<void> saveData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -61,10 +68,13 @@ class User {
     await prefs.setInt('${username}_currentStreak', currentStreak);
     await prefs.setInt('${username}_maxStreak', maxStreak);
     await prefs.setString('${username}_guessDist', guessDistribution.join(','));
+    await prefs.setInt('${username}_hints', hintCount);
+    await prefs.setInt('${username}_cleaners', cleanerCount);
+    await prefs.setInt('${username}_extraRows', extraRowCount);
     await prefs.setBool('${username}_isSound', isSoundEnabled);
     await prefs.setBool('${username}_isVibrate', isVibrationEnabled);
     await prefs.setString('${username}_avatar', avatarEmoji);
-    await prefs.setStringList('${username}_owned_avatars', ownedAvatars); // 🆕
+    await prefs.setStringList('${username}_owned_avatars', ownedAvatars);
 
     print("""
 ✨ Saved data for $username:
@@ -96,7 +106,9 @@ class User {
     if (distStr != null && distStr.isNotEmpty) {
       guessDistribution = distStr.split(',').map((e) => int.parse(e)).toList();
     }
-
+    hintCount = prefs.getInt('${username}_hints') ?? 0;
+    cleanerCount = prefs.getInt('${username}_cleaners') ?? 0;
+    extraRowCount = prefs.getInt('${username}_extraRows') ?? 0;
     isSoundEnabled = prefs.getBool('${username}_isSound') ?? true;
     isVibrationEnabled = prefs.getBool('${username}_isVibrate') ?? true;
     avatarEmoji = prefs.getString('${username}_avatar') ?? avatarEmoji;

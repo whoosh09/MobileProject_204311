@@ -1,7 +1,6 @@
 /*
  * File: game_screen.dart
- * Description: The core gameplay screen.
- * Updated: FIXED Compilation Errors (appBarColor, Arguments, Constants)
+ * Description: The core gameplay screen with Power-ups.
  */
 
 import 'dart:convert';
@@ -31,19 +30,20 @@ class WordleScreen extends StatefulWidget {
 
 class _WordleScreenState extends State<WordleScreen> {
   late GameTheme currentTheme;
-
+  int maxRows = 6;
+  bool isExtraRowUsed = false;
   String targetWord = "";
   String targetWordTranslation = "";
   Map<String, String> targetWords = {};
   Set<String> validWordsDict = {};
   bool isLoading = true;
 
-  List<String> guesses = List.filled(6, "");
+  List<String> guesses = List.generate(6, (_) => "");
+  List<List<LetterStatus>> gridStatus = List.generate(6, (_) => List.filled(5, LetterStatus.initial));
   int currentRow = 0;
-  List<List<LetterStatus>> gridStatus = List.generate(
-      6, (_) => List.filled(5, LetterStatus.initial));
 
   Map<String, LetterStatus> keyStatus = {};
+  bool isAnimating = false;
 
   @override
   void initState() {
@@ -52,27 +52,17 @@ class _WordleScreenState extends State<WordleScreen> {
     _loadGameData();
   }
 
+  // --- Data Loading Logic ---
   Future<void> _loadGameData() async {
     try {
       final results = await Future.wait([
         rootBundle.loadString('assets/targetwords.json'),
         rootBundle.loadString('assets/validwords.txt'),
       ]);
-
-      final String targetContent = results[0];
-      final String validContent = results[1];
-
-      final Map<String, dynamic> targetsJson = json.decode(targetContent);
+      final Map<String, dynamic> targetsJson = json.decode(results[0]);
       final List<String> targets = targetsJson.keys.map((w) => w.trim().toUpperCase()).where((w) => w.length == 5).toList();
-      targetsJson.forEach((key, value) {
-        targetWords[key.toUpperCase()] = value['th'];
-      });
-
-
-      List<String> valids = validContent.split('\n')
-          .map((w) => w.trim().toUpperCase())
-          .where((w) => w.length == 5)
-          .toList();
+      targetsJson.forEach((key, value) => targetWords[key.toUpperCase()] = value['th']);
+      List<String> valids = results[1].split('\n').map((w) => w.trim().toUpperCase()).where((w) => w.length == 5).toList();
 
       setState(() {
         if (targets.isNotEmpty) {
@@ -82,63 +72,29 @@ class _WordleScreenState extends State<WordleScreen> {
           targetWord = "WORLD";
           targetWordTranslation = "โลก";
         }
-        validWordsDict = valids.toSet();
-        validWordsDict.addAll(targets);
+        validWordsDict = valids.toSet()..addAll(targets);
         isLoading = false;
         print("Target: $targetWord ($targetWordTranslation)");
       });
     } catch (e) {
-      print("Error loading files: $e");
-      setState(() {
-        targetWord = "ERROR";
-        isLoading = false;
-      });
+      setState(() { targetWord = "ERROR"; isLoading = false; });
     }
   }
+
   void _resetGame() {
     setState(() {
-      // 1. สุ่มคำศัพท์ใหม่จาก Map targetWords ที่โหลดมาแล้ว
       final List<String> keys = targetWords.keys.toList();
       if (keys.isNotEmpty) {
         targetWord = keys[Random().nextInt(keys.length)];
         targetWordTranslation = targetWords[targetWord] ?? "";
       }
-
-      // 2. ล้างข้อมูลการเล่นเก่า
       guesses = List.filled(6, "");
       currentRow = 0;
       gridStatus = List.generate(6, (_) => List.filled(5, LetterStatus.initial));
       keyStatus = {};
       isAnimating = false;
-    });
-    print("New Target: $targetWord ($targetWordTranslation)");
-  }
-
-  void onKeyPressed(String val) {
-    if (currentRow >= 6 || isLoading) return;
-
-    setState(() {
-      if (val == "ENTER") {
-        AppFeedback.playKeyboardTap(widget.currentUser);
-        _checkWord();
-      } else if (val == "DEL") {
-        AppFeedback.playKeyboardTap(widget.currentUser);
-        if (guesses[currentRow].isNotEmpty) {
-          guesses[currentRow] =
-              guesses[currentRow].substring(0, guesses[currentRow].length - 1);
-          gridStatus[currentRow][guesses[currentRow].length] =
-              LetterStatus.initial;
-        }
-      } else {
-        if (guesses[currentRow].length < 5) {
-          // ✨ เสียงและสั่นตอนพิมพ์ตัวอักษรลงตาราง
-          AppFeedback.playKeyboardTap(widget.currentUser);
-
-          int currentIndex = guesses[currentRow].length;
-          guesses[currentRow] += val;
-          gridStatus[currentRow][currentIndex] = LetterStatus.entered;
-        }
-      }
+      maxRows = 6;
+      isExtraRowUsed = false;
     });
   }
 
@@ -162,8 +118,15 @@ class _WordleScreenState extends State<WordleScreen> {
 
     // ถ้ากำลังหมุนอยู่ ห้ามกดซ้ำ
     if (isAnimating) return;
+  // --- Power-ups Logic ---
+  void _useHint() {
+    if (widget.currentUser.hintCount <= 0 || guesses[currentRow].length >= 5) return;
     setState(() {
-      isAnimating = true;
+      widget.currentUser.hintCount--;
+      int emptyIndex = guesses[currentRow].length;
+      String correctLetter = targetWord[emptyIndex];
+      guesses[currentRow] += correctLetter;
+      gridStatus[currentRow][emptyIndex] = LetterStatus.entered;
     });
 
     List<String> targetChars = targetWord.split('');
@@ -262,22 +225,41 @@ class _WordleScreenState extends State<WordleScreen> {
       widget.currentUser.saveData();
       _showEndGameDialog(false, targetWord, targetWordTranslation);
     }
+    widget.currentUser.saveData();
+    AppFeedback.playClick(widget.currentUser);
   }
 
-  void _showMessage(String msg) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, textAlign: TextAlign.center, style: TextStyle(color: currentTheme.backgroundColor)),
-        duration: const Duration(milliseconds: 1000),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(bottom: 50, left: 20, right: 20),
-        backgroundColor: currentTheme.textColor,
-      ),
-    );
+  void _useCleaner() {
+    if (widget.currentUser.cleanerCount <= 0) return;
+    setState(() {
+      widget.currentUser.cleanerCount--;
+      List<String> alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+      List<String> wrongLetters = alphabet
+          .where((letter) => !targetWord.contains(letter) && keyStatus[letter] == null)
+          .toList()..shuffle();
+      for (int i = 0; i < min(3, wrongLetters.length); i++) {
+        keyStatus[wrongLetters[i]] = LetterStatus.absent;
+      }
+    });
+    widget.currentUser.saveData();
+    AppFeedback.playClick(widget.currentUser);
   }
 
-  void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false}) {
+  void _useExtraRow() {
+    if (widget.currentUser.extraRowCount <= 0 || isExtraRowUsed) return;
+    setState(() {
+      widget.currentUser.extraRowCount--;
+      isExtraRowUsed = true;
+      maxRows = 7;
+      guesses.add("");
+      gridStatus.add(List.filled(5, LetterStatus.initial));
+    });
+    widget.currentUser.saveData();
+    AppFeedback.playClick(widget.currentUser);
+  }
+
+  void _showUseItemDialog(String title, String description, VoidCallback onConfirm) {
+    AppFeedback.playClick(widget.currentUser);
     showDialog(
       context: context,
       barrierDismissible: false, // บังคับให้ต้องกดปุ่มเพื่อออก
@@ -476,11 +458,24 @@ class _WordleScreenState extends State<WordleScreen> {
 
           // --- 2. ✨ เอฟเฟกต์พลุกระจาย (เลเยอร์ด้านหน้าสุด จะทำงานเมื่อ won == true เท่านั้น) ---
           if (won) const VictoryEffect(),
+      builder: (context) => AlertDialog(
+        backgroundColor: currentTheme.backgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text("Use $title?", style: TextStyle(color: currentTheme.textColor, fontWeight: FontWeight.bold)),
+        content: Text(description, style: TextStyle(color: currentTheme.textColor.withOpacity(0.7))),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: currentTheme.correct),
+            onPressed: () { Navigator.pop(context); onConfirm(); },
+            child: const Text("Use Now", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );
   }
 
+  // --- Build Method (Combined & Fixed) ---
   @override
   Widget build(BuildContext context) {
     bool isDark = currentTheme.brightness == Brightness.dark;
@@ -503,32 +498,30 @@ class _WordleScreenState extends State<WordleScreen> {
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: currentTheme.textColor),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () { AppFeedback.playClick(widget.currentUser); Navigator.pop(context); },
         ),
-        title: Text(
-          "QUACKLE",
-          style: TextStyle(
-              fontWeight: FontWeight.bold, letterSpacing: 2, color: currentTheme.textColor),
-        ),
+        title: Text("QUACKLE", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: currentTheme.textColor)),
         centerTitle: true,
         backgroundColor: currentTheme.backgroundColor,
         elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: currentTheme.textColor.withOpacity(0.1), height: 1.0),
-        ),
       ),
       body: Column(
         children: [
+          // 1. Game Grid
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Container(
               padding: const EdgeInsets.all(20),
               child: _buildGrid(keyTextColor),
             ),
           ),
+
+          // 2. Power-up Bar
+          _buildPowerUpBar(),
+
+          // 3. Keyboard
           Expanded(
-            flex: 1,
+            flex: 2,
             child: _buildKeyboard(keyColor, keyTextColor),
           ),
         ],
@@ -536,20 +529,23 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 
+  // --- UI Sub-widgets ---
   Widget _buildGrid(Color defaultTextColor) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(6, (rowIndex) {
+      children: List.generate(maxRows, (rowIndex) {
         return Flexible(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(5, (colIndex) {
-              String char = "";
-              if (guesses[rowIndex].length > colIndex) {
-                char = guesses[rowIndex][colIndex];
-              }
-              // ส่ง colIndex ไปด้วย
-              return _buildCell(char, gridStatus[rowIndex][colIndex], defaultTextColor, colIndex);
+              String char = (guesses[rowIndex].length > colIndex) ? guesses[rowIndex][colIndex] : "";
+              return FlipTile(
+                char: char,
+                status: gridStatus[rowIndex][colIndex],
+                currentTheme: currentTheme,
+                delayIndex: colIndex,
+                currentUser: widget.currentUser,
+              );
             }),
           ),
         );
@@ -557,45 +553,68 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 
-  Widget _buildCell(String char, LetterStatus status, Color defaultTextColor, int delayIndex) {
-    Color color = Colors.transparent;
-    Color borderColor = currentTheme.textColor.withOpacity(0.3);
-    Color textColor = defaultTextColor;
+  Widget _buildPowerUpBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _powerUpButton(
+            icon: Icons.lightbulb_outline,
+            count: widget.currentUser.hintCount,
+            label: "Hint",
+            onTap: () => _showUseItemDialog("Hint Reveal", "Reveals one correct letter.", _useHint),
+            color: Colors.orange,
+          ),
+          _powerUpButton(
+            icon: Icons.auto_fix_high,
+            count: widget.currentUser.cleanerCount,
+            label: "Cleaner",
+            onTap: () => _showUseItemDialog("Keyboard Cleaner", "Removes 3 wrong letters.", _useCleaner),
+            color: Colors.blue,
+          ),
+          _powerUpButton(
+            icon: Icons.add_circle_outline,
+            count: widget.currentUser.extraRowCount,
+            label: "Extra Row",
+            onTap: () => _showUseItemDialog("Extra Row", "Adds a 7th guess row.", _useExtraRow),
+            color: Colors.green,
+            isLocked: isExtraRowUsed,
+          ),
+        ],
+      ),
+    );
+  }
 
-    switch (status) {
-      case LetterStatus.correct:
-        color = currentTheme.correct;
-        borderColor = Colors.transparent;
-        textColor = Colors.white;
-        break;
-      case LetterStatus.present:
-        color = currentTheme.present;
-        borderColor = Colors.transparent;
-        textColor = Colors.white;
-        break;
-      case LetterStatus.absent:
-        color = currentTheme.absent;
-        borderColor = Colors.transparent;
-        textColor = Colors.white;
-        break;
-      case LetterStatus.entered:
-        borderColor = filledBorderColor;
-        textColor = defaultTextColor;
-        break;
-      case LetterStatus.initial:
-        break;
-    }
-
-    if (currentTheme.brightness == Brightness.dark && status == LetterStatus.initial) {
-      color = Colors.white.withOpacity(0.05);
-    }
-
-    return FlipTile(
-      char: char,
-      status: status,
-      currentTheme: currentTheme, // ส่งธีมเข้าไป
-      delayIndex: delayIndex,     // ส่งลำดับคอลัมน์เข้าไป (0-4)
-      currentUser: widget.currentUser,
+  Widget _powerUpButton({required IconData icon, required int count, required String label, required VoidCallback onTap, required Color color, bool isLocked = false}) {
+    bool hasItem = count > 0 && !isLocked;
+    return GestureDetector(
+      onTap: hasItem ? onTap : null,
+      child: Opacity(
+        opacity: hasItem ? 1.0 : 0.3,
+        child: Column(
+          children: [
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle, border: Border.all(color: color, width: 2)),
+                  child: Icon(icon, color: color, size: 22),
+                ),
+                if (count > 0)
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    child: Text("$count", style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(label, style: TextStyle(fontSize: 10, color: currentTheme.textColor, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -608,7 +627,6 @@ class _WordleScreenState extends State<WordleScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-      color: currentTheme.backgroundColor,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: keys.map((row) {
@@ -631,7 +649,6 @@ class _WordleScreenState extends State<WordleScreen> {
                 }
               }
 
-              // Calling your new component here!
               return Custom3DKey(
                 char: char,
                 keyColor: keyColor,
@@ -645,25 +662,169 @@ class _WordleScreenState extends State<WordleScreen> {
       ),
     );
   }
-}
-// --- เพิ่ม Class นี้ไว้ล่างสุดของไฟล์ game_screen.dart (นอก class WordleScreen) ---
 
+  // --- Game Core Logic ---
+  void onKeyPressed(String val) {
+    if (currentRow >= maxRows || isLoading) return;
+
+    setState(() {
+      if (val == "ENTER") {
+        AppFeedback.playKeyboardTap(widget.currentUser);
+        _checkWord();
+      } else if (val == "DEL") {
+        AppFeedback.playKeyboardTap(widget.currentUser);
+        if (guesses[currentRow].isNotEmpty) {
+          guesses[currentRow] = guesses[currentRow].substring(0, guesses[currentRow].length - 1);
+          gridStatus[currentRow][guesses[currentRow].length] = LetterStatus.initial;
+        }
+      } else {
+        if (guesses[currentRow].length < 5) {
+          AppFeedback.playKeyboardTap(widget.currentUser);
+          int currentIndex = guesses[currentRow].length;
+          guesses[currentRow] += val;
+          gridStatus[currentRow][currentIndex] = LetterStatus.entered;
+        }
+      }
+    });
+  }
+
+  Future<void> _checkWord() async {
+    String guess = guesses[currentRow];
+    if (guess.length != 5) { _showMessage("Not enough letters"); return; }
+    if (!validWordsDict.contains(guess)) { _showMessage("Not in word list"); return; }
+    if (isAnimating) return;
+
+    setState(() { isAnimating = true; });
+
+    List<String> targetChars = targetWord.split('');
+    List<LetterStatus> rowStatus = List.filled(5, LetterStatus.absent);
+
+    for (int i = 0; i < 5; i++) {
+      if (guess[i] == targetChars[i]) {
+        rowStatus[i] = LetterStatus.correct;
+        targetChars[i] = '';
+      }
+    }
+    for (int i = 0; i < 5; i++) {
+      if (rowStatus[i] != LetterStatus.correct) {
+        int indexInTarget = targetChars.indexOf(guess[i]);
+        if (indexInTarget != -1) {
+          rowStatus[i] = LetterStatus.present;
+          targetChars[indexInTarget] = '';
+        }
+      }
+    }
+
+    setState(() {
+      for (int i = 0; i < 5; i++) gridStatus[currentRow][i] = rowStatus[i];
+      currentRow++;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 1600));
+    if (!mounted) return;
+
+    setState(() {
+      for (int i = 0; i < 5; i++) {
+        String char = guess[i];
+        LetterStatus currentStatus = rowStatus[i];
+        if (keyStatus[char] != LetterStatus.correct) {
+          if (currentStatus == LetterStatus.correct) keyStatus[char] = LetterStatus.correct;
+          else if (keyStatus[char] != LetterStatus.present && currentStatus == LetterStatus.present) keyStatus[char] = LetterStatus.present;
+          else if (keyStatus[char] == null && currentStatus == LetterStatus.absent) keyStatus[char] = LetterStatus.absent;
+        }
+      }
+      isAnimating = false;
+    });
+
+    if (guess == targetWord) {
+      AppFeedback.playWin(widget.currentUser);
+      bool isUnlockedFlashcard = false;
+      setState(() {
+        widget.currentUser.coins += 10;
+        widget.currentUser.wordsFound += 1;
+        if (!widget.currentUser.foundWordsList.contains(targetWord)) widget.currentUser.foundWordsList.add(targetWord);
+        widget.currentUser.guessDistribution[currentRow - 1]++;
+        if (widget.currentUser.wordsFound == 15) isUnlockedFlashcard = true;
+      });
+      widget.currentUser.saveData();
+      _showEndGameDialog(true, targetWord, targetWordTranslation, justUnlocked: isUnlockedFlashcard);
+    } else if (currentRow == maxRows) {
+      AppFeedback.playLose(widget.currentUser);
+      setState(() {
+        widget.currentUser.gamesPlayed++;
+        widget.currentUser.currentStreak = 0;
+      });
+      widget.currentUser.saveData();
+      _showEndGameDialog(false, targetWord, targetWordTranslation);
+    }
+  }
+
+  void _showMessage(String msg) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, textAlign: TextAlign.center, style: TextStyle(color: currentTheme.backgroundColor)),
+        duration: const Duration(milliseconds: 1000),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: currentTheme.textColor,
+      ),
+    );
+  }
+
+  void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: currentTheme.backgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Column(
+          children: [
+            Icon(won ? Icons.emoji_events_rounded : Icons.cancel_outlined, color: won ? currentTheme.correct : Colors.redAccent, size: 60),
+            const SizedBox(height: 10),
+            Text(won ? "Nicega! (You Won)" : "Oh no! (Game Over)", textAlign: TextAlign.center, style: TextStyle(color: won ? currentTheme.correct : Colors.redAccent, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("The answer was", style: TextStyle(color: currentTheme.textColor.withOpacity(0.7))),
+            Text(targetWord.toUpperCase(), style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 2, color: currentTheme.textColor)),
+            Text(meaning, style: const TextStyle(fontSize: 18, color: Colors.blueAccent), textAlign: TextAlign.center),
+            if (won) ...[
+              const Divider(height: 30),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.amber.shade100, borderRadius: BorderRadius.circular(20)), child: const Text("💰 +10 Coins", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown))),
+            ],
+            if (justUnlocked) ...[
+              const SizedBox(height: 20),
+              Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.purple, width: 2)),
+                child: const Column(children: [Icon(Icons.lock_open_rounded, color: Colors.purple, size: 30), Text("FLASHCARD UNLOCKED!", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple))]),
+              ),
+            ]
+          ],
+        ),
+        actions: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              TextButton(onPressed: () { AppFeedback.playKeyboardTap(widget.currentUser); Navigator.pop(context); Navigator.pop(context); }, child: const Text("Menu")),
+              ElevatedButton(onPressed: () { AppFeedback.playClick(widget.currentUser); Navigator.pop(context); _resetGame(); }, child: const Text("Play Again")),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- FlipTile Component (Unchanged) ---
 class FlipTile extends StatefulWidget {
   final String char;
   final LetterStatus status;
   final GameTheme currentTheme;
-  final int delayIndex; // ลำดับคอลัมน์ (0,1,2,3,4) เพื่อถ่วงเวลาให้พลิกไม่พร้อมกัน
+  final int delayIndex;
   final User currentUser;
-
-  const FlipTile({
-    super.key,
-    required this.char,
-    required this.status,
-    required this.currentTheme,
-    required this.delayIndex,
-    required this.currentUser,
-  });
-
+  const FlipTile({super.key, required this.char, required this.status, required this.currentTheme, required this.delayIndex, required this.currentUser});
   @override
   State<FlipTile> createState() => _FlipTileState();
 }
@@ -671,95 +832,43 @@ class FlipTile extends StatefulWidget {
 class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000), // ความเร็วในการหมุน
-    );
-
-    _animation = Tween<double>(begin: 0, end: pi).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack),
-    );
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
+    _animation = Tween<double>(begin: 0, end: pi).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack));
   }
-
   @override
   void didUpdateWidget(FlipTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // ถ้าสถานะกลับเป็น initial ให้รีเซ็ตแอนิเมชั่นทันที
-    if (widget.status == LetterStatus.initial) {
-      _controller.reset();
-      return;
-    }
-    // เช็คว่าสถานะเปลี่ยนจาก "พิมพ์เฉยๆ" เป็น "เฉลยผล" หรือไม่
-    if (widget.status != oldWidget.status &&
-        widget.status != LetterStatus.initial &&
-        widget.status != LetterStatus.entered) {
-
-      // ถ่วงเวลาตามลำดับช่อง (ช่องแรกเริ่มเลย, ช่องสองรอ 200ms, ...)
+    if (widget.status == LetterStatus.initial) { _controller.reset(); return; }
+    if (widget.status != oldWidget.status && widget.status != LetterStatus.initial && widget.status != LetterStatus.entered) {
       Future.delayed(Duration(milliseconds: widget.delayIndex * 200), () {
-        if (mounted) {
-          _controller.forward(from: 0.0);
-          AppFeedback.playClick(widget.currentUser);
-          AppFeedback.triggerHaptic(widget.currentUser);
-        }
+        if (mounted) { _controller.forward(from: 0.0); AppFeedback.playClick(widget.currentUser); AppFeedback.triggerHaptic(widget.currentUser); }
       });
     }
   }
-
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+  void dispose() { _controller.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        // คำนวณมุมหมุน
-        double angle = _animation.value;
-        // เช็คว่าหมุนเกิน 90 องศาหรือยัง (ถ้าเกินแล้วให้เปลี่ยนสี)
-        bool isFlipped = angle >= (pi / 2);
-
-        // ถ้าหมุนเกิน 90 องศา ให้พลิกภาพกลับหัวไม่ให้ตัวหนังสือกลับด้าน
-        double displayAngle = isFlipped ? angle - pi : angle;
-
-        return Transform(
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001) // ทำให้ดูมีความลึก (3D)
-            ..rotateX(displayAngle), // หมุนแกน X (พลิกบนลงล่าง)
-          alignment: Alignment.center,
-          child: _buildContent(isFlipped),
-        );
-      },
-    );
+    return AnimatedBuilder(animation: _controller, builder: (context, child) {
+      double angle = _animation.value;
+      bool isFlipped = angle >= (pi / 2);
+      double displayAngle = isFlipped ? angle - pi : angle;
+      return Transform(transform: Matrix4.identity()..setEntry(3, 2, 0.001)..rotateX(displayAngle), alignment: Alignment.center, child: _buildContent(isFlipped));
+    });
   }
-
   Widget _buildContent(bool isFlipped) {
-    // ถ้าพลิกแล้ว (isFlipped) ให้ใช้สีตามผลลัพธ์ (เขียว/เหลือง/เทา)
-    // ถ้ายังไม่พลิก ให้ใช้สีขาว/ขอบเทา (เหมือนตอนพิมพ์)
-
     LetterStatus displayStatus = isFlipped ? widget.status : LetterStatus.entered;
-
-    // Logic การเลือกสี (เหมือนเดิมแต่ย้ายมาในนี้)
     Color color = Colors.transparent;
     Color borderColor = widget.currentTheme.textColor.withOpacity(0.3);
-    Color textColor = widget.currentTheme.textColor; // สีเริ่มต้นตามธีม
-
+    Color textColor = widget.currentTheme.textColor;
     if (displayStatus == LetterStatus.entered) {
-      // ตอนยังไม่พลิก
       borderColor = filledBorderColor;
-      // ถ้ายังไม่มีตัวอักษร ให้ใช้ขอบจาง
       if (widget.char.isEmpty) borderColor = widget.currentTheme.textColor.withOpacity(0.3);
     } else {
-      // ตอนพลิกแล้ว (เฉลย)
-      textColor = Colors.white;
-      borderColor = Colors.transparent;
+      textColor = Colors.white; borderColor = Colors.transparent;
       switch (displayStatus) {
         case LetterStatus.correct: color = widget.currentTheme.correct; break;
         case LetterStatus.present: color = widget.currentTheme.present; break;
@@ -767,27 +876,9 @@ class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin
         default: break;
       }
     }
-
-    // จัดการสีพื้นหลังตอนเริ่ม (สำหรับธีมมืด)
-    if (widget.currentTheme.brightness == Brightness.dark &&
-        displayStatus == LetterStatus.initial) {
-      color = Colors.white.withOpacity(0.05);
-    }
-
-    return Container(
-      margin: const EdgeInsets.all(3),
-      width: 50,
-      height: 50,
-      decoration: BoxDecoration(
-        color: color,
-        border: Border.all(color: borderColor, width: 2),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        widget.char,
-        style: TextStyle(
-            fontSize: 28, fontWeight: FontWeight.bold, color: textColor),
-      ),
+    if (widget.currentTheme.brightness == Brightness.dark && displayStatus == LetterStatus.initial) color = Colors.white.withOpacity(0.05);
+    return Container(margin: const EdgeInsets.all(3), width: 50, height: 50, decoration: BoxDecoration(color: color, border: Border.all(color: borderColor, width: 2)), alignment: Alignment.center,
+      child: Text(widget.char, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textColor)),
     );
   }
 }

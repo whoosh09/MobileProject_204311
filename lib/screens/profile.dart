@@ -136,6 +136,17 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                        // Replace with your exact audio helper method
                        // AudioHelper.playTapSound();
                     }
+                // --- 1. Sound toggle ---
+                _buildSettingToggle(
+                  icon: widget.currentUser.isSoundEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                  label: "Sound Effects",
+                  value: widget.currentUser.isSoundEnabled,
+                  theme: theme,
+                  onTap: () {
+                    setState(() => widget.currentUser.isSoundEnabled = !widget.currentUser.isSoundEnabled);
+                    setModalState(() {});
+                    widget.currentUser.saveData();
+                    AppFeedback.playClick(widget.currentUser);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -151,6 +162,13 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                        // AudioHelper.playTapSound();
                     }
 
+                // --- 2. Vibration toggle ---
+                _buildSettingToggle(
+                  icon: Icons.vibration_rounded,
+                  label: "Vibration Feedback",
+                  value: widget.currentUser.isVibrationEnabled,
+                  theme: theme,
+                  onTap: () {
                     setState(() => widget.currentUser.isVibrationEnabled = !widget.currentUser.isVibrationEnabled);
                     setModalState(() {});
                     widget.currentUser.saveData();
@@ -177,12 +195,126 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                       (Route<dynamic> route) => false,
                     );
                   },
+                  },
+                ),
+
+                const SizedBox(height: 24),
+                Divider(color: theme.textColor.withOpacity(0.1)),
+                const SizedBox(height: 12),
+
+                // --- 3. 🆕 LOGOUT BUTTON ---
+                GestureDetector(
+                  onTap: () {
+                    AppFeedback.playClick(widget.currentUser);
+                    Navigator.pop(context); // ปิด BottomSheet ก่อน
+                    _showLogoutConfirmDialog(theme); // เปิดหน้าต่างยืนยัน
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                        SizedBox(width: 10),
+                        Text(
+                          "LOGOUT",
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           );
         });
       },
+    );
+  }
+
+  // --- 🆕 ฟังก์ชันช่วยสร้าง UI Toggle (เพื่อให้โค้ดดูสะอาดขึ้น) ---
+  Widget _buildSettingToggle({
+    required IconData icon,
+    required String label,
+    required bool value,
+    required GameTheme theme,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: value ? theme.correct.withOpacity(0.12) : theme.textColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: value ? theme.correct.withOpacity(0.4) : theme.textColor.withOpacity(0.12)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: value ? theme.correct : theme.textColor.withOpacity(0.4), size: 22),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: theme.textColor)),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              width: 48, height: 26,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: value ? theme.correct : theme.textColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 250),
+                alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(width: 20, height: 20, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- 🆕 หน้าต่างยืนยันการ Logout ---
+  void _showLogoutConfirmDialog(GameTheme theme) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.backgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text("Logout?", style: TextStyle(color: theme.textColor, fontWeight: FontWeight.bold)),
+        content: Text("Are you sure you want to sign out of your account?",
+            style: TextStyle(color: theme.textColor.withOpacity(0.7))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel", style: TextStyle(color: theme.textColor.withOpacity(0.5))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              // TODO: ใส่ Logic การ Logout จริง (เช่น Clear Session / ลบ Local Data)
+              // ตัวอย่าง: ย้อนกลับไปหน้า Login
+              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+            },
+            child: const Text("Logout", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 

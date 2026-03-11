@@ -230,22 +230,28 @@ class WordleMainBody extends StatelessWidget {
           Custom3DButton(
             width: 260.0,
             text: 'PLAY',
-            onPressed: () async {
-              // ✨ 1. เล่นเสียงและสั่นทันทีที่กด
+            onPressed: () {
+              // 1. สั่งเล่นเสียงและสั่นทันที (ไม่รอ async)
+              // แนะนำ: ถ้า playStartGame ช้า ลองใช้ playKeyboardTap ควบคู่ไปด้วยเพื่อให้มีเสียง "คลิก" ทันที
+              AppFeedback.playKeyboardTap(currentUser);
               AppFeedback.playStartGame(currentUser);
               AppFeedback.triggerHaptic(currentUser);
 
-              // 2. เข้าหน้าเกม
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      WordleScreen(currentUser: currentUser),
-                ),
-              );
+              // 2. หน่วงเวลาการเปลี่ยนหน้าเล็กน้อย (ประมาณ 120ms)
+              // เพื่อให้เสียงออกมาก่อนที่เครื่องจะไปโฟกัสกับการวาดหน้าจอใหม่
+              Future.delayed(const Duration(milliseconds: 50), () async {
+                if (!context.mounted) return;
 
-              // 3. รีเฟรชหน้า Home เมื่อกลับมาจากเกม (เช่น อัปเดตจำนวนคำที่เจอ)
-              onRefresh();
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WordleScreen(currentUser: currentUser),
+                  ),
+                );
+
+                // 3. รีเฟรชหน้า Home เมื่อกลับมา
+                onRefresh();
+              });
             },
             backgroundColor: theme.correct,
             shadowColor: theme.correct.withAlpha(128),

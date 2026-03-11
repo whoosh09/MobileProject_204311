@@ -727,7 +727,6 @@ class _WordleScreenState extends State<WordleScreen> {
               ),
             ),
           ),
-
           // --- 2. ✨ เอฟเฟกต์พลุกระจาย (เลเยอร์ด้านหน้าสุด จะทำงานเมื่อ won == true เท่านั้น) ---
           if (won) const VictoryEffect(),
         ],
@@ -735,7 +734,6 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 }
-
 // --- FlipTile Component (Unchanged) ---
 class FlipTile extends StatefulWidget {
   final String char;
@@ -757,6 +755,7 @@ class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin
     _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
     _animation = Tween<double>(begin: 0, end: pi).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack));
   }
+
   @override
   void didUpdateWidget(FlipTile oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -767,6 +766,7 @@ class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin
       });
     }
   }
+
   @override
   void dispose() { _controller.dispose(); super.dispose(); }
   @override
@@ -778,6 +778,7 @@ class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin
       return Transform(transform: Matrix4.identity()..setEntry(3, 2, 0.001)..rotateX(displayAngle), alignment: Alignment.center, child: _buildContent(isFlipped));
     });
   }
+
   Widget _buildContent(bool isFlipped) {
     LetterStatus displayStatus = isFlipped ? widget.status : LetterStatus.entered;
     Color color = Colors.transparent;

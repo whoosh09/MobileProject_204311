@@ -500,7 +500,7 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
                     const Text("💰", style: TextStyle(fontSize: 16)),
                     const SizedBox(width: 6),
                     Text(
-                      "Cost: 100 coins  (You have: ${widget.currentUser.coins})",
+                      "Cost: 100 coins",
                       style: TextStyle(fontSize: 12, color: theme.textColor.withOpacity(0.7)),
                     ),
                   ],

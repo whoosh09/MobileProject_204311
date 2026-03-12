@@ -179,58 +179,41 @@ class MockDatabase {
         "🌱 Novice","📖 Bookworm","🎓 Scholar","🧙‍♂️ Word Master","👑 Legend",
       ],
     ),
-
     // ═══════════════════════════════════════════════════════
-    // 👑  user: a / pass: a  —  "THE LEGEND"
+    // 1️⃣  user: 1 / pass: 1  —  "BRAND NEW PLAYER" (ผู้เล่นเริ่มต้น)
+    // โชว์: หน้าตาแอปตอนเพิ่งโหลดเสร็จ สถิติเป็น 0 หมด กระเป๋าว่างเปล่า
     // ═══════════════════════════════════════════════════════
     User(
-      username: 'a',
-      password: 'a',
-      coins: 8888,
-      wordsFound: 120,
-      foundWordsList: [
-        'ALONE','BLANK','BONUS','BUTCH','CHOSE','CLASS','COURT','DOUGH','ETHER','EVICT',
-        'FLANK','FLUTE','FOGGY','GNOME','HEAVY','IDLER','IMBUE','LLAMA','PENAL','SATIN',
-        'SCOLD','SHOCK','SNARL','SOOTY','STAIN','SWASH','SWORN','VILLA','VOTER','WHOLE',
-      ],
-      currentThemeId: 'neon',
-      ownedThemeIds: [
-        'classic','pastel','dark','neon','midnight','sunset',
-        'sakura','ice','ocean','candy','matrix','galaxy','lava','legendary',
-      ],
-      gamesPlayed: 145,
-      gamesWon: 120,
-      currentStreak: 30,
-      maxStreak: 52,
-      guessDistribution: [8, 20, 48, 28, 16, 5],
-      avatarEmoji: 'assets/emoji/crown.png', // 🆕
-      ownedAvatars: [
-        'assets/emoji/duck.png', 'assets/emoji/chicken.png', 'assets/emoji/penguin.png',
-        'assets/emoji/butterfly.png', 'assets/emoji/panda.png', 'assets/emoji/t-rex.png',
-        'assets/emoji/alien.png', 'assets/emoji/jellyfish.png', 'assets/emoji/peacock.png',
-        'assets/emoji/crown.png', 'assets/emoji/rainbow.png', 'assets/emoji/trident_emblem.png',
-        'assets/emoji/phoenix.png', 'assets/emoji/unicorn.png', 'assets/emoji/glowing_star.png',
-        'assets/emoji/bubbles.png', 'assets/emoji/video_game.png',
-      ],
-      hintCount: 5,
-      cleanerCount: 3,
-      extraRowCount: 2,
-      isSoundEnabled: true,
-      isVibrationEnabled: true,
-      selectedRankTitle: "👑 Legend",
-      unlockedRanks: [
-        "🌱 Novice","📖 Bookworm","🎓 Scholar","🧙‍♂️ Word Master","👑 Legend",
-      ],
+      username: 'newbie',
+      password: '1',
+      coins: 0,
+      wordsFound: 0,
+      foundWordsList: [],
+      currentThemeId: 'classic',
+      ownedThemeIds: ['classic'],
+      gamesPlayed: 0,
+      gamesWon: 0,
+      currentStreak: 0,
+      maxStreak: 0,
+      guessDistribution: [0, 0, 0, 0, 0, 0],
+      avatarEmoji: 'assets/emoji/chicken.png',
+      ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png'],
+      hintCount: 0,
+      cleanerCount: 0,
+      extraRowCount: 0,
+      selectedRankTitle: "🌱 Novice",
+      unlockedRanks: ["🌱 Novice"],
     ),
 
     // ═══════════════════════════════════════════════════════
-    // 🎯  user: b / pass: b  —  "FLASHCARD TRIGGER"
+    // 2️⃣  user: 2 / pass: 2  —  "FLASHCARD TRIGGER" (อีก 1 คำเปิดโหมด)
+    // โชว์: เล่นชนะตาเดียวปุ๊บ จะมีเด้งแจ้งเตือนปลดล็อกหน้า Flashcard ทันที
     // ═══════════════════════════════════════════════════════
     User(
-      username: 'b',
-      password: 'b',
+      username: 'flash',
+      password: '2',
       coins: 150,
-      wordsFound: 14,
+      wordsFound: 14, // ขาดอีก 1 คำจะครบ 15
       foundWordsList: [
         'ABODE','BONGO','EGRET','FLUNK','GRAFT',
         'KRILL','LURCH','MELEE','REBEL','ROACH',
@@ -243,7 +226,7 @@ class MockDatabase {
       currentStreak: 4,
       maxStreak: 7,
       guessDistribution: [0, 1, 4, 5, 3, 1],
-      avatarEmoji: 'assets/emoji/duck.png', // 🆕
+      avatarEmoji: 'assets/emoji/duck.png',
       ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png', 'assets/emoji/frog.png'],
       hintCount: 1,
       cleanerCount: 0,
@@ -253,136 +236,63 @@ class MockDatabase {
     ),
 
     // ═══════════════════════════════════════════════════════
-    // 🛍️  user: c / pass: c  —  "RICH SHOPPER"
+    // 3️⃣  user: 3 / pass: 3  —  "ALMOST SCHOLAR" (อีก 1 คำเลื่อนยศ)
+    // โชว์: เล่นชนะแล้วป้ายฉายาใหม่สีส้ม "🎓 Scholar" เด้งขึ้นมา
     // ═══════════════════════════════════════════════════════
     User(
-      username: 'c',
-      password: 'c',
-      coins: 9999,
-      wordsFound: 35,
-      foundWordsList: [
-        'AGING','BAWDY','BLAME','BLURB','BLUSH','BOSOM','BRINK','BRISK','BUILT','CANNY',
-        'CAROL','CROWN','DELVE','ELIDE','FLINT','GAUGE','HEADY','HINGE','HUTCH','KARMA',
-        'LABEL','MILKY','NASAL','NATAL','NEWLY','RUGBY','SCALP','SHEIK','SPOIL','STUNK',
-        'TIGHT','TOTAL','TYING','VAGUE','WAGER',
-      ],
-      currentThemeId: 'classic',
-      ownedThemeIds: ['classic'],
-      gamesPlayed: 42,
-      gamesWon: 35,
-      currentStreak: 10,
-      maxStreak: 14,
-      guessDistribution: [1, 4, 10, 12, 5, 3],
-      avatarEmoji: 'assets/emoji/duck.png', // 🆕
-      ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png'],
-      hintCount: 0,
-      cleanerCount: 0,
-      extraRowCount: 0,
-      selectedRankTitle: "🎓 Scholar",
-      unlockedRanks: ["🌱 Novice","📖 Bookworm","🎓 Scholar"],
-    ),
-
-    // ═══════════════════════════════════════════════════════
-    // 🌱  user: d / pass: d  —  "BRAND NEW PLAYER"
-    // ═══════════════════════════════════════════════════════
-    User(
-      username: 'd',
-      password: 'd',
-      coins: 0,
-      wordsFound: 0,
-      foundWordsList: [],
-      currentThemeId: 'classic',
-      ownedThemeIds: ['classic'],
-      gamesPlayed: 0,
-      gamesWon: 0,
-      currentStreak: 0,
-      maxStreak: 0,
-      guessDistribution: [0, 0, 0, 0, 0, 0],
-      avatarEmoji: 'assets/emoji/chicken.png', // 🆕
-      ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png'],
-      hintCount: 0,
-      cleanerCount: 0,
-      extraRowCount: 0,
-      selectedRankTitle: "🌱 Novice",
-      unlockedRanks: ["🌱 Novice"],
-    ),
-
-    // ═══════════════════════════════════════════════════════
-    // ⚡  user: e / pass: e  —  "POWER-UP DEMO"
-    // ═══════════════════════════════════════════════════════
-    User(
-      username: 'e',
-      password: 'e',
+      username: 'ranker',
+      password: '3',
       coins: 500,
-      wordsFound: 48,
+      wordsFound: 29, // ขาดอีก 1 คำจะครบ 30 เพื่อขึ้น Scholar
       foundWordsList: [
-        'ACORN','AFTER','BELLY','BLARE','BROAD','BULLY','CHOIR','CLIMB','CLUNG','COPSE',
-        'CREME','DELTA','DEPTH','DIGIT','EJECT','ELOPE','ENTRY','GAMUT','GLAZE','GLYPH',
-        'HUMOR','INCUR','KINKY','KNIFE','KNOLL','KRILL','LEDGE','LINEN','LOUSE','LUPUS',
-        'MIDST','MOCHA','PANSY','PIANO','PLATE','QUEUE','SHORT','SLYLY','SPOON','TAKER',
-        'TOKEN','TONGA','URBAN','VISIT','WARTY','WINCH','WITTY','ZEBRA',
+        'ALONE','BLANK','BONUS','BUTCH','CHOSE','CLASS','COURT','DOUGH','ETHER','EVICT',
+        'FLANK','FLUTE','FOGGY','GNOME','HEAVY','IDLER','IMBUE','LLAMA','PENAL','SATIN',
+        'SCOLD','SHOCK','SNARL','SOOTY','STAIN','SWASH','SWORN','VILLA','VOTER'
       ],
       currentThemeId: 'dark',
       ownedThemeIds: ['classic','dark'],
-      gamesPlayed: 55,
-      gamesWon: 48,
+      gamesPlayed: 35,
+      gamesWon: 29,
       currentStreak: 8,
-      maxStreak: 20,
-      guessDistribution: [2, 8, 15, 14, 6, 3],
-      avatarEmoji: 'assets/emoji/penguin.png', // 🆕
+      maxStreak: 12,
+      guessDistribution: [1, 5, 10, 8, 3, 2],
+      avatarEmoji: 'assets/emoji/penguin.png',
       ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png', 'assets/emoji/penguin.png'],
-      hintCount: 5,
-      cleanerCount: 5,
-      extraRowCount: 5,
-      isSoundEnabled: true,
-      isVibrationEnabled: true,
-      selectedRankTitle: "🎓 Scholar",
-      unlockedRanks: ["🌱 Novice","📖 Bookworm","🎓 Scholar"],
+      hintCount: 0,
+      cleanerCount: 0,
+      extraRowCount: 0,
+      selectedRankTitle: "📖 Bookworm",
+      unlockedRanks: ["🌱 Novice","📖 Bookworm"],
     ),
 
     // ═══════════════════════════════════════════════════════
-    // 🎨  user: f / pass: f  —  "THEME SHOWCASE"
+    // 4️⃣  user: 4 / pass: 4  —  "RICH SHOPPER" (เงิน 1 ล้าน ยังไม่ซื้ออะไร)
+    // โชว์: ระบบร้านค้า กดซื้อ Theme แพงๆ และ Avatar ได้รัวๆ ให้ดูระบบตัดเงิน
     // ═══════════════════════════════════════════════════════
     User(
-      username: 'f',
-      password: 'f',
-      coins: 2000,
-      wordsFound: 65,
+      username: 'richboy',
+      password: '4',
+      coins: 1000000, // รวยมาก
+      wordsFound: 20,
       foundWordsList: [
-        'AGLOW','APPLE','ARDOR','ASHEN','BALMY','BATCH','BAYOU','BEGAN','BROOD','BUTCH',
-        'CLUCK','COUCH','CRANK','CREME','DEBAR','DRUNK','DULLY','EERIE','EMPTY','EQUAL',
-        'FICUS','FIGHT','FILLY','FORGO','FROZE','GLARE','GRIMY','GRIPE','GUILD','HEDGE',
-        'IDIOM','IMAGE','KAYAK','LANCE','LOAMY','LOBBY','MOOSE','MOURN','OTTER','OWNER',
-        'PAGAN','PLEAT','PLUMP','POOCH','PRIED','PUREE','QUEST','RELIC','SALLY','SALVO',
-        'SCOLD','SEPIA','SERUM','SILLY','SKIER','SMOTE','SPURN','STOIC','TOXIC','VILLA',
-        'WEEDY','WIDOW','WILLY','WRING','WROTE',
+        'AGING','BAWDY','BLAME','BLURB','BLUSH','BOSOM','BRINK','BRISK','BUILT','CANNY',
+        'CAROL','CROWN','DELVE','ELIDE','FLINT','GAUGE','HEADY','HINGE','HUTCH','KARMA'
       ],
-      currentThemeId: 'galaxy',
-      ownedThemeIds: [
-        'classic','pastel','dark','neon',
-        'midnight','sunset','sakura','galaxy','lava',
-      ],
-      gamesPlayed: 80,
-      gamesWon: 65,
-      currentStreak: 15,
-      maxStreak: 30,
-      guessDistribution: [3, 10, 25, 18, 7, 2],
-      avatarEmoji: 'assets/emoji/peacock.png', // 🆕
-      ownedAvatars: [
-        'assets/emoji/duck.png', 'assets/emoji/chicken.png', 'assets/emoji/butterfly.png',
-        'assets/emoji/peacock.png', 'assets/emoji/rainbow.png', 'assets/emoji/glowing_star.png'
-      ],
-      hintCount: 2,
-      cleanerCount: 1,
-      extraRowCount: 1,
-      isSoundEnabled: true,
-      isVibrationEnabled: false,
-      selectedRankTitle: "🧙‍♂️ Word Master",
-      unlockedRanks: [
-        "🌱 Novice","📖 Bookworm","🎓 Scholar","🧙‍♂️ Word Master",
-      ],
+      currentThemeId: 'classic',
+      ownedThemeIds: ['classic'], // ยังไม่มีธีมอื่นเลย
+      gamesPlayed: 25,
+      gamesWon: 20,
+      currentStreak: 5,
+      maxStreak: 10,
+      guessDistribution: [0, 2, 5, 8, 3, 2],
+      avatarEmoji: 'assets/emoji/duck.png',
+      ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png'], // มีแค่ของแจกฟรี
+      hintCount: 0,
+      cleanerCount: 0,
+      extraRowCount: 0,
+      selectedRankTitle: "📖 Bookworm",
+      unlockedRanks: ["🌱 Novice","📖 Bookworm"],
     ),
-
   ];
 
   static Future<User?> login(String username, String password) async {

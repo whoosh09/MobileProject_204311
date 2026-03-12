@@ -74,6 +74,14 @@ class _HomePageState extends State<HomePage> {
         ),
         backgroundColor: theme.backgroundColor,
         elevation: 0,
+        automaticallyImplyLeading: false, // เพื่อไม่ให้มีปุ่ม Back เด้งขึ้นมาเบียด
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start, // ให้ชิดซ้าย
+          children: [
+            Image.asset('assets/images/diedquackle.png', width: 80, height: 80),
+
+          ],
+        ),
         actions: [
           // ── Coin badge (ใช้ AnimatedCoinBadge แทนของเดิม) ───────────────────────────────
           Center(
@@ -126,6 +134,7 @@ class _HomePageState extends State<HomePage> {
           type: BottomNavigationBarType.fixed,
           backgroundColor: theme.backgroundColor,
           elevation: 0,
+
           currentIndex: _selectedIndex,
           onTap: (index) {
             AppFeedback.playClick(widget.currentUser);   // เสียงคลิก
@@ -179,12 +188,12 @@ class WordleMainBody extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/images/applogo.png',
-            width: 280,            // ปรับขนาดความกว้างตามที่ต้องการ
-            height: 200,           // ปรับความสูง (ถ้าต้องการคุมทั้งสองอย่าง)
+            'assets/images/welcomequackle.png',
+            width: 480,            //
+            height: 400,           //
             fit: BoxFit.contain,   // ให้รูปภาพรักษาสัดส่วนและอยู่ในกรอบ
           ),
-          const SizedBox(height: 50),
+          const SizedBox(height: 10),
 
           // --- ปุ่ม PLAY ที่แก้ไขแล้ว ---
           Custom3DButton(

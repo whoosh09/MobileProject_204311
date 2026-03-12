@@ -562,9 +562,18 @@ class _WordleScreenState extends State<WordleScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            Image.asset(
+              'assets/images/huhquackle.png',
+              height: 70,
+              fit: BoxFit.contain,
+            ),
             const SizedBox(width: 10),
-            Text("Quit Game?", style: TextStyle(color: currentTheme.textColor, fontWeight: FontWeight.bold)),
+            Text(
+              "Quit Game?",
+              style: TextStyle(
+                  color: currentTheme.textColor,
+                  fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         content: Text("Are you sure you want to leave?\nYour current progress will be lost.",
@@ -626,22 +635,20 @@ class _WordleScreenState extends State<WordleScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // --- 🏆 ICON & TITLE ---
                   Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: won ? currentTheme.correct.withOpacity(0.15) : Colors.redAccent.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      won ? Icons.emoji_events_rounded : Icons.sentiment_dissatisfied_rounded,
-                      color: won ? currentTheme.correct : Colors.redAccent,
-                      size: 52,
+
+                    padding: const EdgeInsets.all(0),
+                    child: Image.asset(
+                      won
+                          ? 'assets/images/wowquackle.png'  // รูปกรณีชนะ
+                          : 'assets/images/huhquackle.png', // รูปกรณีแพ้
+                      height: 150,
+                      fit: BoxFit.contain,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    won ? "SPLENDID!" : "GAME OVER",
+                    won ? "EXCELLENT!" : "GAME OVER",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: won ? currentTheme.correct : Colors.redAccent,

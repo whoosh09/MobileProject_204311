@@ -620,25 +620,11 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
                 ),
               ),
               const SizedBox(height: 14),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    widget.currentUser.username.toUpperCase(),
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace', letterSpacing: 2),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => _showEditUsernameDialog(theme),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(color: rankColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                      child: Icon(Icons.edit_rounded, size: 16, color: rankColor),
-                    ),
-                  ),
-                ],
+              Text(
+                widget.currentUser.username.toUpperCase(),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace', letterSpacing: 2),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 10),
               // 🆕 ส่วนแสดงฉายาที่กดเลือกได้ (แก้ไข UI ใหม่)
               GestureDetector(
                 onTap: () => _showRankPicker(theme),

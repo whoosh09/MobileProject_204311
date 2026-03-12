@@ -256,8 +256,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                                   ],
                                                 ),
                                               ),
-                                              // ไอคอนตกแต่ง
-                                              Icon(Icons.star_rounded, color: Colors.amber.shade300, size: 24),
                                             ],
                                           ),
                                         ),

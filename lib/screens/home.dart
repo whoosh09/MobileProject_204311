@@ -36,7 +36,11 @@ class _HomePageState extends State<HomePage> {
       currentUser: widget.currentUser,
       onRefresh: _refreshState,
     ),
-    FlashcardPage(currentUser: widget.currentUser),
+    // 🌟 ส่ง onRefresh เข้าไปให้ Flashcard เพื่อให้เหรียญเด้งตอนตอบควิซเสร็จ
+    FlashcardPage(
+      currentUser: widget.currentUser,
+      onRefresh: _refreshState,
+    ),
     DictionaryPage(currentUser: widget.currentUser),
     StorePage(
       currentUser: widget.currentUser,
@@ -145,7 +149,6 @@ class _HomePageState extends State<HomePage> {
                 label: 'Store'),
             BottomNavigationBarItem(
                 icon: Icon(Icons.person_rounded, size: 30), label: 'Profile'),
-
           ],
         ),
       ),
@@ -223,4 +226,3 @@ class WordleMainBody extends StatelessWidget {
     );
   }
 }
-

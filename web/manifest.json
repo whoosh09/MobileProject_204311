@@ -1,6 +1,6 @@
 {
-    "name": "testwordle",
-    "short_name": "testwordle",
+    "name": "Quackle",
+    "short_name": "Quackle",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

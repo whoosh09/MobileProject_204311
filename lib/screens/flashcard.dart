@@ -5,13 +5,14 @@ import 'dart:math';
 import '../models/mock_data.dart';
 import '../services/audio_helper.dart';
 import '../theme/theme_data.dart';
-import '../components/custom_3d_buttton.dart'; // ปุ่ม 3D
-import '../components/victory_effect.dart';    // 🆕 เอฟเฟกต์พลุ
+import '../components/custom_3d_buttton.dart';
+import '../components/victory_effect.dart';
 
 class FlashcardPage extends StatefulWidget {
   final User currentUser;
+  final VoidCallback onRefresh;
 
-  const FlashcardPage({super.key, required this.currentUser});
+  const FlashcardPage({super.key, required this.currentUser, required this.onRefresh});
 
   @override
   State<FlashcardPage> createState() => _FlashcardPageState();
@@ -23,7 +24,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
   Map<String, String> wordMeanings = {};
   List<String> unlockedWords = [];
 
-  // โหมดการเล่น (false = Study พลิกการ์ด, true = Quiz ทายคำศัพท์)
   bool isQuizMode = false;
 
   // --- State สำหรับ Study Mode ---
@@ -34,17 +34,16 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
 
   // --- State สำหรับ Quiz Mode ---
   int quizIndex = 0;
+  int correctAnswersCount = 0; // 🆕 ตัวแปรเก็บจำนวนข้อที่ตอบถูก
   List<String> currentOptions = [];
   String? selectedAnswer;
   bool isAnswering = false;
 
-  // 🆕 State สำหรับควบคุมพลุ
   bool showVictory = false;
 
   @override
   void initState() {
     super.initState();
-    // Setup แอนิเมชันพลิกการ์ด
     _flipController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
     _flipAnimation = Tween<double>(begin: 0, end: 1).animate(_flipController);
 
@@ -70,7 +69,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
       setState(() {
         isLoading = false;
         if (unlockedWords.isNotEmpty) {
-          unlockedWords.shuffle(); // สุ่มคำศัพท์ให้ควิซไม่จำเจ
+          unlockedWords.shuffle();
           _generateOptions();
         }
       });
@@ -87,7 +86,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
   }
 
   // ==========================================
-  // 📖 ลอจิกสำหรับ STUDY MODE (พลิกการ์ด)
+  // 📖 STUDY MODE
   // ==========================================
   void _flipCard() {
     if (_flipController.isAnimating) return;
@@ -130,7 +129,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
   }
 
   // ==========================================
-  // 🎮 ลอจิกสำหรับ QUIZ MODE (ทายคำศัพท์)
+  // 🎮 QUIZ MODE
   // ==========================================
   void _generateOptions() {
     String currentWord = unlockedWords[quizIndex];
@@ -146,7 +145,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
 
     selectedAnswer = null;
     isAnswering = false;
-    showVictory = false; // รีเซ็ตพลุ
+    showVictory = false;
   }
 
   Future<void> _checkAnswer(String answer) async {
@@ -161,16 +160,14 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     String correctMeaning = wordMeanings[currentWord] ?? "";
 
     if (answer == correctMeaning) {
-      // ✅ ตอบถูก! โชว์พลุกระจาย
+      correctAnswersCount++; // 🌟 บวกคะแนนเมื่อตอบถูก
       AppFeedback.playCorrect(widget.currentUser);
       setState(() => showVictory = true);
     } else {
-      // ❌ ตอบผิด
       AppFeedback.playWrong(widget.currentUser);
       AppFeedback.triggerHaptic(widget.currentUser);
     }
 
-    // หน่วงเวลาดูเฉลย และดูพลุสวยๆ 1.5 วินาที
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
 
@@ -180,19 +177,101 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
         _generateOptions();
       });
     } else {
+      // 🌟 คำนวณเหรียญ: ถูกกี่ข้อก็ได้เท่านั้น (ถ้าอยากให้ 1 ข้อ = 2 เหรียญ ให้คูณ 2 ตรงนี้ได้เลย)
+      int rewardCoins = correctAnswersCount;
+
       setState(() {
-        unlockedWords.shuffle();
-        quizIndex = 0;
-        _generateOptions();
+        widget.currentUser.coins += rewardCoins;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Round complete! Keep practicing. 🧠', textAlign: TextAlign.center),
-          backgroundColor: ThemeDatabase.getTheme(widget.currentUser.currentThemeId).correct,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      widget.currentUser.saveData();
+      widget.onRefresh();
+
+      _showQuizCompleteDialog(rewardCoins);
     }
+  }
+
+  // --- ฟังก์ชันโชว์หน้าต่างยินดีด้วยตอนเล่นจบ ---
+  void _showQuizCompleteDialog(int rewardCoins) {
+    final theme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.backgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Column(
+          children: [
+            const Icon(Icons.celebration_rounded, color: Colors.orange, size: 60),
+            const SizedBox(height: 10),
+            Text(
+              "ROUND COMPLETE!",
+              style: TextStyle(color: theme.textColor, fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 🌟 โชว์คะแนนที่ทำได้
+            Text(
+              "Score: $correctAnswersCount / ${unlockedWords.length}",
+              style: TextStyle(color: theme.correct, fontSize: 22, fontWeight: FontWeight.w900)
+            ),
+            const SizedBox(height: 15),
+            Text(
+              rewardCoins > 0 ? "Great job! Here is your reward." : "Keep practicing! You can do it.",
+              style: TextStyle(color: theme.textColor.withOpacity(0.7)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+
+            // โชว์กล่องเหรียญ
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade100,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("💰", style: TextStyle(fontSize: 24)),
+                  const SizedBox(width: 8),
+                  Text(
+                    "+$rewardCoins Coins",
+                    style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.brown, fontSize: 20),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.correct,
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              ),
+              onPressed: () {
+                Navigator.pop(context); // ปิดหน้าต่าง
+
+                // 🌟 เริ่มรอบใหม่ & รีเซ็ตคะแนน
+                setState(() {
+                  unlockedWords.shuffle();
+                  quizIndex = 0;
+                  correctAnswersCount = 0; // รีเซ็ตคะแนนกลับเป็น 0
+                  _generateOptions();
+                });
+              },
+              child: const Text("Play Again", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   // ==========================================
@@ -206,7 +285,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
       return Center(child: CircularProgressIndicator(color: theme.correct));
     }
 
-    // --- 🔒 โหมดล็อค ---
     if (widget.currentUser.wordsFound < 15) {
       int wordsNeeded = 15 - widget.currentUser.wordsFound;
       return Center(
@@ -238,13 +316,11 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // --- 🎛️ HEADER & MODE TOGGLE ---
-                // --- HEADER ---
-                Center( // ✅ เปลี่ยนจาก Row เป็น Center
+                Center(
                   child: Text(
                     "FLASHCARDS",
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.w900,
                       color: theme.textColor,
                       letterSpacing: 1.5,
@@ -253,7 +329,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                 ),
                 const SizedBox(height: 16),
 
-                // Toggle Switch สลับโหมด
                 Container(
                   height: 45,
                   decoration: BoxDecoration(
@@ -267,9 +342,8 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-                // --- 🔀 สลับเนื้อหาตามโหมดที่เลือก ---
                 Expanded(
                   child: isQuizMode ? _buildQuizMode(theme) : _buildStudyMode(theme),
                 ),
@@ -278,13 +352,11 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
           ),
         ),
 
-        // ✨ เอฟเฟกต์พลุกระจายเมื่อตอบควิซถูก! (วางซ้อนทับหน้าจอทั้งหมด)
         if (showVictory) const VictoryEffect(),
       ],
     );
   }
 
-  // --- Widget: ปุ่มสลับโหมด ---
   Widget _buildModeTab(String title, bool isQuiz, GameTheme theme) {
     bool isSelected = isQuizMode == isQuiz;
     return GestureDetector(
@@ -312,9 +384,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
       ),
     );
   }
-  // ==========================================
-  // 📖 UI: STUDY MODE (พลิกการ์ด)
-  // ==========================================
+
   Widget _buildStudyMode(GameTheme theme) {
     String currentWord = unlockedWords[studyIndex];
     String currentMeaning = wordMeanings[currentWord] ?? "";
@@ -325,9 +395,8 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
           "Card ${studyIndex + 1} of ${unlockedWords.length}",
           style: TextStyle(color: theme.textColor.withOpacity(0.6), fontSize: 14),
         ),
-        const SizedBox(height: 20), // 🆕 เปลี่ยน Spacer เป็น SizedBox
+        const SizedBox(height: 20),
 
-        // 🆕 ใช้ Expanded ครอบการ์ด เพื่อให้ขยายเต็มพื้นที่ที่เหลืออัตโนมัติ (Responsive)
         Expanded(
           child: GestureDetector(
             onTap: _flipCard,
@@ -354,7 +423,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
           ),
         ),
 
-        const SizedBox(height: 24), // 🆕 เปลี่ยน Spacer เป็น SizedBox
+        const SizedBox(height: 24),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -377,7 +446,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     );
   }
 
-  // --- อัปเกรดดีไซน์การ์ดให้ Responsive ---
   Widget _buildCardSide(String text, bool isFrontSide, GameTheme theme) {
     return Container(
       width: double.infinity,
@@ -390,12 +458,12 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
         ],
       ),
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // 🆕 เพิ่มกรอบ Padding ให้สมดุล
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(12), // 🔽 ลดขนาดกล่องไอคอนลงนิดนึง
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isFrontSide ? theme.textColor.withOpacity(0.1) : theme.correct.withOpacity(0.15),
               shape: BoxShape.circle,
@@ -407,7 +475,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
             ),
           ),
           const SizedBox(height: 16),
-          // 🆕 ใช้ FittedBox กันล้น
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
@@ -421,7 +488,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
             ),
           ),
           const SizedBox(height: 12),
-          // 🆕 ให้ตัวหนังสือคำศัพท์ยืดหยุ่นและย่ออัตโนมัติถ้ายาวเกินไป
           Flexible(
             child: FittedBox(
               fit: BoxFit.scaleDown,
@@ -442,9 +508,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     );
   }
 
-  // ==========================================
-  // 🎮 UI: QUIZ MODE (ทายคำศัพท์) - 🎨 RESPONSIVE
-  // ==========================================
   Widget _buildQuizMode(GameTheme theme) {
     bool isDark = theme.brightness == Brightness.dark;
     String currentWord = unlockedWords[quizIndex];
@@ -453,17 +516,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("BRAIN TEST", style: TextStyle(fontWeight: FontWeight.w900, color: theme.correct, letterSpacing: 1.0)),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(color: theme.textColor.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
-              child: Text("${quizIndex + 1} / ${unlockedWords.length}", style: TextStyle(fontWeight: FontWeight.bold, color: theme.textColor.withOpacity(0.6))),
-            ),
-          ],
-        ),
         const SizedBox(height: 12),
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
@@ -474,50 +526,44 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
             minHeight: 8,
           ),
         ),
-        const SizedBox(height: 16), // 🔽 ลดระยะห่างลง
+        const SizedBox(height: 16),
 
-        // --- 2. VIBRANT QUESTION CARD ---
-        Expanded(
-          flex: 4,
-          child: Container(
-            padding: const EdgeInsets.all(16), // 🆕 เพิ่ม Padding ไม่ให้ตัวหนังสือชนขอบ
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [theme.correct, theme.correct.withOpacity(0.7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [BoxShadow(color: theme.correct.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-                  child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 28),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [theme.correct, theme.correct.withOpacity(0.7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [BoxShadow(color: theme.correct.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 25),
+              ),
+              const SizedBox(height: 8),
+              const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text("What does this word mean?", style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+              ),
+              const SizedBox(height: 15),
+
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  currentWord.toUpperCase(),
+                  style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 2)
                 ),
-                const SizedBox(height: 12),
-                const FittedBox( // 🆕 กันข้อความทะลุจอด้านข้าง
-                  fit: BoxFit.scaleDown,
-                  child: Text("What does this word mean?", style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
-                ),
-                const SizedBox(height: 8),
-                Flexible( // 🆕 ป้องกันการล้นแนวตั้ง
-                  child: FittedBox( // 🆕 ถ้าคำศัพท์ยาวไป ให้ย่อออโต้
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      currentWord.toUpperCase(),
-                      style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 3)
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 20), // 🔽 ลดระยะห่างลงให้สมดุล
+        const SizedBox(height: 15),
 
-        // --- 3. ANSWER OPTIONS ---
         Expanded(
-          flex: 6,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Column(
@@ -534,11 +580,11 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                   if (option == correctMeaning) {
                     buttonState = ButtonState.correct;
                     currentTextColor = Colors.white;
-                    displayText = "✅  $option";
+                    displayText = "$option";
                   } else if (option == selectedAnswer) {
                     buttonState = ButtonState.incorrect;
                     currentTextColor = Colors.white;
-                    displayText = "❌  $option";
+                    displayText = "$option";
                   } else {
                     currentTextColor = theme.textColor.withOpacity(0.3);
                     currentShadowColor = Colors.transparent;
@@ -546,7 +592,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                 }
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0), // 🔽 ลดระยะห่างระหว่างปุ่มลงนิดหน่อย
+                  padding: const EdgeInsets.only(bottom: 12.0),
                   child: SizedBox(
                     width: double.infinity,
                     child: Custom3DButton(

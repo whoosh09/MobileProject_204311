@@ -142,6 +142,13 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     if (words < 100) return "Legend";
     return "MAX";
   }
+  int getNextRankThreshold(int words) {
+    if (words < 10) return 10;
+    if (words < 30) return 30;
+    if (words < 50) return 50;
+    if (words < 100) return 100;
+    return 100; // ตันที่ 100 คำ
+  }
 
   double getProgressToNextRank(int words) {
     if (words < 10) return words / 10;
@@ -254,25 +261,31 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             Row(
               children: [
                 Expanded(
-                  child: Custom3DButton(
-                    text: "LOGOUT",
-                    backgroundColor: Colors.redAccent,
-                    shadowColor: Colors.red.shade800,
-                    onPressed: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.remove('loggedInUser');
-                      if (!context.mounted) return;
-                      Navigator.of(context).pushNamedAndRemoveUntil('/splash', (route) => false);
-                    },
+                  child: SizedBox(
+                    height: 50,
+                    child: Custom3DButton(
+                      text: "LOGOUT",
+                      backgroundColor: Colors.redAccent,
+                      shadowColor: Colors.red.shade800,
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.remove('loggedInUser');
+                        if (!context.mounted) return;
+                        Navigator.of(context).pushNamedAndRemoveUntil('/splash', (route) => false);
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Custom3DButton(
-                    text: "CANCEL",
-                    backgroundColor: Colors.grey.shade400,
-                    shadowColor: Colors.grey.shade600,
-                    onPressed: () => Navigator.pop(context),
+                  child: SizedBox(
+                    height: 50,
+                    child: Custom3DButton(
+                      text: "CANCEL",
+                      backgroundColor: Colors.grey.shade400,
+                      shadowColor: Colors.grey.shade600,
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ),
                 ),
               ],
@@ -284,18 +297,41 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   }
 
   void _showAvatarShop(GameTheme theme) {
-    // รายการ Avatar
-    final avatars = [
-      {'emoji': '🦆', 'price': 0}, {'emoji': '🐔', 'price': 0},
-      {'emoji': '🥷🏿', 'price': 10}, {'emoji': '🐧', 'price': 50},
-      {'emoji': '🍁', 'price': 50}, {'emoji': '🦋', 'price': 50},
-      {'emoji': '🐼', 'price': 50}, {'emoji': '🦖', 'price': 100},
-      {'emoji': '👽', 'price': 100}, {'emoji': '🪼', 'price': 100},
-      {'emoji': '🦚', 'price': 100}, {'emoji': '👑', 'price': 250},
-      {'emoji': '🌈', 'price': 250}, {'emoji': '🔱', 'price': 250},
-      {'emoji': '🐦‍🔥', 'price': 250}, {'emoji': '🦄', 'price': 500},
-      {'emoji': '🌟', 'price': 500}, {'emoji': '🫧', 'price': 500},
-      {'emoji': '🎮', 'price': 500},
+
+ final avatars = [
+      // 🦆 สายฟรีและราคาประหยัด (สัตว์คลาสสิก/สัตว์เลี้ยง)
+      {'path': 'assets/emoji/Duck.png', 'price': 0},         // เป็ด (ธีมเกม ฟรี)
+      {'path': 'assets/emoji/Chicken.png', 'price': 0},      // ไก่ (ฟรี)
+      {'path': 'assets/emoji/Frog.png', 'price': 10},        // กบ
+      {'path': 'assets/emoji/pig_face.png', 'price': 10},    // หมู
+
+      // 🍁 สายธรรมชาติและของน่ารัก (Tier 1)
+      {'path': 'assets/emoji/maple_leaf.png', 'price': 50},  // ใบเมเปิล
+      {'path': 'assets/emoji/Bubbles.png', 'price': 50},     // ฟองสบู่
+      {'path': 'assets/emoji/Penguin.png', 'price': 50},     // เพนกวิน
+      {'path': 'assets/emoji/Panda.png', 'price': 50},       // แพนด้า
+      {'path': 'assets/emoji/teddy_bear.png', 'price': 50},  // ตุ๊กตาหมี
+
+      // 🦋 สายสวยงามและสัตว์หายาก (Tier 2)
+      {'path': 'assets/emoji/Butterfly.png', 'price': 100},  // ผีเสื้อ
+      {'path': 'assets/emoji/Jellyfish.png', 'price': 100},  // แมงกะพรุน
+      {'path': 'assets/emoji/Peacock.png', 'price': 100},    // นกยูง
+      {'path': 'assets/emoji/Whale.png', 'price': 100},      // วาฬ
+      {'path': 'assets/emoji/Sauropod.png', 'price': 100},   // ไดโนเสาร์คอยาว
+
+      // 🔥 สายเท่และแฟชั่น (Tier 3)
+      {'path': 'assets/emoji/Alien.png', 'price': 200},      // เอเลี่ยน
+      {'path': 'assets/emoji/t-rex.png', 'price': 200},      // ทีเร็กซ์
+      {'path': 'assets/emoji/Fire.png', 'price': 200},       // ไฟ
+      {'path': 'assets/emoji/video_game.png', 'price': 250}, // จอยเกม
+      {'path': 'assets/emoji/Rainbow.png', 'price': 250},    // รุ้งกินน้ำ
+
+      // 👑 สายเทพ ของแรร์ระดับตำนาน (Tier 4 - Max Level)
+      {'path': 'assets/emoji/glowing_star.png', 'price': 500}, // ดาวเรืองแสง
+      {'path': 'assets/emoji/Unicorn.png', 'price': 500},      // ยูนิคอร์น
+      {'path': 'assets/emoji/Phoenix.png', 'price': 500},      // ฟีนิกซ์
+      {'path': 'assets/emoji/trident_emblem.png', 'price': 500},// ตรีศูล
+      {'path': 'assets/emoji/Crown.png', 'price': 500},        // มงกุฎ
     ];
 
     showModalBottomSheet(
@@ -335,15 +371,15 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                       child: Wrap(
                         spacing: 12, runSpacing: 12, alignment: WrapAlignment.center,
                         children: avatars.map((av) {
-                          final emoji = av['emoji'] as String;
+                          final path = av['path'] as String;
                           final price = av['price'] as int;
-                          final bool isOwned = price == 0 || widget.currentUser.ownedAvatars.contains(emoji);
-                          final bool isEquipped = widget.currentUser.avatarEmoji == emoji;
+                          final bool isOwned = price == 0 || widget.currentUser.ownedAvatars.contains(path);
+                          final bool isEquipped = widget.currentUser.avatarEmoji == path;
 
                           return GestureDetector(
                             onTap: () {
                               if (isOwned) {
-                                setState(() => widget.currentUser.avatarEmoji = emoji);
+                                setState(() => widget.currentUser.avatarEmoji = path);
                                 setModalState(() {});
                                 widget.currentUser.saveData();
                                 widget.onProfileUpdate();
@@ -361,7 +397,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                               ),
                               child: Column(
                                 children: [
-                                  Text(emoji, style: const TextStyle(fontSize: 36)),
+                                  Image.asset(path, width: 40, height: 40, fit: BoxFit.contain),
                                   const SizedBox(height: 6),
                                   isOwned
                                       ? Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: theme.correct.withOpacity(0.2), borderRadius: BorderRadius.circular(8)), child: Text(isEquipped ? "EQUIPPED" : "OWNED", style: TextStyle(fontSize: 10, color: theme.correct, fontWeight: FontWeight.bold)))
@@ -385,21 +421,28 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
   void _showConfirmAvatarDialog(Map<String, Object> av, GameTheme theme, StateSetter setModalState) {
     final int price = av['price'] as int;
-    final String emoji = av['emoji'] as String;
+    final String path = av['path'] as String; // 🆕
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: theme.backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text("Confirm Purchase", style: TextStyle(color: theme.textColor, fontWeight: FontWeight.bold)),
-        content: Text("Buy avatar '$emoji' for $price coins?", style: TextStyle(color: theme.textColor.withOpacity(0.8))),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(path, width: 60, height: 60),
+            const SizedBox(height: 16),
+            Text("Buy this avatar for $price coins?", style: TextStyle(color: theme.textColor.withOpacity(0.8))),
+          ],
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: theme.correct),
             onPressed: () {
               Navigator.pop(context);
-              _processAvatarPurchase(emoji, price, setModalState);
+              _processAvatarPurchase(path, price, setModalState);
             },
             child: const Text("Buy!", style: TextStyle(color: Colors.white)),
           ),
@@ -408,13 +451,13 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
-  void _processAvatarPurchase(String emoji, int price, StateSetter setModalState) {
+void _processAvatarPurchase(String path, int price, StateSetter setModalState) { // 🆕 รับ String path
     if (widget.currentUser.coins >= price) {
       AppFeedback.playCash(widget.currentUser);
       setState(() {
         widget.currentUser.coins -= price;
-        widget.currentUser.ownedAvatars.add(emoji);
-        widget.currentUser.avatarEmoji = emoji;
+        widget.currentUser.ownedAvatars.add(path);
+        widget.currentUser.avatarEmoji = path;
       });
       widget.currentUser.saveData();
       setModalState(() {});
@@ -457,7 +500,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                     const Text("💰", style: TextStyle(fontSize: 16)),
                     const SizedBox(width: 6),
                     Text(
-                      "Cost: 100 coins  (You have: ${widget.currentUser.coins})",
+                      "Cost: 100 coins",
                       style: TextStyle(fontSize: 12, color: theme.textColor.withOpacity(0.7)),
                     ),
                   ],
@@ -559,7 +602,12 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                       Container(
                         width: 100, height: 100,
                         decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [rankColor.withOpacity(0.4), rankColor.withOpacity(0.05)]), border: Border.all(color: rankColor, width: 3), boxShadow: [BoxShadow(color: rankColor.withOpacity(0.5), blurRadius: 20)]),
-                        child: Center(child: Text(widget.currentUser.avatarEmoji, style: const TextStyle(fontSize: 52))),
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0), // ปรับขนาดให้พอดีวงกลม
+                            child: Image.asset(widget.currentUser.avatarEmoji, fit: BoxFit.contain),
+                          ),
+                        ),
                       ),
                       Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: theme.correct, shape: BoxShape.circle), child: const Icon(Icons.edit_rounded, color: Colors.white, size: 14)),
                     ],
@@ -609,8 +657,23 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Progress to ${getRankNext(widget.currentUser.wordsFound)}", style: TextStyle(fontSize: 11, color: theme.textColor.withOpacity(0.5), fontFamily: 'monospace')),
-                      Text("${widget.currentUser.wordsFound} words", style: TextStyle(fontSize: 11, color: rankColor, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
+                      Expanded(
+                        child: Text(
+                          widget.currentUser.wordsFound >= 100
+                            ? "MAX RANK REACHED"
+                            : "Progress to ${getRankNext(widget.currentUser.wordsFound)}",
+                          style: TextStyle(fontSize: 11, color: theme.textColor.withOpacity(0.5), fontFamily: 'monospace'),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.currentUser.wordsFound >= 100
+                          ? "${widget.currentUser.wordsFound} words"
+                          : "${widget.currentUser.wordsFound} / ${getNextRankThreshold(widget.currentUser.wordsFound)}",
+                        style: TextStyle(fontSize: 11, color: rankColor, fontFamily: 'monospace', fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.right,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -652,9 +715,10 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(child: _StatCard(label: "Streak", value: "🔥 ${widget.currentUser.currentStreak}", icon: Icons.local_fire_department_rounded, color: Colors.orange.shade400, theme: theme, isBig: true)),
+                  // 🆕 เอา Emoji ออก และเอา isBig: true ออก เพื่อให้ทุกกล่องใช้มาตรฐานเดียวกัน
+                  Expanded(child: _StatCard(label: "Streak", value: "${widget.currentUser.currentStreak}", icon: Icons.local_fire_department_rounded, color: Colors.orange.shade400, theme: theme)),
                   const SizedBox(width: 10),
-                  Expanded(child: _StatCard(label: "Best", value: "⚡ ${widget.currentUser.maxStreak}", icon: Icons.bolt_rounded, color: Colors.purple.shade400, theme: theme, isBig: true)),
+                  Expanded(child: _StatCard(label: "Best", value: "${widget.currentUser.maxStreak}", icon: Icons.bolt_rounded, color: Colors.purple.shade400, theme: theme)),
                 ],
               ),
             ],
@@ -684,21 +748,56 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                             double barWidth = count > 0 ? (widthFactor * _barAnim.value * constraints.maxWidth).clamp(36.0, constraints.maxWidth) : 36.0;
                             return Stack(
                               children: [
+                                // 1. พื้นหลังหลอด
                                 Container(height: 28, decoration: BoxDecoration(color: theme.textColor.withOpacity(0.05), borderRadius: BorderRadius.circular(8))),
-                                if (count > 0) Container(width: barWidth, height: 28, decoration: BoxDecoration(gradient: LinearGradient(colors: [theme.correct.withOpacity(0.7), theme.correct]), borderRadius: BorderRadius.circular(8))),
+
+                                // 2. หลอดสีตาม Theme (จะขยายตาม Animation)
+                                if (count > 0)
+                                  Container(
+                                    width: barWidth,
+                                    height: 28,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(colors: [theme.correct.withOpacity(0.7), theme.correct]),
+                                      borderRadius: BorderRadius.circular(8)
+                                    )
+                                  ),
+
+                                // 3. เลเยอร์บนสุด: ขีดสีขาว + ตัวเลข
                                 Positioned.fill(
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: Text(
-                                        "$count",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          color: isDark ? Colors.white70 : Colors.black87,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // 🔹 สร้างขีดสีขาว (Notches) 🔹
+                                        Row(
+                                          children: List.generate(6, (i) => Container(
+                                            margin: const EdgeInsets.only(right: 3),
+                                            width: 4,
+                                            height: 14,
+                                            decoration: BoxDecoration(
+                                              // ทำให้ขีดสว่างตามจำนวนรอบที่ทาย
+                                              color: i < (index + 1)
+                                                  ? Colors.white.withOpacity(0.9)
+                                                  : Colors.white.withOpacity(0.2),
+                                              borderRadius: BorderRadius.circular(2),
+                                            ),
+                                          )),
                                         ),
-                                      ),
+
+                                        // 🔹 ตัวเลขบอกจำนวน 🔹
+                                        Text(
+                                          "$count",
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            // 🆕 ตัวเลขเปลี่ยนสีตามโหมด (Dark=ขาว, Light=ดำ/เทาเข้ม)
+                                            color: count > 0
+                                                ? (isDark ? Colors.white : Colors.black87)
+                                                : theme.textColor.withOpacity(0.3),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -730,18 +829,65 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final GameTheme theme;
-  final bool isBig;
-  const _StatCard({required this.label, required this.value, required this.icon, required this.color, required this.theme, this.isBig = false});
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.theme
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: theme.brightness == Brightness.dark ? color.withOpacity(0.08) : color.withOpacity(0.06), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.25))),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: theme.brightness == Brightness.dark ? color.withOpacity(0.08) : color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(20), // 🆕 เพิ่มความมนให้ดูสมูทขึ้น
+        border: Border.all(color: color.withOpacity(0.25))
+      ),
       child: Row(
         children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: 20)),
+          // 🆕 1. ปรับพื้นหลังไอคอนเป็นวงกลม จะดูเข้ากับ UI โดยรวมมากกว่า
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              shape: BoxShape.circle
+            ),
+            child: Icon(icon, color: color, size: 24) // 🆕 ขยายไอคอนนิดนึงให้สมดุล
+          ),
           const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(value, style: TextStyle(fontSize: isBig ? 20 : 22, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace')), Text(label, style: TextStyle(fontSize: 11, color: theme.textColor.withOpacity(0.5), fontFamily: 'monospace'))]),
+          // 🆕 2. จัดระเบียบตัวเลขและข้อความ
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    // ✅ ฟิกซ์ขนาดฟอนต์ที่ 24 ให้ตัวเลขเท่ากันทุกการ์ด
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace')
+                  ),
+                ),
+                const SizedBox(height: 2), // 🆕 เพิ่มช่องว่างระหว่างเลขกับ Text นิดนึง
+                Text(
+                  label.toUpperCase(), // 🆕 ดันเป็นตัวพิมพ์ใหญ่หมด
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0, // 🆕 ถ่างช่องไฟให้ดู Modern
+                    color: theme.textColor.withOpacity(0.5),
+                    fontFamily: 'monospace'
+                  )
+                )
+              ]
+            ),
+          ),
         ],
       ),
     );

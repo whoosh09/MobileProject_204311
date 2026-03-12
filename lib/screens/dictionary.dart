@@ -96,7 +96,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 "MY DICTIONARY",
                 textAlign: TextAlign.center, // 🆕 เพิ่มบรรทัดนี้เพื่อให้อยู่ตรงกลาง
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 24,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.5,
                   color: theme.textColor,
@@ -121,23 +121,35 @@ class _DictionaryPageState extends State<DictionaryPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(color: theme.correct.withOpacity(0.2), shape: BoxShape.circle),
-                              child: Icon(Icons.menu_book_rounded, color: theme.correct, size: 20),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              "Words Unlocked",
-                              style: TextStyle(fontWeight: FontWeight.bold, color: theme.textColor, fontSize: 16),
-                            ),
-                          ],
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(color: theme.correct.withOpacity(0.2), shape: BoxShape.circle),
+                                child: Icon(Icons.menu_book_rounded, color: theme.correct, size: 20),
+                              ),
+                              const SizedBox(width: 8), // 🔽 1. ลดระยะห่างนิดนึงจาก 12 เหลือ 8 ให้มีพื้นที่เขียนหนังสือเพิ่มขึ้น
+                              Expanded(
+                                // 🆕 2. ใช้ FittedBox ครอบ Text เพื่อให้มันย่อฟอนต์ลงเวลาจอเล็ก แทนการขึ้นจุด ...
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    "Words Unlocked",
+                                    style: TextStyle(fontWeight: FontWeight.bold, color: theme.textColor, fontSize: 16),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
+                        // ฝั่งตัวเลข
                         Text(
                           "${widget.currentUser.wordsFound} / $_totalWords",
-                          style: TextStyle(fontWeight: FontWeight.w900, color: theme.correct, fontSize: 18),
+                          // 🔽 3. ลดขนาดตัวเลขด้านหลังจาก 18 เหลือ 16 เพื่อคืนพื้นที่ให้ตัวหนังสือด้านหน้า
+                          style: TextStyle(fontWeight: FontWeight.w900, color: theme.correct, fontSize: 16),
                         ),
                       ],
                     ),
@@ -244,8 +256,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                                   ],
                                                 ),
                                               ),
-                                              // ไอคอนตกแต่ง
-                                              Icon(Icons.star_rounded, color: Colors.amber.shade300, size: 24),
                                             ],
                                           ),
                                         ),

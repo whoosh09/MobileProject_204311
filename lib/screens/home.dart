@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../components/coin_badge.dart'; // 🆕 Import the new component
 import '../components/custom_3d_buttton.dart';
 import '../models/mock_data.dart';
 import '../theme/theme_data.dart';
@@ -35,7 +36,11 @@ class _HomePageState extends State<HomePage> {
       currentUser: widget.currentUser,
       onRefresh: _refreshState,
     ),
-    FlashcardPage(currentUser: widget.currentUser),
+    // 🌟 ส่ง onRefresh เข้าไปให้ Flashcard เพื่อให้เหรียญเด้งตอนตอบควิซเสร็จ
+    FlashcardPage(
+      currentUser: widget.currentUser,
+      onRefresh: _refreshState,
+    ),
     DictionaryPage(currentUser: widget.currentUser),
     StorePage(
       currentUser: widget.currentUser,
@@ -70,42 +75,9 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: theme.backgroundColor,
         elevation: 0,
         actions: [
-          // ── Coin badge (เพิ่ม GestureDetector เพื่อให้มีเสียง) ───────────────────────────────
+          // ── Coin badge (ใช้ AnimatedCoinBadge แทนของเดิม) ───────────────────────────────
           Center(
-            child: GestureDetector(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFB700), Color(0xFFFF8C00)],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.amber.withAlpha(89),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text("💰", style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 4),
-                    Text(
-                      "${widget.currentUser.coins}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            child: AnimatedCoinBadge(coins: widget.currentUser.coins),
           ),
 
           // ── Settings button (เพิ่มเสียงและสั่น) ─────────────────────
@@ -177,7 +149,6 @@ class _HomePageState extends State<HomePage> {
                 label: 'Store'),
             BottomNavigationBarItem(
                 icon: Icon(Icons.person_rounded, size: 30), label: 'Profile'),
-
           ],
         ),
       ),
@@ -212,14 +183,6 @@ class WordleMainBody extends StatelessWidget {
             width: 280,            // ปรับขนาดความกว้างตามที่ต้องการ
             height: 200,           // ปรับความสูง (ถ้าต้องการคุมทั้งสองอย่าง)
             fit: BoxFit.contain,   // ให้รูปภาพรักษาสัดส่วนและอยู่ในกรอบ
-          ),
-          const SizedBox(height: 10),
-
-          const SizedBox(height: 10),
-          Text(
-            "Words Found: ${currentUser.wordsFound}",
-            style: TextStyle(
-                color: theme.textColor.withAlpha(153), fontSize: 16),
           ),
           const SizedBox(height: 50),
 
@@ -258,4 +221,3 @@ class WordleMainBody extends StatelessWidget {
     );
   }
 }
-

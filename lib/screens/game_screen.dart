@@ -400,8 +400,18 @@ class _WordleScreenState extends State<WordleScreen> {
 
   Future<void> _checkWord() async {
     String guess = guesses[currentRow];
-    if (guess.length != 5) { _showMessage("Not enough letters"); AppFeedback.triggerHaptic(widget.currentUser); return; }
-    if (!validWordsDict.contains(guess)) { _showMessage("Not in word list"); AppFeedback.triggerHaptic(widget.currentUser); return; }
+    // 🆕 เช็คว่าพิมพ์ไม่ครบ
+    if (guess.length != 5) {
+      _showMessage("Not enough letters");
+      if (widget.currentUser.isVibrationEnabled) HapticFeedback.heavyImpact(); // 💥 สั่นแบบหนัก
+      return;
+    }
+    // 🆕 เช็คว่าคำไม่มีในดิกชันนารี
+    if (!validWordsDict.contains(guess)) {
+      _showMessage("Not in word list");
+      if (widget.currentUser.isVibrationEnabled) HapticFeedback.heavyImpact(); // 💥 สั่นแบบหนัก
+      return;
+    }
     if (isAnimating) return;
 
     setState(() { isAnimating = true; });
@@ -449,6 +459,8 @@ class _WordleScreenState extends State<WordleScreen> {
     if (guess == targetWord) {
       AppFeedback.playWin(widget.currentUser);
       bool isUnlockedFlashcard = false;
+      String? newlyUnlockedRank; // 🆕 เพิ่มตัวแปรเก็บฉายาใหม่
+
       setState(() {
         widget.currentUser.gamesPlayed++;
         widget.currentUser.gamesWon++;
@@ -460,10 +472,27 @@ class _WordleScreenState extends State<WordleScreen> {
         widget.currentUser.wordsFound += 1;
         if (!widget.currentUser.foundWordsList.contains(targetWord)) widget.currentUser.foundWordsList.add(targetWord);
         widget.currentUser.guessDistribution[currentRow - 1]++;
+
+        // ตรวจสอบการปลดล็อก Flashcard
         if (widget.currentUser.wordsFound == 15) isUnlockedFlashcard = true;
+
+        // 🆕 ตรวจสอบการปลดล็อกฉายาใหม่ (Rank)
+        if (widget.currentUser.wordsFound == 10) newlyUnlockedRank = "📖 Bookworm";
+        if (widget.currentUser.wordsFound == 30) newlyUnlockedRank = "🎓 Scholar";
+        if (widget.currentUser.wordsFound == 50) newlyUnlockedRank = "🧙‍♂️ Word Master";
+        if (widget.currentUser.wordsFound == 100) newlyUnlockedRank = "👑 Legend";
+
+        // 🆕 เพิ่มฉายาเข้ากระเป๋า และตั้งให้สวมใส่อัตโนมัติเลย!
+        if (newlyUnlockedRank != null && !widget.currentUser.unlockedRanks.contains(newlyUnlockedRank)) {
+          widget.currentUser.unlockedRanks.add(newlyUnlockedRank!);
+          widget.currentUser.selectedRankTitle = newlyUnlockedRank!;
+        }
       });
       widget.currentUser.saveData();
-      _showEndGameDialog(true, targetWord, targetWordTranslation, justUnlocked: isUnlockedFlashcard);
+
+      // 🆕 ส่งค่า newlyUnlockedRank เข้าไปใน Dialog ด้วย
+      _showEndGameDialog(true, targetWord, targetWordTranslation, justUnlocked: isUnlockedFlashcard, newlyUnlockedRank: newlyUnlockedRank);
+
     } else if (currentRow == maxRows) {
       AppFeedback.playLose(widget.currentUser);
       setState(() {
@@ -475,16 +504,51 @@ class _WordleScreenState extends State<WordleScreen> {
     }
   }
 
+  // 🆕 ฟังก์ชันโชว์ข้อความกลางจอพร้อมดีไซน์แบบ Modern ขอบมน
   void _showMessage(String msg) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, textAlign: TextAlign.center, style: TextStyle(color: currentTheme.backgroundColor)),
-        duration: const Duration(milliseconds: 1000),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: currentTheme.textColor,
+    OverlayEntry overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).size.height * 0.35, // ลอยอยู่เหนือคีย์บอร์ดและกริดเล็กน้อย
+        left: 0,
+        right: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              decoration: BoxDecoration(
+                color: currentTheme.textColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, 5))
+                ],
+              ),
+              child: Text(
+                msg,
+                style: TextStyle(
+                  color: currentTheme.backgroundColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
+
+    // ยิงข้อความขึ้นจอ
+    Overlay.of(context).insert(overlayEntry);
+
+    // ตั้งเวลาให้ข้อความเฟดหายไปเอง
+    bool isRemoved = false;
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (!isRemoved) {
+        overlayEntry.remove();
+        isRemoved = true;
+      }
+    });
   }
   // --- ฟังก์ชันสำหรับโชว์หน้าต่างยืนยันการออกเกม ---
   Future<bool> _showExitConfirmDialog() async {
@@ -531,7 +595,7 @@ class _WordleScreenState extends State<WordleScreen> {
     return shouldExit ?? false; // ถ้าปัดจอทิ้งให้ถือว่า false
   }
 
-  void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false}) {
+  void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false, String? newlyUnlockedRank}) {
     showDialog(
       context: context,
       barrierDismissible: false, // บังคับให้ต้องกดปุ่มเพื่อออก
@@ -690,7 +754,46 @@ class _WordleScreenState extends State<WordleScreen> {
                       ),
                     ),
                   ],
-
+                // --- 🌟 RANK UNLOCKED ALERT (เพิ่มใหม่) ---
+                  if (newlyUnlockedRank != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.orange.shade400, Colors.deepOrange.shade600],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(color: Colors.orange.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.stars_rounded, color: Colors.white, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "NEW TITLE UNLOCKED!",
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                                ),
+                                Text(
+                                  newlyUnlockedRank, // แสดงฉายา เช่น 📖 Bookworm
+                                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 32),
 
                   // --- 🕹️ BUTTONS ---
@@ -703,6 +806,8 @@ class _WordleScreenState extends State<WordleScreen> {
                           backgroundColor: Colors.grey.shade400,
                           shadowColor: Colors.grey.shade600,
                           onPressed: () {
+                            AppFeedback.playClick(widget.currentUser);
+                            AppFeedback.triggerHaptic(widget.currentUser);
                             Navigator.pop(context); // ปิด Dialog
                             Navigator.pop(context); // กลับหน้าหลัก
                           },
@@ -716,6 +821,8 @@ class _WordleScreenState extends State<WordleScreen> {
                           backgroundColor: won ? currentTheme.correct : Colors.blueAccent,
                           shadowColor: won ? Colors.green.shade700 : Colors.blue.shade700,
                           onPressed: () {
+                            AppFeedback.playClick(widget.currentUser);
+                            AppFeedback.triggerHaptic(widget.currentUser);
                             Navigator.pop(context);
                             _resetGame();
                           },

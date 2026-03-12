@@ -54,7 +54,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
   void _checkAndUnlockRanks() {
     // rank ทั้งหมดที่ควรได้ตาม wordsFound
-    final allRanks = ["🌱 Novice", "📖 Bookworm", "🎓 Scholar", "🧙‍♂️ Word Master", "👑 Legend"];
+    final allRanks = ["🌱 Novice", "📖 Bookworm", "🎓 Scholar", "🧙‍♂️ Master", "👑 Legend"];
     final thresholds = [0, 10, 30, 50, 100];
 
     bool changed = false;
@@ -131,14 +131,14 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     if (words < 10) return "🌱 Novice";
     if (words < 30) return "📖 Bookworm";
     if (words < 50) return "🎓 Scholar";
-    if (words < 100) return "🧙‍♂️ Word Master";
+    if (words < 100) return "🧙‍♂️ Master";
     return "👑 Legend";
   }
 
   String getRankNext(int words) {
     if (words < 10) return "Bookworm";
     if (words < 30) return "Scholar";
-    if (words < 50) return "Word Master";
+    if (words < 50) return "Master";
     if (words < 100) return "Legend";
     return "MAX";
   }
@@ -163,7 +163,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     if (title.contains("Novice")) return Colors.green.shade400;
     if (title.contains("Bookworm")) return Colors.blue.shade400;
     if (title.contains("Scholar")) return Colors.purple.shade400;
-    if (title.contains("Word Master")) return Colors.orange.shade400;
+    if (title.contains("Master")) return Colors.orange.shade400;
     return Colors.amber.shade400; // Legend
   }
 
@@ -256,6 +256,11 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Image.asset(
+              'assets/images/huhquackle.png',
+              height: 120,
+              fit: BoxFit.contain,
+            ),
             Text("Are you sure you want to sign out of your account?", style: TextStyle(color: theme.textColor.withOpacity(0.7))),
             const SizedBox(height: 30),
             Row(

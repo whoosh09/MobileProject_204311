@@ -164,9 +164,9 @@ class MockDatabase {
       extraRowCount: 99,
       isSoundEnabled: true,
       isVibrationEnabled: true,
-      selectedRankTitle: "🧙‍♂️ Word Master",
+      selectedRankTitle: "🧙‍♂️ Master",
       unlockedRanks: [
-        "🌱 Novice","📖 Bookworm","🎓 Scholar","🧙‍♂️ Word Master",
+        "🌱 Novice","📖 Bookworm","🎓 Scholar","🧙‍♂️ Master",
       ],
     ),
     // ═══════════════════════════════════════════════════════

@@ -194,7 +194,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
   // --- ฟังก์ชันโชว์หน้าต่างยินดีด้วยตอนเล่นจบ ---
   void _showQuizCompleteDialog(int rewardCoins) {
     final theme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
-
+    AppFeedback.playWin(widget.currentUser);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -203,7 +203,11 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Column(
           children: [
-            const Icon(Icons.celebration_rounded, color: Colors.orange, size: 60),
+            Image.asset(
+              'assets/images/wowquackle.png',
+              height: 120,
+              fit: BoxFit.contain,
+            ),
             const SizedBox(height: 10),
             Text(
               "ROUND COMPLETE!",
@@ -257,6 +261,8 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               ),
               onPressed: () {
+                AppFeedback.playClick(widget.currentUser);
+                AppFeedback.triggerHaptic(widget.currentUser);
                 Navigator.pop(context); // ปิดหน้าต่าง
 
                 // 🌟 เริ่มรอบใหม่ & รีเซ็ตคะแนน

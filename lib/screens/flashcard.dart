@@ -5,6 +5,7 @@ import 'dart:math';
 import '../models/mock_data.dart';
 import '../services/audio_helper.dart';
 import '../theme/theme_data.dart';
+import '../theme/text_styles.dart'; // 🆕 Re-added import
 import '../components/custom_3d_buttton.dart';
 import '../components/victory_effect.dart';
 
@@ -494,11 +495,12 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
               child: Text(
                 text,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: isFrontSide ? 42 : 32,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: isFrontSide ? 4 : 0,
+                style: AppTextStyles.smartStyle(
+                  text,
+                  fontSize: isFrontSide ? 42 : 40,
+                  fontWeight: isFrontSide ? FontWeight.w900 : FontWeight.w600,
                   color: isFrontSide ? theme.textColor : theme.correct,
+                  letterSpacing: isFrontSide ? 4 : null,
                 ),
               ),
             ),
@@ -601,6 +603,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                       backgroundColor: currentBgColor,
                       shadowColor: currentShadowColor,
                       textColor: currentTextColor,
+                      style: AppTextStyles.smartStyle(displayText, fontWeight: FontWeight.w500),
                       onPressed: () => _checkAnswer(option),
                     ),
                   ),

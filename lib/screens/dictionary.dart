@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../models/mock_data.dart';
 import '../theme/theme_data.dart';
 import '../services/audio_helper.dart'; // 🆕 นำเข้าเสียงเผื่อกดเล่น
+import '../theme/text_styles.dart'; // 🆕 Added import
 
 class DictionaryPage extends StatefulWidget {
   final User currentUser;
@@ -175,7 +176,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 style: TextStyle(color: theme.textColor),
                 decoration: InputDecoration(
                   hintText: "Search English or Thai...",
-                  hintStyle: TextStyle(color: theme.textColor.withOpacity(0.4)),
+                  hintStyle: AppTextStyles.smartStyle("Search English or Thai...", color: theme.textColor.withOpacity(0.4)), // 🆕 Smart Hint
                   prefixIcon: Icon(Icons.search_rounded, color: theme.textColor.withOpacity(0.4)),
                   suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -251,7 +252,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                                     const SizedBox(height: 4),
                                                     Text(
                                                       translation,
-                                                      style: TextStyle(fontSize: 14, color: theme.correct, fontWeight: FontWeight.w600),
+                                                      style: AppTextStyles.smartStyle(translation, fontSize: 18, color: theme.correct, fontWeight: FontWeight.w600), // 🆕 Applied SmartStyle
                                                     ),
                                                   ],
                                                 ),

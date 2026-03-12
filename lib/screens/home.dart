@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../components/coin_badge.dart'; // 🆕 Import the new component
+import '../components/coin_badge.dart';
 import '../components/custom_3d_buttton.dart';
 import '../models/mock_data.dart';
 import '../theme/theme_data.dart';

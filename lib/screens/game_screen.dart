@@ -459,6 +459,8 @@ class _WordleScreenState extends State<WordleScreen> {
     if (guess == targetWord) {
       AppFeedback.playWin(widget.currentUser);
       bool isUnlockedFlashcard = false;
+      String? newlyUnlockedRank; // 🆕 เพิ่มตัวแปรเก็บฉายาใหม่
+
       setState(() {
         widget.currentUser.gamesPlayed++;
         widget.currentUser.gamesWon++;
@@ -470,10 +472,27 @@ class _WordleScreenState extends State<WordleScreen> {
         widget.currentUser.wordsFound += 1;
         if (!widget.currentUser.foundWordsList.contains(targetWord)) widget.currentUser.foundWordsList.add(targetWord);
         widget.currentUser.guessDistribution[currentRow - 1]++;
+
+        // ตรวจสอบการปลดล็อก Flashcard
         if (widget.currentUser.wordsFound == 15) isUnlockedFlashcard = true;
+
+        // 🆕 ตรวจสอบการปลดล็อกฉายาใหม่ (Rank)
+        if (widget.currentUser.wordsFound == 10) newlyUnlockedRank = "📖 Bookworm";
+        if (widget.currentUser.wordsFound == 30) newlyUnlockedRank = "🎓 Scholar";
+        if (widget.currentUser.wordsFound == 50) newlyUnlockedRank = "🧙‍♂️ Word Master";
+        if (widget.currentUser.wordsFound == 100) newlyUnlockedRank = "👑 Legend";
+
+        // 🆕 เพิ่มฉายาเข้ากระเป๋า และตั้งให้สวมใส่อัตโนมัติเลย!
+        if (newlyUnlockedRank != null && !widget.currentUser.unlockedRanks.contains(newlyUnlockedRank)) {
+          widget.currentUser.unlockedRanks.add(newlyUnlockedRank!);
+          widget.currentUser.selectedRankTitle = newlyUnlockedRank!;
+        }
       });
       widget.currentUser.saveData();
-      _showEndGameDialog(true, targetWord, targetWordTranslation, justUnlocked: isUnlockedFlashcard);
+
+      // 🆕 ส่งค่า newlyUnlockedRank เข้าไปใน Dialog ด้วย
+      _showEndGameDialog(true, targetWord, targetWordTranslation, justUnlocked: isUnlockedFlashcard, newlyUnlockedRank: newlyUnlockedRank);
+
     } else if (currentRow == maxRows) {
       AppFeedback.playLose(widget.currentUser);
       setState(() {
@@ -576,7 +595,7 @@ class _WordleScreenState extends State<WordleScreen> {
     return shouldExit ?? false; // ถ้าปัดจอทิ้งให้ถือว่า false
   }
 
-  void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false}) {
+  void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false, String? newlyUnlockedRank}) {
     showDialog(
       context: context,
       barrierDismissible: false, // บังคับให้ต้องกดปุ่มเพื่อออก
@@ -735,7 +754,46 @@ class _WordleScreenState extends State<WordleScreen> {
                       ),
                     ),
                   ],
-
+                // --- 🌟 RANK UNLOCKED ALERT (เพิ่มใหม่) ---
+                  if (newlyUnlockedRank != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.orange.shade400, Colors.deepOrange.shade600],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(color: Colors.orange.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.stars_rounded, color: Colors.white, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "NEW TITLE UNLOCKED!",
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                                ),
+                                Text(
+                                  newlyUnlockedRank, // แสดงฉายา เช่น 📖 Bookworm
+                                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 32),
 
                   // --- 🕹️ BUTTONS ---

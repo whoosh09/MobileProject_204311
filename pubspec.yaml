@@ -54,4 +54,10 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/logo.png" # เปลี่ยน path ให้ตรงกับรูปของคุณ
+  image_path: "assets/logoQ.png"
+  remove_alpha_ios: true # 🆕 เพิ่มบรรทัดนี้เพื่อแก้ Warning ของฝั่ง iOS
+  web:
+    generate: true
+    image_path: "assets/logoQ.png"
+    background_color: "#0175C2" # สีพื้นหลัง (แก้เป็นรหัสสีแอปเราได้)
+    theme_color: "#0175C2"

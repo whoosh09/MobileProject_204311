@@ -142,6 +142,13 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     if (words < 100) return "Legend";
     return "MAX";
   }
+  int getNextRankThreshold(int words) {
+    if (words < 10) return 10;
+    if (words < 30) return 30;
+    if (words < 50) return 50;
+    if (words < 100) return 100;
+    return 100; // ตันที่ 100 คำ
+  }
 
   double getProgressToNextRank(int words) {
     if (words < 10) return words / 10;
@@ -290,41 +297,41 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   }
 
   void _showAvatarShop(GameTheme theme) {
-    
+
  final avatars = [
       // 🦆 สายฟรีและราคาประหยัด (สัตว์คลาสสิก/สัตว์เลี้ยง)
-      {'path': 'assets/emoji/duck.png', 'price': 0},         // เป็ด (ธีมเกม ฟรี)
-      {'path': 'assets/emoji/chicken.png', 'price': 0},      // ไก่ (ฟรี)
-      {'path': 'assets/emoji/frog.png', 'price': 10},        // กบ
+      {'path': 'assets/emoji/Duck.png', 'price': 0},         // เป็ด (ธีมเกม ฟรี)
+      {'path': 'assets/emoji/Chicken.png', 'price': 0},      // ไก่ (ฟรี)
+      {'path': 'assets/emoji/Frog.png', 'price': 10},        // กบ
       {'path': 'assets/emoji/pig_face.png', 'price': 10},    // หมู
 
       // 🍁 สายธรรมชาติและของน่ารัก (Tier 1)
       {'path': 'assets/emoji/maple_leaf.png', 'price': 50},  // ใบเมเปิล
-      {'path': 'assets/emoji/bubbles.png', 'price': 50},     // ฟองสบู่
-      {'path': 'assets/emoji/penguin.png', 'price': 50},     // เพนกวิน
-      {'path': 'assets/emoji/panda.png', 'price': 50},       // แพนด้า
+      {'path': 'assets/emoji/Bubbles.png', 'price': 50},     // ฟองสบู่
+      {'path': 'assets/emoji/Penguin.png', 'price': 50},     // เพนกวิน
+      {'path': 'assets/emoji/Panda.png', 'price': 50},       // แพนด้า
       {'path': 'assets/emoji/teddy_bear.png', 'price': 50},  // ตุ๊กตาหมี
 
       // 🦋 สายสวยงามและสัตว์หายาก (Tier 2)
-      {'path': 'assets/emoji/butterfly.png', 'price': 100},  // ผีเสื้อ
-      {'path': 'assets/emoji/jellyfish.png', 'price': 100},  // แมงกะพรุน
-      {'path': 'assets/emoji/peacock.png', 'price': 100},    // นกยูง
-      {'path': 'assets/emoji/whale.png', 'price': 100},      // วาฬ
-      {'path': 'assets/emoji/sauropod.png', 'price': 100},   // ไดโนเสาร์คอยาว
+      {'path': 'assets/emoji/Butterfly.png', 'price': 100},  // ผีเสื้อ
+      {'path': 'assets/emoji/Jellyfish.png', 'price': 100},  // แมงกะพรุน
+      {'path': 'assets/emoji/Peacock.png', 'price': 100},    // นกยูง
+      {'path': 'assets/emoji/Whale.png', 'price': 100},      // วาฬ
+      {'path': 'assets/emoji/Sauropod.png', 'price': 100},   // ไดโนเสาร์คอยาว
 
       // 🔥 สายเท่และแฟชั่น (Tier 3)
-      {'path': 'assets/emoji/alien.png', 'price': 200},      // เอเลี่ยน
+      {'path': 'assets/emoji/Alien.png', 'price': 200},      // เอเลี่ยน
       {'path': 'assets/emoji/t-rex.png', 'price': 200},      // ทีเร็กซ์
-      {'path': 'assets/emoji/fire.png', 'price': 200},       // ไฟ
+      {'path': 'assets/emoji/Fire.png', 'price': 200},       // ไฟ
       {'path': 'assets/emoji/video_game.png', 'price': 250}, // จอยเกม
-      {'path': 'assets/emoji/rainbow.png', 'price': 250},    // รุ้งกินน้ำ
+      {'path': 'assets/emoji/Rainbow.png', 'price': 250},    // รุ้งกินน้ำ
 
       // 👑 สายเทพ ของแรร์ระดับตำนาน (Tier 4 - Max Level)
       {'path': 'assets/emoji/glowing_star.png', 'price': 500}, // ดาวเรืองแสง
-      {'path': 'assets/emoji/unicorn.png', 'price': 500},      // ยูนิคอร์น
-      {'path': 'assets/emoji/phoenix.png', 'price': 500},      // ฟีนิกซ์
+      {'path': 'assets/emoji/Unicorn.png', 'price': 500},      // ยูนิคอร์น
+      {'path': 'assets/emoji/Phoenix.png', 'price': 500},      // ฟีนิกซ์
       {'path': 'assets/emoji/trident_emblem.png', 'price': 500},// ตรีศูล
-      {'path': 'assets/emoji/crown.png', 'price': 500},        // มงกุฎ
+      {'path': 'assets/emoji/Crown.png', 'price': 500},        // มงกุฎ
     ];
 
     showModalBottomSheet(
@@ -650,8 +657,23 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Progress to ${getRankNext(widget.currentUser.wordsFound)}", style: TextStyle(fontSize: 11, color: theme.textColor.withOpacity(0.5), fontFamily: 'monospace')),
-                      Text("${widget.currentUser.wordsFound} words", style: TextStyle(fontSize: 11, color: rankColor, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
+                      Expanded(
+                        child: Text(
+                          widget.currentUser.wordsFound >= 100
+                            ? "MAX RANK REACHED"
+                            : "Progress to ${getRankNext(widget.currentUser.wordsFound)}",
+                          style: TextStyle(fontSize: 11, color: theme.textColor.withOpacity(0.5), fontFamily: 'monospace'),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.currentUser.wordsFound >= 100
+                          ? "${widget.currentUser.wordsFound} words"
+                          : "${widget.currentUser.wordsFound} / ${getNextRankThreshold(widget.currentUser.wordsFound)}",
+                        style: TextStyle(fontSize: 11, color: rankColor, fontFamily: 'monospace', fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.right,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),

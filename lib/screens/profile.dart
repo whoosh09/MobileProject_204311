@@ -658,9 +658,10 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(child: _StatCard(label: "Streak", value: "🔥 ${widget.currentUser.currentStreak}", icon: Icons.local_fire_department_rounded, color: Colors.orange.shade400, theme: theme, isBig: true)),
+                  // 🆕 เอา Emoji ออก และเอา isBig: true ออก เพื่อให้ทุกกล่องใช้มาตรฐานเดียวกัน
+                  Expanded(child: _StatCard(label: "Streak", value: "${widget.currentUser.currentStreak}", icon: Icons.local_fire_department_rounded, color: Colors.orange.shade400, theme: theme)),
                   const SizedBox(width: 10),
-                  Expanded(child: _StatCard(label: "Best", value: "⚡ ${widget.currentUser.maxStreak}", icon: Icons.bolt_rounded, color: Colors.purple.shade400, theme: theme, isBig: true)),
+                  Expanded(child: _StatCard(label: "Best", value: "${widget.currentUser.maxStreak}", icon: Icons.bolt_rounded, color: Colors.purple.shade400, theme: theme)),
                 ],
               ),
             ],
@@ -727,13 +728,16 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                                           )),
                                         ),
 
-                                        // ตัวเลขบอกจำนวน
+                                        // 🔹 ตัวเลขบอกจำนวน 🔹
                                         Text(
                                           "$count",
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.bold,
-                                            color: count > 0 ? Colors.white : theme.textColor.withOpacity(0.3),
+                                            // 🆕 ตัวเลขเปลี่ยนสีตามโหมด (Dark=ขาว, Light=ดำ/เทาเข้ม)
+                                            color: count > 0
+                                                ? (isDark ? Colors.white : Colors.black87)
+                                                : theme.textColor.withOpacity(0.3),
                                           ),
                                         ),
                                       ],
@@ -768,18 +772,65 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final GameTheme theme;
-  final bool isBig;
-  const _StatCard({required this.label, required this.value, required this.icon, required this.color, required this.theme, this.isBig = false});
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.theme
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: theme.brightness == Brightness.dark ? color.withOpacity(0.08) : color.withOpacity(0.06), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.25))),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: theme.brightness == Brightness.dark ? color.withOpacity(0.08) : color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(20), // 🆕 เพิ่มความมนให้ดูสมูทขึ้น
+        border: Border.all(color: color.withOpacity(0.25))
+      ),
       child: Row(
         children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: 20)),
+          // 🆕 1. ปรับพื้นหลังไอคอนเป็นวงกลม จะดูเข้ากับ UI โดยรวมมากกว่า
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              shape: BoxShape.circle
+            ),
+            child: Icon(icon, color: color, size: 24) // 🆕 ขยายไอคอนนิดนึงให้สมดุล
+          ),
           const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(value, style: TextStyle(fontSize: isBig ? 20 : 22, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace')), Text(label, style: TextStyle(fontSize: 11, color: theme.textColor.withOpacity(0.5), fontFamily: 'monospace'))]),
+          // 🆕 2. จัดระเบียบตัวเลขและข้อความ
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    // ✅ ฟิกซ์ขนาดฟอนต์ที่ 24 ให้ตัวเลขเท่ากันทุกการ์ด
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace')
+                  ),
+                ),
+                const SizedBox(height: 2), // 🆕 เพิ่มช่องว่างระหว่างเลขกับ Text นิดนึง
+                Text(
+                  label.toUpperCase(), // 🆕 ดันเป็นตัวพิมพ์ใหญ่หมด
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0, // 🆕 ถ่างช่องไฟให้ดู Modern
+                    color: theme.textColor.withOpacity(0.5),
+                    fontFamily: 'monospace'
+                  )
+                )
+              ]
+            ),
+          ),
         ],
       ),
     );

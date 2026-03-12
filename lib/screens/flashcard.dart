@@ -244,7 +244,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                   child: Text(
                     "FLASHCARDS",
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.w900,
                       color: theme.textColor,
                       letterSpacing: 1.5,
@@ -267,7 +267,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
                 // --- 🔀 สลับเนื้อหาตามโหมดที่เลือก ---
                 Expanded(
@@ -453,17 +453,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("BRAIN TEST", style: TextStyle(fontWeight: FontWeight.w900, color: theme.correct, letterSpacing: 1.0)),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(color: theme.textColor.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
-              child: Text("${quizIndex + 1} / ${unlockedWords.length}", style: TextStyle(fontWeight: FontWeight.bold, color: theme.textColor.withOpacity(0.6))),
-            ),
-          ],
-        ),
         const SizedBox(height: 12),
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
@@ -477,47 +466,45 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
         const SizedBox(height: 16), // 🔽 ลดระยะห่างลง
 
         // --- 2. VIBRANT QUESTION CARD ---
-        Expanded(
-          flex: 4,
-          child: Container(
-            padding: const EdgeInsets.all(16), // 🆕 เพิ่ม Padding ไม่ให้ตัวหนังสือชนขอบ
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [theme.correct, theme.correct.withOpacity(0.7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [BoxShadow(color: theme.correct.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-                  child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 28),
+        Container(
+          width: double.infinity,
+          // 🔽 1. ลด vertical padding จาก 32 เหลือ 20 ให้กล่องเตี้ยลง
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [theme.correct, theme.correct.withOpacity(0.7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            borderRadius: BorderRadius.circular(28), // 🔽 ลดความโค้งลงนิดหน่อยให้รับกับกล่องที่เล็กลง
+            boxShadow: [BoxShadow(color: theme.correct.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8), // 🔽 ลด padding ของกรอบไอคอน
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 25), // 🔽 ลดขนาดไอคอนจาก 28 เหลือ 24
+              ),
+              const SizedBox(height: 8), // 🔽 ลดระยะห่างบรรทัด
+              const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text("What does this word mean?", style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+              ),
+              const SizedBox(height: 4), // 🔽 ลดระยะห่างก่อนถึงคำศัพท์ให้กระชับขึ้น
+
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  currentWord.toUpperCase(),
+                  // 🔽 ลดฟอนต์ลงนิดนึงให้พอดีกับกล่องที่เล็กลง
+                  style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 2)
                 ),
-                const SizedBox(height: 12),
-                const FittedBox( // 🆕 กันข้อความทะลุจอด้านข้าง
-                  fit: BoxFit.scaleDown,
-                  child: Text("What does this word mean?", style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
-                ),
-                const SizedBox(height: 8),
-                Flexible( // 🆕 ป้องกันการล้นแนวตั้ง
-                  child: FittedBox( // 🆕 ถ้าคำศัพท์ยาวไป ให้ย่อออโต้
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      currentWord.toUpperCase(),
-                      style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 3)
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 20), // 🔽 ลดระยะห่างลงให้สมดุล
+        const SizedBox(height: 15), // 🔽 ลดระยะห่างลงให้สมดุล
 
         // --- 3. ANSWER OPTIONS ---
         Expanded(
-          flex: 6,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Column(
@@ -534,11 +521,11 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                   if (option == correctMeaning) {
                     buttonState = ButtonState.correct;
                     currentTextColor = Colors.white;
-                    displayText = "✅  $option";
+                    displayText = "$option";
                   } else if (option == selectedAnswer) {
                     buttonState = ButtonState.incorrect;
                     currentTextColor = Colors.white;
-                    displayText = "❌  $option";
+                    displayText = "$option";
                   } else {
                     currentTextColor = theme.textColor.withOpacity(0.3);
                     currentShadowColor = Colors.transparent;

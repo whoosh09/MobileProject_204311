@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   shared_preferences: ^2.3.2
   audioplayers: ^6.1.0
-
+  flutter_launcher_icons: ^0.13.1 # 🆕 เพิ่มบรรทัดนี้ลงใน dev_dependencies
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -49,3 +49,8 @@ flutter:
     - family: DINNextRounded
       fonts:
         - asset: assets/fonts/DIN Next Rounded LT W04 Regular.ttf
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png" # เปลี่ยน path ให้ตรงกับรูปของคุณ

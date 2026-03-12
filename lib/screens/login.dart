@@ -96,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                   const Icon(Icons.lock_person_rounded, size: 64, color: Color(0xFF58CC02)),
                   const SizedBox(height: 24),
                   const Text(
-                    'Welcome Back',
+                    'Welcome to Quackle',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.black87),
                   ),

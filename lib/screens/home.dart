@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../components/coin_badge.dart'; // 🆕 Import the new component
 import '../components/custom_3d_buttton.dart';
 import '../models/mock_data.dart';
 import '../theme/theme_data.dart';
@@ -70,42 +71,9 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: theme.backgroundColor,
         elevation: 0,
         actions: [
-          // ── Coin badge (เพิ่ม GestureDetector เพื่อให้มีเสียง) ───────────────────────────────
+          // ── Coin badge (ใช้ AnimatedCoinBadge แทนของเดิม) ───────────────────────────────
           Center(
-            child: GestureDetector(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFB700), Color(0xFFFF8C00)],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.amber.withAlpha(89),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text("💰", style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 4),
-                    Text(
-                      "${widget.currentUser.coins}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            child: AnimatedCoinBadge(coins: widget.currentUser.coins),
           ),
 
           // ── Settings button (เพิ่มเสียงและสั่น) ─────────────────────

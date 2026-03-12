@@ -806,6 +806,8 @@ class _WordleScreenState extends State<WordleScreen> {
                           backgroundColor: Colors.grey.shade400,
                           shadowColor: Colors.grey.shade600,
                           onPressed: () {
+                            AppFeedback.playClick(widget.currentUser);
+                            AppFeedback.triggerHaptic(widget.currentUser);
                             Navigator.pop(context); // ปิด Dialog
                             Navigator.pop(context); // กลับหน้าหลัก
                           },
@@ -819,6 +821,8 @@ class _WordleScreenState extends State<WordleScreen> {
                           backgroundColor: won ? currentTheme.correct : Colors.blueAccent,
                           shadowColor: won ? Colors.green.shade700 : Colors.blue.shade700,
                           onPressed: () {
+                            AppFeedback.playClick(widget.currentUser);
+                            AppFeedback.triggerHaptic(widget.currentUser);
                             Navigator.pop(context);
                             _resetGame();
                           },

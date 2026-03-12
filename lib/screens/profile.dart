@@ -254,25 +254,31 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             Row(
               children: [
                 Expanded(
-                  child: Custom3DButton(
-                    text: "LOGOUT",
-                    backgroundColor: Colors.redAccent,
-                    shadowColor: Colors.red.shade800,
-                    onPressed: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.remove('loggedInUser');
-                      if (!context.mounted) return;
-                      Navigator.of(context).pushNamedAndRemoveUntil('/splash', (route) => false);
-                    },
+                  child: SizedBox(
+                    height: 50,
+                    child: Custom3DButton(
+                      text: "LOGOUT",
+                      backgroundColor: Colors.redAccent,
+                      shadowColor: Colors.red.shade800,
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.remove('loggedInUser');
+                        if (!context.mounted) return;
+                        Navigator.of(context).pushNamedAndRemoveUntil('/splash', (route) => false);
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Custom3DButton(
-                    text: "CANCEL",
-                    backgroundColor: Colors.grey.shade400,
-                    shadowColor: Colors.grey.shade600,
-                    onPressed: () => Navigator.pop(context),
+                  child: SizedBox(
+                    height: 50,
+                    child: Custom3DButton(
+                      text: "CANCEL",
+                      backgroundColor: Colors.grey.shade400,
+                      shadowColor: Colors.grey.shade600,
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ),
                 ),
               ],
@@ -684,21 +690,53 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                             double barWidth = count > 0 ? (widthFactor * _barAnim.value * constraints.maxWidth).clamp(36.0, constraints.maxWidth) : 36.0;
                             return Stack(
                               children: [
+                                // 1. พื้นหลังหลอด
                                 Container(height: 28, decoration: BoxDecoration(color: theme.textColor.withOpacity(0.05), borderRadius: BorderRadius.circular(8))),
-                                if (count > 0) Container(width: barWidth, height: 28, decoration: BoxDecoration(gradient: LinearGradient(colors: [theme.correct.withOpacity(0.7), theme.correct]), borderRadius: BorderRadius.circular(8))),
+
+                                // 2. หลอดสีตาม Theme (จะขยายตาม Animation)
+                                if (count > 0)
+                                  Container(
+                                    width: barWidth,
+                                    height: 28,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(colors: [theme.correct.withOpacity(0.7), theme.correct]),
+                                      borderRadius: BorderRadius.circular(8)
+                                    )
+                                  ),
+
+                                // 3. เลเยอร์บนสุด: ขีดสีขาว + ตัวเลข
                                 Positioned.fill(
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: Text(
-                                        "$count",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          color: isDark ? Colors.white70 : Colors.black87,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // 🔹 สร้างขีดสีขาว (Notches) 🔹
+                                        Row(
+                                          children: List.generate(6, (i) => Container(
+                                            margin: const EdgeInsets.only(right: 3),
+                                            width: 4,
+                                            height: 14,
+                                            decoration: BoxDecoration(
+                                              // ทำให้ขีดสว่างตามจำนวนรอบที่ทาย
+                                              color: i < (index + 1)
+                                                  ? Colors.white.withOpacity(0.9)
+                                                  : Colors.white.withOpacity(0.2),
+                                              borderRadius: BorderRadius.circular(2),
+                                            ),
+                                          )),
                                         ),
-                                      ),
+
+                                        // ตัวเลขบอกจำนวน
+                                        Text(
+                                          "$count",
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: count > 0 ? Colors.white : theme.textColor.withOpacity(0.3),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),

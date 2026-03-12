@@ -49,6 +49,8 @@ class _Custom3DButtonState extends State<Custom3DButton> {
 
   @override
   Widget build(BuildContext context) {
+    // ใช้ SizedBox + double.infinity โดยไม่มี LayoutBuilder
+    // เวลาอยู่ใน Expanded หรือ SizedBox(width:...) จะรับ constraint มาเองอัตโนมัติ
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) async {
@@ -57,59 +59,51 @@ class _Custom3DButtonState extends State<Custom3DButton> {
         widget.onPressed();
       },
       onTapCancel: () => setState(() => _isPressed = false),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final double resolvedWidth = widget.width == double.infinity
-              ? constraints.maxWidth
-              : widget.width;
-
-          return SizedBox(
-            height: widget.height,
-            width: resolvedWidth,
-            child: Stack(
-              children: [
-                // BOTTOM SHADOW LAYER
-                Positioned(
-                  top: 5, bottom: 0, left: 0, right: 0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _resolvedShadowColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
+      child: SizedBox(
+        height: widget.height,
+        width: widget.width,
+        child: Stack(
+          children: [
+            // BOTTOM SHADOW LAYER
+            Positioned(
+              top: 5, bottom: 0, left: 0, right: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _resolvedShadowColor,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-
-                // TOP FACE LAYER
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 100),
-                  curve: Curves.easeOut,
-                  top: _isPressed ? 5.0 : 0.0,
-                  bottom: _isPressed ? 0.0 : 5.0,
-                  left: 0, right: 0,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    decoration: BoxDecoration(
-                      color: _resolvedBgColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Center(
-                      child: Text(
-                        widget.text,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: widget.textColor ?? Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          );
-        },
+
+            // TOP FACE LAYER
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 100),
+              curve: Curves.easeOut,
+              top: _isPressed ? 5.0 : 0.0,
+              bottom: _isPressed ? 0.0 : 5.0,
+              left: 0, right: 0,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: _resolvedBgColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Text(
+                    widget.text,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: widget.textColor ?? Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

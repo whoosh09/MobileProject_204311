@@ -121,7 +121,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // 🆕 ครอบด้วย Expanded เพื่อให้ฝั่งซ้ายยืดหยุ่น
                         Expanded(
                           child: Row(
                             children: [
@@ -130,23 +129,27 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                 decoration: BoxDecoration(color: theme.correct.withOpacity(0.2), shape: BoxShape.circle),
                                 child: Icon(Icons.menu_book_rounded, color: theme.correct, size: 20),
                               ),
-                              const SizedBox(width: 12),
-                              // 🆕 ครอบ Text ด้วย Expanded และใส่ overflow ป้องกันตัวหนังสือล้น
+                              const SizedBox(width: 8), // 🔽 1. ลดระยะห่างนิดนึงจาก 12 เหลือ 8 ให้มีพื้นที่เขียนหนังสือเพิ่มขึ้น
                               Expanded(
-                                child: Text(
-                                  "Words Unlocked",
-                                  style: TextStyle(fontWeight: FontWeight.bold, color: theme.textColor, fontSize: 16),
-                                  overflow: TextOverflow.ellipsis, // ถ้าจอเล็กมากให้ขึ้น ...
+                                // 🆕 2. ใช้ FittedBox ครอบ Text เพื่อให้มันย่อฟอนต์ลงเวลาจอเล็ก แทนการขึ้นจุด ...
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    "Words Unlocked",
+                                    style: TextStyle(fontWeight: FontWeight.bold, color: theme.textColor, fontSize: 16),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 8), // เว้นระยะตรงกลางนิดนึง
+                        const SizedBox(width: 8),
                         // ฝั่งตัวเลข
                         Text(
                           "${widget.currentUser.wordsFound} / $_totalWords",
-                          style: TextStyle(fontWeight: FontWeight.w900, color: theme.correct, fontSize: 18),
+                          // 🔽 3. ลดขนาดตัวเลขด้านหลังจาก 18 เหลือ 16 เพื่อคืนพื้นที่ให้ตัวหนังสือด้านหน้า
+                          style: TextStyle(fontWeight: FontWeight.w900, color: theme.correct, fontSize: 16),
                         ),
                       ],
                     ),

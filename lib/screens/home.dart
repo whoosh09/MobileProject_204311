@@ -207,17 +207,14 @@ class WordleMainBody extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.grid_on_rounded, size: 80, color: theme.correct),
-          const SizedBox(height: 20),
-          Text(
-            "QUACKLE",
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 4,
-              color: theme.textColor,
-            ),
+          Image.asset(
+            'assets/images/applogo.png',
+            width: 280,            // ปรับขนาดความกว้างตามที่ต้องการ
+            height: 200,           // ปรับความสูง (ถ้าต้องการคุมทั้งสองอย่าง)
+            fit: BoxFit.contain,   // ให้รูปภาพรักษาสัดส่วนและอยู่ในกรอบ
           ),
+          const SizedBox(height: 10),
+
           const SizedBox(height: 10),
           Text(
             "Words Found: ${currentUser.wordsFound}",

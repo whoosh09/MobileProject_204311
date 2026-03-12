@@ -44,6 +44,7 @@ flutter:
     - assets/targetwords.json
     - assets/validwords.txt
     - assets/sounds/
+    - assets/images/
 
   fonts:
     - family: DINNextRounded

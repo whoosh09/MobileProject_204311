@@ -16,18 +16,10 @@ class WelcomeScreen extends StatelessWidget {
             children: [
               const Spacer(),
               // Big, Bold Mascot/Logo
-              Image.asset('assets/logo.png', height: 180),
+              Image.asset('assets/images/fullbody_quackle.png', height:350),
               const SizedBox(height: 24),
               // Big Bold Typography
-              const Text(
-                'Quackle',
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF58CC02), // Duolingo Green
-                  letterSpacing: -1.5,
-                ),
-              ),
+
               const Text(
                 'The fun way to learn!',
                 style: TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w500),

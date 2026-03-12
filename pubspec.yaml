@@ -48,6 +48,7 @@ flutter:
     - assets/validwords.txt
     - assets/sounds/
     - assets/emoji/
+    - assets/images/
 
   fonts:
     - family: DINNextRounded

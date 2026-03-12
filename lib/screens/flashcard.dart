@@ -549,7 +549,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
                 fit: BoxFit.scaleDown,
                 child: Text("What does this word mean?", style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 15),
 
               FittedBox(
                 fit: BoxFit.scaleDown,

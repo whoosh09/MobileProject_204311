@@ -91,7 +91,7 @@ class _Custom3DButtonState extends State<Custom3DButton> {
                     textAlign: TextAlign.center,
                     style: (widget.style ?? const TextStyle()).copyWith(
                       color: widget.textColor ?? Colors.white,
-                      fontSize: 16,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

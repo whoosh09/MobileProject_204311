@@ -125,7 +125,7 @@ class MockDatabase {
       username: 'god',
       password: 'god',
       coins: 1000000,
-      wordsFound: 200,
+      wordsFound: 99,
       foundWordsList: [
         'ABATE','ABYSS','ADORN','AFIRE','ALERT','ANGER','ANNOY','ARENA','ARRAY','AUDIT',
         'AVOID','AWAKE','AWARD','BELCH','BETEL','BIDDY','BLITZ','BLUER','BOBBY','BOOBY',
@@ -144,11 +144,11 @@ class MockDatabase {
         'sakura','ice','ocean','candy','matrix','galaxy','legendary',
       ],
       gamesPlayed: 250,
-      gamesWon: 200,
+      gamesWon: 99,
       currentStreak: 99,
       maxStreak: 99,
-      guessDistribution: [10, 30, 80, 50, 20, 10],
-      avatarEmoji: 'assets/emoji/t-rex.png',
+      guessDistribution: [10, 30, 80, 40, 20, 20],
+      avatarEmoji: 'assets/emoji/Butterfly.png',
       ownedAvatars: [
         'assets/emoji/Duck.png', 'assets/emoji/Chicken.png', 'assets/emoji/Frog.png',
         'assets/emoji/pig_face.png', 'assets/emoji/maple_leaf.png', 'assets/emoji/Bubbles.png',

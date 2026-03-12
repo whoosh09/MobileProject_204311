@@ -290,18 +290,41 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   }
 
   void _showAvatarShop(GameTheme theme) {
-    // รายการ Avatar
-    final avatars = [
-      {'emoji': '🦆', 'price': 0}, {'emoji': '🐔', 'price': 0},
-      {'emoji': '🥷🏿', 'price': 10}, {'emoji': '🐧', 'price': 50},
-      {'emoji': '🍁', 'price': 50}, {'emoji': '🦋', 'price': 50},
-      {'emoji': '🐼', 'price': 50}, {'emoji': '🦖', 'price': 100},
-      {'emoji': '👽', 'price': 100}, {'emoji': '🪼', 'price': 100},
-      {'emoji': '🦚', 'price': 100}, {'emoji': '👑', 'price': 250},
-      {'emoji': '🌈', 'price': 250}, {'emoji': '🔱', 'price': 250},
-      {'emoji': '🐦‍🔥', 'price': 250}, {'emoji': '🦄', 'price': 500},
-      {'emoji': '🌟', 'price': 500}, {'emoji': '🫧', 'price': 500},
-      {'emoji': '🎮', 'price': 500},
+    
+ final avatars = [
+      // 🦆 สายฟรีและราคาประหยัด (สัตว์คลาสสิก/สัตว์เลี้ยง)
+      {'path': 'assets/emoji/duck.png', 'price': 0},         // เป็ด (ธีมเกม ฟรี)
+      {'path': 'assets/emoji/chicken.png', 'price': 0},      // ไก่ (ฟรี)
+      {'path': 'assets/emoji/frog.png', 'price': 10},        // กบ
+      {'path': 'assets/emoji/pig_face.png', 'price': 10},    // หมู
+
+      // 🍁 สายธรรมชาติและของน่ารัก (Tier 1)
+      {'path': 'assets/emoji/maple_leaf.png', 'price': 50},  // ใบเมเปิล
+      {'path': 'assets/emoji/bubbles.png', 'price': 50},     // ฟองสบู่
+      {'path': 'assets/emoji/penguin.png', 'price': 50},     // เพนกวิน
+      {'path': 'assets/emoji/panda.png', 'price': 50},       // แพนด้า
+      {'path': 'assets/emoji/teddy_bear.png', 'price': 50},  // ตุ๊กตาหมี
+
+      // 🦋 สายสวยงามและสัตว์หายาก (Tier 2)
+      {'path': 'assets/emoji/butterfly.png', 'price': 100},  // ผีเสื้อ
+      {'path': 'assets/emoji/jellyfish.png', 'price': 100},  // แมงกะพรุน
+      {'path': 'assets/emoji/peacock.png', 'price': 100},    // นกยูง
+      {'path': 'assets/emoji/whale.png', 'price': 100},      // วาฬ
+      {'path': 'assets/emoji/sauropod.png', 'price': 100},   // ไดโนเสาร์คอยาว
+
+      // 🔥 สายเท่และแฟชั่น (Tier 3)
+      {'path': 'assets/emoji/alien.png', 'price': 200},      // เอเลี่ยน
+      {'path': 'assets/emoji/t-rex.png', 'price': 200},      // ทีเร็กซ์
+      {'path': 'assets/emoji/fire.png', 'price': 200},       // ไฟ
+      {'path': 'assets/emoji/video_game.png', 'price': 250}, // จอยเกม
+      {'path': 'assets/emoji/rainbow.png', 'price': 250},    // รุ้งกินน้ำ
+
+      // 👑 สายเทพ ของแรร์ระดับตำนาน (Tier 4 - Max Level)
+      {'path': 'assets/emoji/glowing_star.png', 'price': 500}, // ดาวเรืองแสง
+      {'path': 'assets/emoji/unicorn.png', 'price': 500},      // ยูนิคอร์น
+      {'path': 'assets/emoji/phoenix.png', 'price': 500},      // ฟีนิกซ์
+      {'path': 'assets/emoji/trident_emblem.png', 'price': 500},// ตรีศูล
+      {'path': 'assets/emoji/crown.png', 'price': 500},        // มงกุฎ
     ];
 
     showModalBottomSheet(
@@ -341,15 +364,15 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                       child: Wrap(
                         spacing: 12, runSpacing: 12, alignment: WrapAlignment.center,
                         children: avatars.map((av) {
-                          final emoji = av['emoji'] as String;
+                          final path = av['path'] as String;
                           final price = av['price'] as int;
-                          final bool isOwned = price == 0 || widget.currentUser.ownedAvatars.contains(emoji);
-                          final bool isEquipped = widget.currentUser.avatarEmoji == emoji;
+                          final bool isOwned = price == 0 || widget.currentUser.ownedAvatars.contains(path);
+                          final bool isEquipped = widget.currentUser.avatarEmoji == path;
 
                           return GestureDetector(
                             onTap: () {
                               if (isOwned) {
-                                setState(() => widget.currentUser.avatarEmoji = emoji);
+                                setState(() => widget.currentUser.avatarEmoji = path);
                                 setModalState(() {});
                                 widget.currentUser.saveData();
                                 widget.onProfileUpdate();
@@ -367,7 +390,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                               ),
                               child: Column(
                                 children: [
-                                  Text(emoji, style: const TextStyle(fontSize: 36)),
+                                  Image.asset(path, width: 40, height: 40, fit: BoxFit.contain),
                                   const SizedBox(height: 6),
                                   isOwned
                                       ? Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: theme.correct.withOpacity(0.2), borderRadius: BorderRadius.circular(8)), child: Text(isEquipped ? "EQUIPPED" : "OWNED", style: TextStyle(fontSize: 10, color: theme.correct, fontWeight: FontWeight.bold)))
@@ -391,21 +414,28 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
   void _showConfirmAvatarDialog(Map<String, Object> av, GameTheme theme, StateSetter setModalState) {
     final int price = av['price'] as int;
-    final String emoji = av['emoji'] as String;
+    final String path = av['path'] as String; // 🆕
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: theme.backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text("Confirm Purchase", style: TextStyle(color: theme.textColor, fontWeight: FontWeight.bold)),
-        content: Text("Buy avatar '$emoji' for $price coins?", style: TextStyle(color: theme.textColor.withOpacity(0.8))),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(path, width: 60, height: 60),
+            const SizedBox(height: 16),
+            Text("Buy this avatar for $price coins?", style: TextStyle(color: theme.textColor.withOpacity(0.8))),
+          ],
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: theme.correct),
             onPressed: () {
               Navigator.pop(context);
-              _processAvatarPurchase(emoji, price, setModalState);
+              _processAvatarPurchase(path, price, setModalState);
             },
             child: const Text("Buy!", style: TextStyle(color: Colors.white)),
           ),
@@ -414,13 +444,13 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
-  void _processAvatarPurchase(String emoji, int price, StateSetter setModalState) {
+void _processAvatarPurchase(String path, int price, StateSetter setModalState) { // 🆕 รับ String path
     if (widget.currentUser.coins >= price) {
       AppFeedback.playCash(widget.currentUser);
       setState(() {
         widget.currentUser.coins -= price;
-        widget.currentUser.ownedAvatars.add(emoji);
-        widget.currentUser.avatarEmoji = emoji;
+        widget.currentUser.ownedAvatars.add(path);
+        widget.currentUser.avatarEmoji = path;
       });
       widget.currentUser.saveData();
       setModalState(() {});
@@ -565,7 +595,12 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                       Container(
                         width: 100, height: 100,
                         decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [rankColor.withOpacity(0.4), rankColor.withOpacity(0.05)]), border: Border.all(color: rankColor, width: 3), boxShadow: [BoxShadow(color: rankColor.withOpacity(0.5), blurRadius: 20)]),
-                        child: Center(child: Text(widget.currentUser.avatarEmoji, style: const TextStyle(fontSize: 52))),
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0), // ปรับขนาดให้พอดีวงกลม
+                            child: Image.asset(widget.currentUser.avatarEmoji, fit: BoxFit.contain),
+                          ),
+                        ),
                       ),
                       Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: theme.correct, shape: BoxShape.circle), child: const Icon(Icons.edit_rounded, color: Colors.white, size: 14)),
                     ],

@@ -218,12 +218,6 @@ class WordleMainBody extends StatelessWidget {
               color: theme.textColor,
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            "Words Found: ${currentUser.wordsFound}",
-            style: TextStyle(
-                color: theme.textColor.withAlpha(153), fontSize: 16),
-          ),
           const SizedBox(height: 50),
 
           // --- ปุ่ม PLAY ที่แก้ไขแล้ว ---

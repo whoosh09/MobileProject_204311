@@ -400,8 +400,18 @@ class _WordleScreenState extends State<WordleScreen> {
 
   Future<void> _checkWord() async {
     String guess = guesses[currentRow];
-    if (guess.length != 5) { _showMessage("Not enough letters"); AppFeedback.triggerHaptic(widget.currentUser); return; }
-    if (!validWordsDict.contains(guess)) { _showMessage("Not in word list"); AppFeedback.triggerHaptic(widget.currentUser); return; }
+    // 🆕 เช็คว่าพิมพ์ไม่ครบ
+    if (guess.length != 5) {
+      _showMessage("Not enough letters");
+      if (widget.currentUser.isVibrationEnabled) HapticFeedback.heavyImpact(); // 💥 สั่นแบบหนัก
+      return;
+    }
+    // 🆕 เช็คว่าคำไม่มีในดิกชันนารี
+    if (!validWordsDict.contains(guess)) {
+      _showMessage("Not in word list");
+      if (widget.currentUser.isVibrationEnabled) HapticFeedback.heavyImpact(); // 💥 สั่นแบบหนัก
+      return;
+    }
     if (isAnimating) return;
 
     setState(() { isAnimating = true; });
@@ -475,16 +485,51 @@ class _WordleScreenState extends State<WordleScreen> {
     }
   }
 
+  // 🆕 ฟังก์ชันโชว์ข้อความกลางจอพร้อมดีไซน์แบบ Modern ขอบมน
   void _showMessage(String msg) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, textAlign: TextAlign.center, style: TextStyle(color: currentTheme.backgroundColor)),
-        duration: const Duration(milliseconds: 1000),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: currentTheme.textColor,
+    OverlayEntry overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).size.height * 0.35, // ลอยอยู่เหนือคีย์บอร์ดและกริดเล็กน้อย
+        left: 0,
+        right: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              decoration: BoxDecoration(
+                color: currentTheme.textColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, 5))
+                ],
+              ),
+              child: Text(
+                msg,
+                style: TextStyle(
+                  color: currentTheme.backgroundColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
+
+    // ยิงข้อความขึ้นจอ
+    Overlay.of(context).insert(overlayEntry);
+
+    // ตั้งเวลาให้ข้อความเฟดหายไปเอง
+    bool isRemoved = false;
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (!isRemoved) {
+        overlayEntry.remove();
+        isRemoved = true;
+      }
+    });
   }
   // --- ฟังก์ชันสำหรับโชว์หน้าต่างยืนยันการออกเกม ---
   Future<bool> _showExitConfirmDialog() async {

@@ -16,7 +16,7 @@ class User {
   List<int> guessDistribution;
   bool isSoundEnabled;
   bool isVibrationEnabled;
-  String avatarEmoji;
+  String avatarEmoji; // ตัวแปรชื่อเดิม แต่เราจะเก็บ path รูปแทน
   List<String> ownedAvatars;
   int hintCount;
   int cleanerCount;
@@ -42,18 +42,21 @@ class User {
     List<int>? guessDistribution,
     this.isSoundEnabled = true,
     this.isVibrationEnabled = true,
-    this.avatarEmoji = '🧑',
+    this.avatarEmoji = 'assets/emoji/duck.png', // 🆕 เปลี่ยนค่าเริ่มต้น
     List<String>? ownedAvatars,
     this.selectedRankTitle = "🌱 Novice",
     List<String>? unlockedRanks,
   })  : foundWordsList = foundWordsList ?? [],
         ownedThemeIds = ownedThemeIds ?? ['classic'],
         guessDistribution = guessDistribution ?? [0, 0, 0, 0, 0, 0],
-        ownedAvatars = ownedAvatars ?? ['🧑', '👧'],
+        // 🆕 ให้ทุกคนมีเป็ดกับไก่เป็นของฟรีแต่แรก
+        ownedAvatars = ownedAvatars ?? ['assets/emoji/duck.png', 'assets/emoji/chicken.png'],
         unlockedRanks = unlockedRanks ?? ["🌱 Novice"];
 
   Future<void> saveData() async {
+    print('💾 [QUACKLE LOG] เริ่มบันทึกข้อมูลของ User: $username ...');
     final prefs = await SharedPreferences.getInstance();
+
     await prefs.setInt('${username}_coins', coins);
     await prefs.setInt('${username}_words_count', wordsFound);
     await prefs.setStringList('${username}_found_list', foundWordsList);
@@ -70,10 +73,14 @@ class User {
     await prefs.setStringList('${username}_owned_avatars', ownedAvatars);
     await prefs.setString('${username}_selectedRank', selectedRankTitle);
     await prefs.setStringList('${username}_unlockedRanks', unlockedRanks);
+
+    print('✅ [QUACKLE LOG] บันทึกข้อมูลของ $username สำเร็จ! (Coins: $coins, Words: $wordsFound)');
   }
 
   Future<void> loadData() async {
+    print('📂 [QUACKLE LOG] กำลังโหลดข้อมูลของ User: $username ...');
     final prefs = await SharedPreferences.getInstance();
+
     coins = prefs.getInt('${username}_coins') ?? coins;
     wordsFound = prefs.getInt('${username}_words_count') ?? wordsFound;
     foundWordsList = prefs.getStringList('${username}_found_list') ?? foundWordsList;
@@ -93,6 +100,7 @@ class User {
     isVibrationEnabled = prefs.getBool('${username}_isVibrate') ?? true;
     avatarEmoji = prefs.getString('${username}_avatar') ?? avatarEmoji;
     selectedRankTitle = prefs.getString('${username}_selectedRank') ?? selectedRankTitle;
+
     final savedAvatars = prefs.getStringList('${username}_owned_avatars') ?? [];
     for (final a in savedAvatars) {
       if (!ownedAvatars.contains(a)) ownedAvatars.add(a);
@@ -102,6 +110,8 @@ class User {
     for (final r in savedRanks) {
       if (!unlockedRanks.contains(r)) unlockedRanks.add(r);
     }
+
+    print('✅ [QUACKLE LOG] โหลดข้อมูล $username สำเร็จ! (Avatar: $avatarEmoji, Theme: $currentThemeId)');
   }
 }
 
@@ -110,8 +120,6 @@ class MockDatabase {
 
     // ═══════════════════════════════════════════════════════
     // 💎  user: god / pass: god  —  "FULL DEMO USER"
-    // ครบทุกอย่าง: เงิน 1 ล้าน, ยศ Legend, ธีมครบ 14, avatar ครบ,
-    // ฉายาครบ 5 ระดับ, power-up เยอะ, กราฟสวย, win rate สูง
     // ═══════════════════════════════════════════════════════
     User(
       username: 'god',
@@ -150,11 +158,17 @@ class MockDatabase {
       currentStreak: 99,
       maxStreak: 99,
       guessDistribution: [10, 30, 80, 50, 20, 10],
-      avatarEmoji: '🐦‍🔥',
+      avatarEmoji: 'assets/emoji/phoenix.png', // 🆕
       ownedAvatars: [
-        '🧑','👧','🦆','🐔','🥷🏿','🐧','🍁','🦋','🐼',
-        '🦖','👽','🪼','🦚','👑','🌈','🔱','🐦‍🔥','🦄','🌟','🫧','🎮',
-      ],
+        'assets/emoji/duck.png', 'assets/emoji/chicken.png', 'assets/emoji/frog.png',
+        'assets/emoji/pig_face.png', 'assets/emoji/maple_leaf.png', 'assets/emoji/bubbles.png',
+        'assets/emoji/penguin.png', 'assets/emoji/panda.png', 'assets/emoji/teddy_bear.png',
+        'assets/emoji/butterfly.png', 'assets/emoji/jellyfish.png', 'assets/emoji/peacock.png',
+        'assets/emoji/whale.png', 'assets/emoji/sauropod.png', 'assets/emoji/alien.png',
+        'assets/emoji/t-rex.png', 'assets/emoji/fire.png', 'assets/emoji/video_game.png',
+        'assets/emoji/rainbow.png', 'assets/emoji/glowing_star.png', 'assets/emoji/unicorn.png',
+        'assets/emoji/phoenix.png', 'assets/emoji/trident_emblem.png', 'assets/emoji/crown.png',
+      ], // 🆕 มีครบทุกตัว
       hintCount: 99,
       cleanerCount: 99,
       extraRowCount: 99,
@@ -168,14 +182,12 @@ class MockDatabase {
 
     // ═══════════════════════════════════════════════════════
     // 👑  user: a / pass: a  —  "THE LEGEND"
-    // โชว์: ยศสูงสุด, กราฟสวย, ธีม Cyber Neon, avatar หายาก,
-    //       ฉายาครบทุกระดับ, power-up ในกระเป๋าเยอะ
     // ═══════════════════════════════════════════════════════
     User(
       username: 'a',
       password: 'a',
       coins: 8888,
-      wordsFound: 120,           // ยศ 👑 Legend (≥100)
+      wordsFound: 120,
       foundWordsList: [
         'ALONE','BLANK','BONUS','BUTCH','CHOSE','CLASS','COURT','DOUGH','ETHER','EVICT',
         'FLANK','FLUTE','FOGGY','GNOME','HEAVY','IDLER','IMBUE','LLAMA','PENAL','SATIN',
@@ -185,17 +197,21 @@ class MockDatabase {
       ownedThemeIds: [
         'classic','pastel','dark','neon','midnight','sunset',
         'sakura','ice','ocean','candy','matrix','galaxy','lava','legendary',
-      ], // ครบทุกธีม → โชว์ว่า store ซื้อได้จริง
+      ],
       gamesPlayed: 145,
       gamesWon: 120,
       currentStreak: 30,
       maxStreak: 52,
-      guessDistribution: [8, 20, 48, 28, 16, 5], // โค้งระฆังคว่ำสวยๆ
-      avatarEmoji: '👑',
+      guessDistribution: [8, 20, 48, 28, 16, 5],
+      avatarEmoji: 'assets/emoji/crown.png', // 🆕
       ownedAvatars: [
-        '🧑','👧','🥷🏿','🐧','🦋','🐼','🦖','👽','🪼',
-        '🦚','👑','🌈','🔱','🐦‍🔥','🦄','🌟','🫧','🎮',
-      ], // ครบเกือบทุก avatar
+        'assets/emoji/duck.png', 'assets/emoji/chicken.png', 'assets/emoji/penguin.png',
+        'assets/emoji/butterfly.png', 'assets/emoji/panda.png', 'assets/emoji/t-rex.png',
+        'assets/emoji/alien.png', 'assets/emoji/jellyfish.png', 'assets/emoji/peacock.png',
+        'assets/emoji/crown.png', 'assets/emoji/rainbow.png', 'assets/emoji/trident_emblem.png',
+        'assets/emoji/phoenix.png', 'assets/emoji/unicorn.png', 'assets/emoji/glowing_star.png',
+        'assets/emoji/bubbles.png', 'assets/emoji/video_game.png',
+      ],
       hintCount: 5,
       cleanerCount: 3,
       extraRowCount: 2,
@@ -204,18 +220,17 @@ class MockDatabase {
       selectedRankTitle: "👑 Legend",
       unlockedRanks: [
         "🌱 Novice","📖 Bookworm","🎓 Scholar","🧙‍♂️ Word Master","👑 Legend",
-      ], // ปลดล็อกครบทุกฉายา → โชว์ rank picker ได้ครบ
+      ],
     ),
 
     // ═══════════════════════════════════════════════════════
     // 🎯  user: b / pass: b  —  "FLASHCARD TRIGGER"
-    // โชว์: เล่นชนะ 1 ตา → wordsFound ครบ 15 → popup ปลดล็อก Flashcard
     // ═══════════════════════════════════════════════════════
     User(
       username: 'b',
       password: 'b',
       coins: 150,
-      wordsFound: 14,            // ขาดอีก 1 คำ → เล่นชนะ 1 ตา แล้ว popup จะขึ้น
+      wordsFound: 14,
       foundWordsList: [
         'ABODE','BONGO','EGRET','FLUNK','GRAFT',
         'KRILL','LURCH','MELEE','REBEL','ROACH',
@@ -228,8 +243,8 @@ class MockDatabase {
       currentStreak: 4,
       maxStreak: 7,
       guessDistribution: [0, 1, 4, 5, 3, 1],
-      avatarEmoji: '🦆',
-      ownedAvatars: ['🦆','🐔','🥷🏿'],
+      avatarEmoji: 'assets/emoji/duck.png', // 🆕
+      ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png', 'assets/emoji/frog.png'],
       hintCount: 1,
       cleanerCount: 0,
       extraRowCount: 0,
@@ -239,14 +254,12 @@ class MockDatabase {
 
     // ═══════════════════════════════════════════════════════
     // 🛍️  user: c / pass: c  —  "RICH SHOPPER"
-    // โชว์: ระบบ Store — ซื้อ Theme / Avatar / Power-up ให้อาจารย์ดู
-    //       เงินเยอะ แต่ยังไม่ได้ซื้ออะไร → เห็นปุ่ม "💰 Buy" ครบทุกไอเทม
     // ═══════════════════════════════════════════════════════
     User(
       username: 'c',
       password: 'c',
-      coins: 9999,               // เงินเยอะพอซื้อได้ทุกอย่าง
-      wordsFound: 35,            // ยศ 🎓 Scholar
+      coins: 9999,
+      wordsFound: 35,
       foundWordsList: [
         'AGING','BAWDY','BLAME','BLURB','BLUSH','BOSOM','BRINK','BRISK','BUILT','CANNY',
         'CAROL','CROWN','DELVE','ELIDE','FLINT','GAUGE','HEADY','HINGE','HUTCH','KARMA',
@@ -254,14 +267,14 @@ class MockDatabase {
         'TIGHT','TOTAL','TYING','VAGUE','WAGER',
       ],
       currentThemeId: 'classic',
-      ownedThemeIds: ['classic'], // ยังไม่มีธีมอื่นเลย → เห็นราคาครบ
+      ownedThemeIds: ['classic'],
       gamesPlayed: 42,
       gamesWon: 35,
       currentStreak: 10,
       maxStreak: 14,
       guessDistribution: [1, 4, 10, 12, 5, 3],
-      avatarEmoji: '🦆',
-      ownedAvatars: ['🦆','🐔'], // มีแค่ของฟรี → เห็นราคา avatar ครบ
+      avatarEmoji: 'assets/emoji/duck.png', // 🆕
+      ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png'],
       hintCount: 0,
       cleanerCount: 0,
       extraRowCount: 0,
@@ -271,7 +284,6 @@ class MockDatabase {
 
     // ═══════════════════════════════════════════════════════
     // 🌱  user: d / pass: d  —  "BRAND NEW PLAYER"
-    // โชว์: หน้าตาแอปตอนเริ่มต้น สถิติเป็น 0 ทั้งหมด
     // ═══════════════════════════════════════════════════════
     User(
       username: 'd',
@@ -286,8 +298,8 @@ class MockDatabase {
       currentStreak: 0,
       maxStreak: 0,
       guessDistribution: [0, 0, 0, 0, 0, 0],
-      avatarEmoji: '🥷🏿',
-      ownedAvatars: ['🦆','🐔','🥷🏿'],
+      avatarEmoji: 'assets/emoji/chicken.png', // 🆕
+      ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png'],
       hintCount: 0,
       cleanerCount: 0,
       extraRowCount: 0,
@@ -297,14 +309,12 @@ class MockDatabase {
 
     // ═══════════════════════════════════════════════════════
     // ⚡  user: e / pass: e  —  "POWER-UP DEMO"
-    // โชว์: ระบบ Power-up ระหว่างเล่น — มี hint / cleaner / extra row ในกระเป๋าเยอะ
-    //       เข้าเกมแล้วกดใช้ power-up ให้อาจารย์เห็น effect ได้เลย
     // ═══════════════════════════════════════════════════════
     User(
       username: 'e',
       password: 'e',
       coins: 500,
-      wordsFound: 48,            // ยศ 🎓 Scholar (ใกล้ขึ้น Word Master)
+      wordsFound: 48,
       foundWordsList: [
         'ACORN','AFTER','BELLY','BLARE','BROAD','BULLY','CHOIR','CLIMB','CLUNG','COPSE',
         'CREME','DELTA','DEPTH','DIGIT','EJECT','ELOPE','ENTRY','GAMUT','GLAZE','GLYPH',
@@ -319,11 +329,11 @@ class MockDatabase {
       currentStreak: 8,
       maxStreak: 20,
       guessDistribution: [2, 8, 15, 14, 6, 3],
-      avatarEmoji: '🐧',
-      ownedAvatars: ['🦆','🐔','🥷🏿','🐧'],
-      hintCount: 5,              // มี hint เยอะ → กดใช้ในเกมได้เลย
-      cleanerCount: 5,           // มี cleaner เยอะ → โชว์ effect keyboard
-      extraRowCount: 5,          // มี extra row → โชว์ว่าได้แถว 7
+      avatarEmoji: 'assets/emoji/penguin.png', // 🆕
+      ownedAvatars: ['assets/emoji/duck.png', 'assets/emoji/chicken.png', 'assets/emoji/penguin.png'],
+      hintCount: 5,
+      cleanerCount: 5,
+      extraRowCount: 5,
       isSoundEnabled: true,
       isVibrationEnabled: true,
       selectedRankTitle: "🎓 Scholar",
@@ -332,14 +342,12 @@ class MockDatabase {
 
     // ═══════════════════════════════════════════════════════
     // 🎨  user: f / pass: f  —  "THEME SHOWCASE"
-    // โชว์: เปลี่ยนธีม dark/galaxy/lava ให้อาจารย์เห็น UI เปลี่ยนสีทั้งแอป
-    //       มีธีมหลายตัวแล้ว แค่กด apply ดูได้เลย
     // ═══════════════════════════════════════════════════════
     User(
       username: 'f',
       password: 'f',
       coins: 2000,
-      wordsFound: 65,            // ยศ 🧙‍♂️ Word Master
+      wordsFound: 65,
       foundWordsList: [
         'AGLOW','APPLE','ARDOR','ASHEN','BALMY','BATCH','BAYOU','BEGAN','BROOD','BUTCH',
         'CLUCK','COUCH','CRANK','CREME','DEBAR','DRUNK','DULLY','EERIE','EMPTY','EQUAL',
@@ -353,14 +361,17 @@ class MockDatabase {
       ownedThemeIds: [
         'classic','pastel','dark','neon',
         'midnight','sunset','sakura','galaxy','lava',
-      ], // ธีมหลากหลายทั้ง light/dark → สลับให้ดูได้
+      ],
       gamesPlayed: 80,
       gamesWon: 65,
       currentStreak: 15,
       maxStreak: 30,
       guessDistribution: [3, 10, 25, 18, 7, 2],
-      avatarEmoji: '🦚',
-      ownedAvatars: ['🦆','🐔','🦋','🦚','🌈','🌟'],
+      avatarEmoji: 'assets/emoji/peacock.png', // 🆕
+      ownedAvatars: [
+        'assets/emoji/duck.png', 'assets/emoji/chicken.png', 'assets/emoji/butterfly.png',
+        'assets/emoji/peacock.png', 'assets/emoji/rainbow.png', 'assets/emoji/glowing_star.png'
+      ],
       hintCount: 2,
       cleanerCount: 1,
       extraRowCount: 1,

@@ -1,13 +1,22 @@
-// import 'package:flutter/material.dart';
-// import 'app.dart';
-// void main() => runApp(const QuackApp());
+/*
+ * File: main.dart
+ * Description: Application entry point.
+ * Initializes the Flutter framework, locks orientation to portrait,
+ * and launches the root QuackApp widget.
+ *
+ * Notes:
+ * - Contains global app configuration (orientation lock)
+ * - Should remain lightweight
+ *
+ * Author: Quackle Team
+ * Course: 204311-Mobile Application Development Framework
+ */
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app.dart';
 
 void main() {
-
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

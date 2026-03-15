@@ -1,11 +1,36 @@
+/*
+ * File: dictionary.dart
+ * Description: UI screen displaying all words the player has unlocked,
+ * along with their Thai translations, a progress card, and a search bar.
+ *
+ * Dependencies:
+ * - User (mock_data.dart)
+ * - ThemeDatabase / GameTheme (theme_data.dart)
+ * - AppFeedback (audio_helper.dart)
+ * - AppTextStyles (text_styles.dart)
+ * - assets/targetwords.json (word → Thai meaning map)
+ *
+ * Lifecycle:
+ * - Created via the Dictionary tab in HomePage
+ * - Disposed when the user navigates away from the tab
+ *
+ * Author: 660510649 Detnarin Karinchai
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/mock_data.dart';
 import '../theme/theme_data.dart';
-import '../services/audio_helper.dart'; // 🆕 นำเข้าเสียงเผื่อกดเล่น
-import '../theme/text_styles.dart'; // 🆕 Added import
+import '../services/audio_helper.dart';
+import '../theme/text_styles.dart';
 
+/// Displays the player's discovered vocabulary with search and progress tracking.
+///
+/// On init, loads `assets/targetwords.json` to build a full word-to-Thai map.
+/// The progress card shows how many of the total game words the player has found.
+/// The search bar filters results by English word or Thai translation simultaneously.
 class DictionaryPage extends StatefulWidget {
   final User currentUser;
 
@@ -18,9 +43,8 @@ class DictionaryPage extends StatefulWidget {
 class _DictionaryPageState extends State<DictionaryPage> {
   Map<String, String> _dictionary = {};
   bool _isLoading = true;
-  int _totalWords = 0; // 🆕 เก็บจำนวนคำศัพท์ทั้งหมดในเกม
+  int _totalWords = 0;
 
-  // 🆕 ระบบค้นหาคำศัพท์
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
 
@@ -30,6 +54,12 @@ class _DictionaryPageState extends State<DictionaryPage> {
     _loadDictionary();
   }
 
+  /// Loads and parses `assets/targetwords.json` into [_dictionary].
+  ///
+  /// Side effects:
+  /// - Sets [_isLoading] to `false` when complete
+  /// - Populates [_totalWords] with the full dictionary size
+  /// - Catches and prints any JSON decode or asset loading errors
   Future<void> _loadDictionary() async {
     try {
       final String content = await rootBundle.loadString('assets/targetwords.json');
@@ -45,7 +75,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
       if (mounted) {
         setState(() {
           _dictionary = dictionaryData;
-          _totalWords = dictionaryData.length; // นับคำทั้งหมดในระบบ
+          _totalWords = dictionaryData.length;
           _isLoading = false;
         });
       }
@@ -68,21 +98,18 @@ class _DictionaryPageState extends State<DictionaryPage> {
     final theme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
     final isDark = theme.brightness == Brightness.dark;
 
-    // 🆕 ตัวกรองคำศัพท์จากการค้นหา (ค้นได้ทั้งอังกฤษและไทย)
     final foundWords = widget.currentUser.foundWordsList.where((word) {
       final translation = _dictionary[word] ?? '';
       return word.contains(_searchQuery.toUpperCase()) ||
              translation.contains(_searchQuery);
     }).toList();
 
-    // คำนวณความคืบหน้า (Progress)
     double progress = _totalWords > 0
         ? widget.currentUser.wordsFound / _totalWords
         : 0.0;
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
-      // 🆕 ใช้ GestureDetector เพื่อให้กดพื้นที่ว่างแล้วคีย์บอร์ดหุบลงไป
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Padding(
@@ -90,12 +117,11 @@ class _DictionaryPageState extends State<DictionaryPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 20), // ระยะห่างจากขอบจอบน
+              const SizedBox(height: 20),
 
-              // --- 📖 HEADER ---
               Text(
                 "MY DICTIONARY",
-                textAlign: TextAlign.center, // 🆕 เพิ่มบรรทัดนี้เพื่อให้อยู่ตรงกลาง
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
@@ -105,7 +131,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
               ),
               const SizedBox(height: 20),
 
-              // --- 📊 PROGRESS CARD ---
+              // Progress card
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -130,9 +156,8 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                 decoration: BoxDecoration(color: theme.correct.withOpacity(0.2), shape: BoxShape.circle),
                                 child: Icon(Icons.menu_book_rounded, color: theme.correct, size: 20),
                               ),
-                              const SizedBox(width: 8), // 🔽 1. ลดระยะห่างนิดนึงจาก 12 เหลือ 8 ให้มีพื้นที่เขียนหนังสือเพิ่มขึ้น
+                              const SizedBox(width: 8),
                               Expanded(
-                                // 🆕 2. ใช้ FittedBox ครอบ Text เพื่อให้มันย่อฟอนต์ลงเวลาจอเล็ก แทนการขึ้นจุด ...
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerLeft,
@@ -146,10 +171,8 @@ class _DictionaryPageState extends State<DictionaryPage> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // ฝั่งตัวเลข
                         Text(
                           "${widget.currentUser.wordsFound} / $_totalWords",
-                          // 🔽 3. ลดขนาดตัวเลขด้านหลังจาก 18 เหลือ 16 เพื่อคืนพื้นที่ให้ตัวหนังสือด้านหน้า
                           style: TextStyle(fontWeight: FontWeight.w900, color: theme.correct, fontSize: 16),
                         ),
                       ],
@@ -169,14 +192,14 @@ class _DictionaryPageState extends State<DictionaryPage> {
               ),
               const SizedBox(height: 24),
 
-              // --- 🔍 SEARCH BAR ---
+              // Search bar
               TextField(
                 controller: _searchController,
                 onChanged: (value) => setState(() => _searchQuery = value),
                 style: TextStyle(color: theme.textColor),
                 decoration: InputDecoration(
                   hintText: "Search English or Thai...",
-                  hintStyle: AppTextStyles.smartStyle("Search English or Thai...", color: theme.textColor.withOpacity(0.4)), // 🆕 Smart Hint
+                  hintStyle: AppTextStyles.smartStyle("Search English or Thai...", color: theme.textColor.withOpacity(0.4)),
                   prefixIcon: Icon(Icons.search_rounded, color: theme.textColor.withOpacity(0.4)),
                   suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -195,12 +218,12 @@ class _DictionaryPageState extends State<DictionaryPage> {
               ),
               const SizedBox(height: 24),
 
-              // --- 📋 WORD LIST ---
+              // Word list
               Expanded(
                 child: _isLoading
                     ? Center(child: CircularProgressIndicator(color: theme.correct))
                     : widget.currentUser.foundWordsList.isEmpty
-                        ? _buildEmptyState(theme) // แสดงหน้าจอตอนยังไม่มีคำศัพท์
+                        ? _buildEmptyState(theme)
                         : foundWords.isEmpty
                             ? Center(child: Text("No words found matching '$_searchQuery'", style: TextStyle(color: theme.textColor.withOpacity(0.5))))
                             : ListView.builder(
@@ -211,7 +234,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                   final word = foundWords[index];
                                   final translation = _dictionary[word] ?? '...';
 
-                                  // 🆕 Premium Card Design
                                   return Container(
                                     margin: const EdgeInsets.only(bottom: 12),
                                     decoration: BoxDecoration(
@@ -225,13 +247,12 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                       child: InkWell(
                                         borderRadius: BorderRadius.circular(20),
                                         onTap: () {
-                                          AppFeedback.playClick(widget.currentUser); // เสียงเวลากดการ์ด
+                                          AppFeedback.playClick(widget.currentUser);
                                         },
                                         child: Padding(
                                           padding: const EdgeInsets.all(16.0),
                                           child: Row(
                                             children: [
-                                              // ลำดับที่
                                               Container(
                                                 width: 40,
                                                 height: 40,
@@ -240,7 +261,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                                 child: Text("${index + 1}", style: TextStyle(fontWeight: FontWeight.bold, color: theme.textColor.withOpacity(0.5))),
                                               ),
                                               const SizedBox(width: 16),
-                                              // คำศัพท์และความหมาย
                                               Expanded(
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,7 +272,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                                     const SizedBox(height: 4),
                                                     Text(
                                                       translation,
-                                                      style: AppTextStyles.smartStyle(translation, fontSize: 18, color: theme.correct, fontWeight: FontWeight.w600), // 🆕 Applied SmartStyle
+                                                      style: AppTextStyles.smartStyle(translation, fontSize: 18, color: theme.correct, fontWeight: FontWeight.w600),
                                                     ),
                                                   ],
                                                 ),
@@ -273,7 +293,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
     );
   }
 
-  // 🆕 หน้าจอตอนที่ยังไม่มีคำศัพท์เลย (Empty State)
+  /// Builds the empty state view shown when the player has found no words yet.
   Widget _buildEmptyState(GameTheme theme) {
     return Center(
       child: Column(

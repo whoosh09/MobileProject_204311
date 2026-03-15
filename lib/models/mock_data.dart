@@ -1,5 +1,45 @@
+/*
+ * File: mock_data.dart
+ * Description: Defines the User data model and the MockDatabase class used
+ * as an in-memory user store with SharedPreferences persistence.
+ *
+ * Responsibilities:
+ * - Models all player state (coins, stats, inventory, settings)
+ * - Provides saveData() / loadData() for local persistence
+ * - Provides MockDatabase.login() to authenticate users
+ *
+ * Dependencies:
+ * - SharedPreferences
+ *
+ * Author: 660510649 Detnarin Karinchai
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Represents a single player account and all associated game state.
+///
+/// Fields:
+/// - [username]: display name and persistence key prefix
+/// - [password]: plain-text credential used only for mock authentication
+/// - [coins]: in-game currency balance
+/// - [wordsFound]: total unique words the player has guessed correctly
+/// - [foundWordsList]: ordered list of all discovered words
+/// - [currentThemeId]: ID of the currently equipped [GameTheme]
+/// - [ownedThemeIds]: IDs of all purchased themes
+/// - [gamesPlayed] / [gamesWon]: lifetime match statistics
+/// - [currentStreak] / [maxStreak]: consecutive-win tracking
+/// - [guessDistribution]: count of wins per guess-row (indices 0–5)
+/// - [isSoundEnabled] / [isVibrationEnabled]: accessibility toggles
+/// - [avatarEmoji]: asset path of the currently equipped avatar image
+/// - [ownedAvatars]: asset paths of all purchased avatar images
+/// - [hintCount] / [cleanerCount] / [extraRowCount]: power-up inventory
+/// - [selectedRankTitle]: the rank title currently displayed on the profile
+/// - [unlockedRanks]: all rank titles the player has earned
+///
+/// Usage:
+/// - Created by [MockDatabase] and passed through the widget tree
+/// - Call [saveData] after any mutation; call [loadData] on login
 class User {
   String username;
   final String password;
@@ -16,7 +56,7 @@ class User {
   List<int> guessDistribution;
   bool isSoundEnabled;
   bool isVibrationEnabled;
-  String avatarEmoji; // ตัวแปรชื่อเดิม แต่เราจะเก็บ path รูปแทน
+  String avatarEmoji;
   List<String> ownedAvatars;
   int hintCount;
   int cleanerCount;
@@ -42,17 +82,20 @@ class User {
     List<int>? guessDistribution,
     this.isSoundEnabled = true,
     this.isVibrationEnabled = true,
-    this.avatarEmoji = 'assets/emoji/duck.png', // 🆕 เปลี่ยนค่าเริ่มต้น
+    this.avatarEmoji = 'assets/emoji/duck.png',
     List<String>? ownedAvatars,
     this.selectedRankTitle = "🌱 Novice",
     List<String>? unlockedRanks,
   })  : foundWordsList = foundWordsList ?? [],
         ownedThemeIds = ownedThemeIds ?? ['classic'],
         guessDistribution = guessDistribution ?? [0, 0, 0, 0, 0, 0],
-        // 🆕 ให้ทุกคนมีเป็ดกับไก่เป็นของฟรีแต่แรก
         ownedAvatars = ownedAvatars ?? ['assets/emoji/duck.png', 'assets/emoji/chicken.png'],
         unlockedRanks = unlockedRanks ?? ["🌱 Novice"];
 
+  /// Persists all user fields to [SharedPreferences] under keys prefixed by [username].
+  ///
+  /// Should be called after any mutation to coins, inventory, stats, or settings.
+  /// Logs progress to the console for debugging.
   Future<void> saveData() async {
     print('💾 [QUACKLE LOG] เริ่มบันทึกข้อมูลของ User: $username ...');
     final prefs = await SharedPreferences.getInstance();
@@ -77,6 +120,11 @@ class User {
     print('✅ [QUACKLE LOG] บันทึกข้อมูลของ $username สำเร็จ! (Coins: $coins, Words: $wordsFound)');
   }
 
+  /// Loads all previously saved fields from [SharedPreferences] into this instance.
+  ///
+  /// Called automatically by [MockDatabase.login] after finding a matching user.
+  /// Missing keys fall back to current field values. New avatars and ranks found
+  /// in storage are merged into the existing lists without duplicates.
   Future<void> loadData() async {
     print('📂 [QUACKLE LOG] กำลังโหลดข้อมูลของ User: $username ...');
     final prefs = await SharedPreferences.getInstance();
@@ -115,6 +163,10 @@ class User {
   }
 }
 
+/// Static in-memory user store used in place of a real backend.
+///
+/// Provides a fixed list of seed [User] accounts for development and demo
+/// purposes, and a [login] method that authenticates by username/password.
 class MockDatabase {
   static List<User> users = [
 
@@ -170,8 +222,7 @@ class MockDatabase {
       ],
     ),
     // ═══════════════════════════════════════════════════════
-    // 1️⃣  user: 1 / pass: 1  —  "BRAND NEW PLAYER" (ผู้เล่นเริ่มต้น)
-    // โชว์: หน้าตาแอปตอนเพิ่งโหลดเสร็จ สถิติเป็น 0 หมด กระเป๋าว่างเปล่า
+    // 1️⃣  user: newbie / pass: 1  —  "BRAND NEW PLAYER"
     // ═══════════════════════════════════════════════════════
     User(
       username: 'newbie',
@@ -196,14 +247,13 @@ class MockDatabase {
     ),
 
     // ═══════════════════════════════════════════════════════
-    // 2️⃣  user: 2 / pass: 2  —  "FLASHCARD TRIGGER" (อีก 1 คำเปิดโหมด)
-    // โชว์: เล่นชนะตาเดียวปุ๊บ จะมีเด้งแจ้งเตือนปลดล็อกหน้า Flashcard ทันที
+    // 2️⃣  user: flash / pass: 2  —  "FLASHCARD TRIGGER"
     // ═══════════════════════════════════════════════════════
     User(
       username: 'flash',
       password: '2',
       coins: 5000,
-      wordsFound: 14, // ขาดอีก 1 คำจะครบ 15
+      wordsFound: 14,
       foundWordsList: [
         'ABODE','BONGO','EGRET','FLUNK','GRAFT',
         'KRILL','LURCH','MELEE','REBEL','ROACH',
@@ -226,14 +276,13 @@ class MockDatabase {
     ),
 
     // ═══════════════════════════════════════════════════════
-    // 3️⃣  user: 3 / pass: 3  —  "ALMOST SCHOLAR" (อีก 1 คำเลื่อนยศ)
-    // โชว์: เล่นชนะแล้วป้ายฉายาใหม่สีส้ม "🎓 Scholar" เด้งขึ้นมา
+    // 3️⃣  user: ranker / pass: 3  —  "ALMOST SCHOLAR"
     // ═══════════════════════════════════════════════════════
     User(
       username: 'ranker',
       password: '3',
       coins: 500,
-      wordsFound: 29, // ขาดอีก 1 คำจะครบ 30 เพื่อขึ้น Scholar
+      wordsFound: 29,
       foundWordsList: [
         'ALONE','BLANK','BONUS','BUTCH','CHOSE','CLASS','COURT','DOUGH','ETHER','EVICT',
         'FLANK','FLUTE','FOGGY','GNOME','HEAVY','IDLER','IMBUE','LLAMA','PENAL','SATIN',
@@ -256,27 +305,26 @@ class MockDatabase {
     ),
 
     // ═══════════════════════════════════════════════════════
-    // 4️⃣  user: 4 / pass: 4  —  "RICH SHOPPER" (เงิน 1 ล้าน ยังไม่ซื้ออะไร)
-    // โชว์: ระบบร้านค้า กดซื้อ Theme แพงๆ และ Avatar ได้รัวๆ ให้ดูระบบตัดเงิน
+    // 4️  user: richboy / pass: 4  —  "RICH SHOPPER"
     // ═══════════════════════════════════════════════════════
     User(
       username: 'richboy',
       password: '4',
-      coins: 1000000, // รวยมาก
+      coins: 1000000,
       wordsFound: 20,
       foundWordsList: [
         'AGING','BAWDY','BLAME','BLURB','BLUSH','BOSOM','BRINK','BRISK','BUILT','CANNY',
         'CAROL','CROWN','DELVE','ELIDE','FLINT','GAUGE','HEADY','HINGE','HUTCH','KARMA'
       ],
       currentThemeId: 'classic',
-      ownedThemeIds: ['classic'], // ยังไม่มีธีมอื่นเลย
+      ownedThemeIds: ['classic'],
       gamesPlayed: 25,
       gamesWon: 20,
       currentStreak: 5,
       maxStreak: 10,
       guessDistribution: [0, 2, 5, 8, 3, 2],
       avatarEmoji: 'assets/emoji/Duck.png',
-      ownedAvatars: ['assets/emoji/Duck.png', 'assets/emoji/Chicken.png'], // มีแค่ของแจกฟรี
+      ownedAvatars: ['assets/emoji/Duck.png', 'assets/emoji/Chicken.png'],
       hintCount: 0,
       cleanerCount: 0,
       extraRowCount: 0,
@@ -285,6 +333,10 @@ class MockDatabase {
     ),
   ];
 
+  /// Authenticates a user by [username] and [password], then loads their saved data.
+  ///
+  /// Returns the matching [User] with persisted data loaded, or `null` if no
+  /// account matches the provided credentials.
   static Future<User?> login(String username, String password) async {
     try {
       User user = users.firstWhere(

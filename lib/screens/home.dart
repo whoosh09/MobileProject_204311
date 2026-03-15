@@ -1,3 +1,23 @@
+/*
+ * File: home.dart
+ * Description: Main hub screen of the Quackle app. Hosts the bottom
+ * navigation bar and manages the five primary content pages.
+ *
+ * Dependencies:
+ * - User / MockDatabase (mock_data.dart)
+ * - ThemeDatabase (theme_data.dart)
+ * - AppFeedback (audio_helper.dart)
+ * - AnimatedCoinBadge, Custom3DButton (components)
+ * - WordleScreen, FlashcardPage, DictionaryPage, StorePage, ProfilePage
+ *
+ * Lifecycle:
+ * - Created via Navigator.push from LoginPage or SplashScreen
+ * - Disposed when the user logs out and the route stack is cleared
+ *
+ * Author: Quackle Team
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../components/coin_badge.dart';
@@ -11,6 +31,17 @@ import 'profile.dart';
 import 'flashcard.dart';
 import '../services/audio_helper.dart';
 
+/// Main scaffold hosting five tab pages via a [BottomNavigationBar].
+///
+/// Tabs (in order):
+/// 0. Home – [WordleMainBody] with the PLAY button
+/// 1. Flashcard – [FlashcardPage]
+/// 2. Dictionary – [DictionaryPage]
+/// 3. Store – [StorePage]
+/// 4. Profile – [ProfilePage]
+///
+/// A [GlobalKey] is kept on [ProfilePage] so the AppBar settings button
+/// can call [ProfilePageState.showSettings] directly.
 class HomePage extends StatefulWidget {
   final User currentUser;
 
@@ -23,20 +54,20 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  // 🆕 GlobalKey lets us call showSettings() on ProfilePage from the AppBar
+  /// Key allowing the AppBar settings button to reach into [ProfilePage].
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey<ProfilePageState>();
 
+  /// Triggers a full rebuild so the coin badge and other reactive UI refreshes.
   void _refreshState() {
     setState(() {});
   }
 
-  // 🆕 Build pages lazily so ProfilePage gets the key attached
+  /// Lazily builds the list of tab pages, attaching [_profileKey] to [ProfilePage].
   List<Widget> get _pages => [
     WordleMainBody(
       currentUser: widget.currentUser,
       onRefresh: _refreshState,
     ),
-    // 🌟 ส่ง onRefresh เข้าไปให้ Flashcard เพื่อให้เหรียญเด้งตอนตอบควิซเสร็จ
     FlashcardPage(
       currentUser: widget.currentUser,
       onRefresh: _refreshState,
@@ -47,17 +78,18 @@ class _HomePageState extends State<HomePage> {
       onShopAction: _refreshState,
     ),
     ProfilePage(
-      key: _profileKey, // 🆕 attach key so AppBar can reach into ProfilePage
+      key: _profileKey,
       currentUser: widget.currentUser,
       onProfileUpdate: _refreshState,
     ),
   ];
 
+  /// Switches the active tab to [index].
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
   }
 
-  // 🆕 Whether the user is currently on the Profile tab (index 4)
+  /// Whether the Profile tab (index 4) is currently selected.
   bool get _onProfileTab => _selectedIndex == 4;
 
   @override
@@ -74,21 +106,18 @@ class _HomePageState extends State<HomePage> {
         ),
         backgroundColor: theme.backgroundColor,
         elevation: 0,
-        automaticallyImplyLeading: false, // เพื่อไม่ให้มีปุ่ม Back เด้งขึ้นมาเบียด
+        automaticallyImplyLeading: false,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.start, // ให้ชิดซ้าย
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset('assets/images/diedquackle.png', width: 80, height: 80),
-
           ],
         ),
         actions: [
-          // ── Coin badge (ใช้ AnimatedCoinBadge แทนของเดิม) ───────────────────────────────
           Center(
             child: AnimatedCoinBadge(coins: widget.currentUser.coins),
           ),
 
-          // ── Settings button (เพิ่มเสียงและสั่น) ─────────────────────
           if (_onProfileTab)
             Padding(
               padding: const EdgeInsets.only(left: 6),
@@ -100,11 +129,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 tooltip: "Settings",
                 onPressed: () {
-                  // ✨ เพิ่มเสียงและสั่นก่อนเปิด Settings
                   AppFeedback.playClick(widget.currentUser);
                   AppFeedback.triggerHaptic(widget.currentUser);
-
-                  // Reach into ProfilePage and open the settings bottom sheet
                   _profileKey.currentState?.showSettings(theme);
                 },
               ),
@@ -134,12 +160,11 @@ class _HomePageState extends State<HomePage> {
           type: BottomNavigationBarType.fixed,
           backgroundColor: theme.backgroundColor,
           elevation: 0,
-
           currentIndex: _selectedIndex,
           onTap: (index) {
-            AppFeedback.playClick(widget.currentUser);   // เสียงคลิก
-            AppFeedback.triggerHaptic(widget.currentUser); // สั่น
-            _onItemTapped(index);                        // เปลี่ยนหน้า (ฟังก์ชันเดิม)
+            AppFeedback.playClick(widget.currentUser);
+            AppFeedback.triggerHaptic(widget.currentUser);
+            _onItemTapped(index);
           },
           selectedItemColor: theme.correct,
           unselectedItemColor: theme.textColor.withAlpha(102),
@@ -166,9 +191,13 @@ class _HomePageState extends State<HomePage> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WordleMainBody  (unchanged)
+// WordleMainBody
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// The home tab body showing the mascot image and the PLAY button.
+///
+/// Navigates to [WordleScreen] on tap and calls [onRefresh] when the user
+/// returns, so the coin badge and other state-dependent UI reflects any changes.
 class WordleMainBody extends StatelessWidget {
   final User currentUser;
   final VoidCallback onRefresh;
@@ -189,25 +218,20 @@ class WordleMainBody extends StatelessWidget {
         children: [
           Image.asset(
             'assets/images/welcomequackle.png',
-            width: 480,            //
-            height: 400,           //
-            fit: BoxFit.contain,   // ให้รูปภาพรักษาสัดส่วนและอยู่ในกรอบ
+            width: 480,
+            height: 400,
+            fit: BoxFit.contain,
           ),
           const SizedBox(height: 10),
 
-          // --- ปุ่ม PLAY ที่แก้ไขแล้ว ---
           Custom3DButton(
             width: 260.0,
             text: 'PLAY',
             onPressed: () {
-              // 1. สั่งเล่นเสียงและสั่นทันที (ไม่รอ async)
-              // แนะนำ: ถ้า playStartGame ช้า ลองใช้ playKeyboardTap ควบคู่ไปด้วยเพื่อให้มีเสียง "คลิก" ทันที
               AppFeedback.playKeyboardTap(currentUser);
               AppFeedback.playStartGame(currentUser);
               AppFeedback.triggerHaptic(currentUser);
 
-              // 2. หน่วงเวลาการเปลี่ยนหน้าเล็กน้อย (ประมาณ 120ms)
-              // เพื่อให้เสียงออกมาก่อนที่เครื่องจะไปโฟกัสกับการวาดหน้าจอใหม่
               Future.delayed(const Duration(milliseconds: 50), () async {
                 if (!context.mounted) return;
 
@@ -218,7 +242,6 @@ class WordleMainBody extends StatelessWidget {
                   ),
                 );
 
-                // 3. รีเฟรชหน้า Home เมื่อกลับมา
                 onRefresh();
               });
             },

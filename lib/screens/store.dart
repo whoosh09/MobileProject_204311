@@ -1,8 +1,32 @@
+/*
+ * File: store.dart
+ * Description: UI screen for the in-game shop, allowing players to purchase
+ * visual themes and power-up items using their coin balance.
+ *
+ * Dependencies:
+ * - User (mock_data.dart)
+ * - ThemeDatabase / GameTheme (theme_data.dart)
+ * - AppFeedback (audio_helper.dart)
+ *
+ * Lifecycle:
+ * - Created via the Store tab in HomePage
+ * - Disposed when the user navigates away from the tab
+ *
+ * Author: 660510649 Detnarin Karinchai
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:flutter/material.dart';
 import '../models/mock_data.dart';
 import '../theme/theme_data.dart';
 import '../services/audio_helper.dart';
 
+/// Two-tab shop screen offering [GameTheme] skins and consumable power-ups.
+///
+/// Fields:
+/// - [currentUser]: the active player whose coins and inventory are mutated
+/// - [onShopAction]: callback invoked after any successful purchase so the
+///   parent [HomePage] can refresh its coin badge and theme
 class StorePage extends StatefulWidget {
   final User currentUser;
   final VoidCallback onShopAction;
@@ -18,7 +42,7 @@ class StorePage extends StatefulWidget {
 }
 
 class _StorePageState extends State<StorePage> {
-  // Define Power-ups data
+  /// Catalogue of purchasable power-up items with display metadata and pricing.
   final List<Map<String, dynamic>> powerUps = [
     {
       "id": "hint",
@@ -76,7 +100,7 @@ class _StorePageState extends State<StorePage> {
     );
   }
 
-  // --- Theme Tab UI ---
+  /// Builds the scrollable list of all [GameTheme] entries.
   Widget _buildThemeList(GameTheme currentAppTheme) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -122,7 +146,7 @@ class _StorePageState extends State<StorePage> {
     );
   }
 
-  // --- Power-ups Tab UI ---
+  /// Builds the scrollable list of purchasable power-up items.
   Widget _buildItemList(GameTheme currentAppTheme) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -131,7 +155,6 @@ class _StorePageState extends State<StorePage> {
         final item = powerUps[index];
         final String id = item['id'];
 
-        // 🆕 เช็คจำนวนไอเทมที่ผู้เล่นมีอยู่ในกระเป๋า
         int ownedCount = 0;
         if (id == 'hint') ownedCount = widget.currentUser.hintCount;
         else if (id == 'cleaner') ownedCount = widget.currentUser.cleanerCount;
@@ -143,12 +166,11 @@ class _StorePageState extends State<StorePage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: Column(
             children: [
-              // 🆕 แถบแสดงจำนวนที่มีอยู่ (อยู่ด้านบนของการ์ด)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: currentAppTheme.correct.withOpacity(0.15), // 🎨 สีพื้นหลังจางๆ ตามธีม
+                  color: currentAppTheme.correct.withOpacity(0.15),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(15),
                     topRight: Radius.circular(15),
@@ -162,7 +184,7 @@ class _StorePageState extends State<StorePage> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: currentAppTheme.correct, // 🎨 สีข้อความตามธีม
+                        color: currentAppTheme.correct,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -171,14 +193,13 @@ class _StorePageState extends State<StorePage> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
-                        color: currentAppTheme.correct, // 🎨 สีตัวเลขตามธีม
+                        color: currentAppTheme.correct,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // ℹ️ ข้อมูลไอเทม (ปุ่มซื้อ / ชื่อ / คำอธิบาย)
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 leading: CircleAvatar(
@@ -203,7 +224,7 @@ class _StorePageState extends State<StorePage> {
     );
   }
 
-  // --- Action Logic ---
+  /// Equips an owned theme or opens the purchase dialog for unowned themes.
   void _handleThemeTap(GameTheme theme) {
     AppFeedback.playClick(widget.currentUser);
     if (widget.currentUser.ownedThemeIds.contains(theme.id)) {
@@ -218,6 +239,10 @@ class _StorePageState extends State<StorePage> {
     }
   }
 
+  /// Shows a confirmation [AlertDialog] before completing a purchase.
+  ///
+  /// [isPowerUp] determines whether [item] is treated as a [Map] (power-up)
+  /// or a [GameTheme] (skin).
   void _confirmPurchase(dynamic item, bool isPowerUp) {
     final currentTheme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
     AppFeedback.playClick(widget.currentUser);
@@ -255,6 +280,9 @@ class _StorePageState extends State<StorePage> {
     );
   }
 
+  /// Deducts coins, adds the theme to owned list, and equips it immediately.
+  ///
+  /// Displays an error SnackBar if the player has insufficient coins.
   void _processThemePurchase(GameTheme theme) {
     if (widget.currentUser.coins >= theme.price) {
       AppFeedback.playCash(widget.currentUser);
@@ -272,6 +300,9 @@ class _StorePageState extends State<StorePage> {
     }
   }
 
+  /// Deducts coins and increments the appropriate power-up counter.
+  ///
+  /// Displays an error SnackBar if the player has insufficient coins.
   void _processItemPurchase(Map<String, dynamic> item) {
     if (widget.currentUser.coins >= item['price']) {
       AppFeedback.playCash(widget.currentUser);
@@ -298,7 +329,7 @@ class _StorePageState extends State<StorePage> {
     }
   }
 
-  // --- UI Helpers ---
+  /// Builds a small row of three color dots previewing a theme's tile colors.
   Widget _buildThemePreview(GameTheme theme) {
     return Container(
       padding: const EdgeInsets.all(8),
@@ -315,6 +346,7 @@ class _StorePageState extends State<StorePage> {
 
   Widget _colorDot(Color color) => Container(width: 14, height: 14, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
 
+  /// Builds the price/status tag shown on the right side of each theme card.
   Widget _buildPriceTag(int price, bool isOwned, bool isEquipped, GameTheme theme) {
     if (isEquipped) return Icon(Icons.check_circle, color: theme.correct, size: 28);
     if (isOwned) return Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(20)), child: const Text("USE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)));
@@ -326,6 +358,7 @@ class _StorePageState extends State<StorePage> {
     );
   }
 
+  /// Displays a floating [SnackBar] with [msg], using red for errors.
   void _showSnackBar(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: isError ? Colors.redAccent : Colors.green, behavior: SnackBarBehavior.floating));

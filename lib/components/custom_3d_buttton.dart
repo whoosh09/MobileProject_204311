@@ -1,7 +1,36 @@
+/*
+ * File: custom_3d_buttton.dart
+ * Description: Reusable 3D-style press-down button widget used throughout
+ * the Quackle application for primary actions and quiz answer options.
+ *
+ * Lifecycle:
+ * - Created wherever a primary CTA or quiz option button is needed
+ * - Disposed when the parent widget is removed from the tree
+ *
+ * Author:
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:flutter/material.dart';
 
+/// Possible visual states for [Custom3DButton].
+///
+/// - [normal]: default appearance using [Custom3DButton.backgroundColor]
+/// - [correct]: green highlight used when a quiz answer is correct
+/// - [incorrect]: red highlight used when a quiz answer is wrong
 enum ButtonState { normal, correct, incorrect }
 
+/// A pressable button with a 3D shadow effect that shifts on tap.
+///
+/// Fields:
+/// - [text]: label displayed in the button centre
+/// - [onPressed]: callback invoked after the press-down animation completes
+/// - [backgroundColor]: surface color used in [ButtonState.normal]
+/// - [shadowColor]: color of the bottom shadow layer
+/// - [height] / [width]: explicit dimensions; width defaults to `double.infinity`
+/// - [state]: controls the color override for correct/incorrect feedback
+/// - [textColor]: overrides the default white label color
+/// - [style]: base [TextStyle] merged with size and weight defaults
 class Custom3DButton extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
@@ -11,7 +40,7 @@ class Custom3DButton extends StatefulWidget {
   final double width;
   final ButtonState state;
   final Color? textColor;
-  final TextStyle? style; // 🆕 Added style support
+  final TextStyle? style;
 
   const Custom3DButton({
     super.key,
@@ -33,6 +62,7 @@ class Custom3DButton extends StatefulWidget {
 class _Custom3DButtonState extends State<Custom3DButton> {
   bool _isPressed = false;
 
+  /// Resolves the surface color based on the current [ButtonState].
   Color get _resolvedBgColor {
     switch (widget.state) {
       case ButtonState.correct:   return Colors.green.shade500;
@@ -41,6 +71,7 @@ class _Custom3DButtonState extends State<Custom3DButton> {
     }
   }
 
+  /// Resolves the shadow color based on the current [ButtonState].
   Color get _resolvedShadowColor {
     switch (widget.state) {
       case ButtonState.correct:   return Colors.green.shade800;

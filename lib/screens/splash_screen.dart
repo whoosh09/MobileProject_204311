@@ -1,3 +1,22 @@
+/*
+ * File: splash_screen.dart
+ * Description: UI screen displayed on app launch. Plays a bounce animation,
+ * checks for a saved login session, and navigates to the appropriate screen.
+ *
+ * Dependencies:
+ * - SharedPreferences (session persistence)
+ * - ThemeDatabase (theme-aware background color)
+ * - MockDatabase / User (session lookup)
+ * - HomePage (authenticated destination)
+ *
+ * Lifecycle:
+ * - Created as the initial route (/splash) by QuackApp
+ * - Disposed automatically when replaced via pushReplacement
+ *
+ * Author: Quackle Team
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
@@ -5,6 +24,15 @@ import '../theme/theme_data.dart';
 import '../models/mock_data.dart';
 import 'home.dart';
 
+/// Entry splash screen that animates the app logo and handles session routing.
+///
+/// On init, a bounce animation plays while [_checkLoginState] runs in the
+/// background. After a minimum 2-second delay:
+/// - If a saved username is found, the user is taken directly to [HomePage].
+/// - Otherwise, the user is redirected to `/welcome`.
+///
+/// The background color adapts to the user's last saved theme so the
+/// transition feels seamless.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -15,32 +43,33 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _bounceAnimation;
-  Color _backgroundColor = const Color(0xFF58CC02); // ตั้งค่า Default เป็นสีเขียว Classic
-  Color _textColor = Colors.white; // ✅ ประกาศค่าเริ่มต้นไว้ก่อน
+  Color _backgroundColor = const Color(0xFF58CC02);
+  Color _textColor = Colors.white;
 
   @override
   void initState() {
     super.initState();
 
-    // 1. Initialize the Animation Controller
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200), // ความเร็วแอนิเมชันเด้งดึ๋ง
+      duration: const Duration(milliseconds: 1200),
     );
 
-    // 2. Define the Elastic/Bouncy curve
     _bounceAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.elasticOut,
     );
 
-    // 3. Start the animation immediately
     _controller.forward();
-
-    // 4. เช็คประวัติการล็อกอิน (ระบบจำรหัสผ่านที่ทำไว้ล่าสุด)
     _checkLoginState();
   }
 
+  /// Checks SharedPreferences for a saved username and navigates accordingly.
+  ///
+  /// Side effects:
+  /// - Updates [_backgroundColor] and [_textColor] to match the saved theme
+  /// - Navigates to [HomePage] if a valid session is found
+  /// - Navigates to `/welcome` if no session exists
   Future<void> _checkLoginState() async {
     final prefs = await SharedPreferences.getInstance();
     final savedUsername = prefs.getString('loggedInUser');
@@ -51,7 +80,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         loggedInUser = MockDatabase.users.firstWhere((u) => u.username == savedUsername);
         await loggedInUser.loadData();
 
-        // 🆕 ดึงธีมที่ผู้ใช้ตั้งไว้มาเปลี่ยนสี Splash Screen ทันที
         final theme = ThemeDatabase.getTheme(loggedInUser.currentThemeId);
         setState(() {
           _backgroundColor = theme.backgroundColor;
@@ -66,12 +94,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (!mounted) return;
 
     if (loggedInUser != null) {
-      // มีบัญชีค้างไว้ -> ไปหน้า Home
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => HomePage(currentUser: loggedInUser!)),
       );
     } else {
-      // ไม่มีบัญชี -> ไปหน้า Welcome
       Navigator.of(context).pushReplacementNamed('/welcome');
     }
   }

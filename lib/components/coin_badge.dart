@@ -1,5 +1,23 @@
+/*
+ * File: coin_badge.dart
+ * Description: Reusable widget that displays the player's coin balance with
+ * a pop/bounce animation whenever the value changes.
+ *
+ * Lifecycle:
+ * - Created inside the AppBar of HomePage
+ * - Disposed when HomePage is removed from the widget tree
+ *
+ * Author:
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:flutter/material.dart';
 
+/// Displays [coins] inside a gold gradient pill that pops when the value changes.
+///
+/// Uses a [TweenSequence] scale animation on coin updates and a
+/// [TweenAnimationBuilder] to smoothly roll the number display from the
+/// previous value to the new one over 1.2 seconds.
 class AnimatedCoinBadge extends StatefulWidget {
   final int coins;
   const AnimatedCoinBadge({super.key, required this.coins});
@@ -38,7 +56,7 @@ class _AnimatedCoinBadgeState extends State<AnimatedCoinBadge> with SingleTicker
   void didUpdateWidget(AnimatedCoinBadge oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.coins != oldWidget.coins) {
-      _oldCoins = oldWidget.coins; // จำค่าเก่าไว้เริ่มวิ่ง
+      _oldCoins = oldWidget.coins;
       _controller.forward(from: 0.0);
     }
   }

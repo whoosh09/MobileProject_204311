@@ -1,67 +1,201 @@
-# Quackle (Wordle Clone) 🦆
+# 🦆 Quackle
 
-A mobile word-guessing game built with **Flutter**, inspired by the popular game [Wordle](https://www.nytimes.com/games/wordle/index.html).
+> A Wordle-inspired word-guessing game built with Flutter — featuring themes, power-ups, a flashcard system, and local persistence.
 
-> **Note:** This project is created for **educational purposes only** to demonstrate mobile application development concepts, state management, and local data persistence.
+![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=flat-square&logo=flutter)
+![Dart](https://img.shields.io/badge/Dart-%5E3.10.0-0175C2?style=flat-square&logo=dart)
+![Version](https://img.shields.io/badge/Version-1.0.0%2B1-orange?style=flat-square)
+![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web-lightgrey?style=flat-square)
+![License](https://img.shields.io/badge/Purpose-Educational-green?style=flat-square)
+
+---
+
+## 📖 Overview
+
+Quackle is a mobile word game where players guess a hidden 5-letter English word within 6 attempts.  
+Each guess provides color-coded feedback, and correct guesses reward coins that can be spent in the in-game store.
+
+> **Disclaimer:** This project was created for **educational purposes** as part of a Mobile Application Development course. It is not affiliated with or endorsed by The New York Times or Josh Wardle.
+
+---
 
 ## ✨ Features
-* **Classic Gameplay:** Guess a 5-letter word in 6 tries.
-* **Visual Feedback:**
-    * 🟩 **Green:** Correct letter in the correct spot.
-    * 🟨 **Yellow:** Correct letter in the wrong spot.
-    * ⬜ **Grey:** Letter not in the word.
-* **Mock Authentication System:** Simulate login flow with user profiles.
-* **Economy System:** Earn coins for every correct word guessed.
-* **Data Persistence:** Coins, game history, and found words are saved locally using `shared_preferences`.
-* **Dictionary Check:** Validates guesses against a valid English dictionary.
+
+| Category | Details |
+|---|---|
+| 🎮 **Core Gameplay** | Guess a 5-letter word in 6 tries with color-coded tile feedback |
+| 🎨 **Theme Store** | 14 purchasable visual themes (Classic, Dark, Neon, Galaxy, Legendary…) |
+| ⚡ **Power-Ups** | Hint Reveal, Keyboard Cleaner, Extra Row — purchasable with coins |
+| 📖 **Flashcard Mode** | Study & Quiz modes unlocked after finding 15 words |
+| 📚 **My Dictionary** | Searchable log of all discovered words with Thai translations |
+| 🏆 **Rank System** | Earn titles (Novice → Bookworm → Scholar → Master → Legend) |
+| 🐣 **Avatar Shop** | Collect and equip emoji-style avatars |
+| 💾 **Persistence** | All progress saved locally via `shared_preferences` |
+| 🔊 **Sound & Haptics** | Toggle-able sound effects and vibration feedback |
+
+---
 
 ## 🛠 Tech Stack
-* **Framework:** Flutter (Dart)
-* **State Management:** `setState` (StatefulWidget)
-* **Local Storage:** `shared_preferences`
-* **Asset Management:** Custom JSON/Text file parsing
 
-## 🚀 How to Run
+| Layer | Technology | Version |
+|---|---|---|
+| **Framework** | Flutter (Dart) | SDK `^3.10.0` |
+| **State Management** | `setState` / `StatefulWidget` | — |
+| **Local Storage** | `shared_preferences` | `^2.3.2` |
+| **Audio** | `audioplayers` | `^6.1.0` |
+| **Fonts (Thai)** | `google_fonts` (Kanit) | `^6.2.1` |
+| **Fonts (Custom)** | DINNextRounded LT W04 | bundled asset |
+| **Icons** | `cupertino_icons` | `^1.0.8` |
+| **App Icon Generator** | `flutter_launcher_icons` | `^0.13.1` |
 
-1.  **Clone the repository**
-    **HTTPS**
-    ```bash
-    git clone https://github.com/whoosh09/MobileProject_204311.git
-    ```
-    **SSH**
-    ```bash
-    git clone git@github.com:whoosh09/MobileProject_204311.git
-    ```
-2.  **Install dependencies**
-    ```bash
-    flutter pub get
-    ```
-3.  **Run the app**
-    * **For Mobile (Recommended):**
-        ```bash
-        flutter run
-        ```
-    * **For Web (Chrome):**
-        To ensure data persistence works correctly on the web, specify a fixed port:
-        ```bash
-        flutter run -d chrome --web-port=5000
-        ```
+---
 
-## 🔐 Mock Credentials (For Testing)
-Use these pre-configured accounts to test the application:
+## 📁 Project Structure
 
-| Username | Password | Initial Coins | Description |
-| :--- | :--- | :--- | :--- |
-| **`a`** | **`a`** | 10 | Low balance user |
-| **`b`** | **`b`** | 0 | New user (Empty state) |
-| **`c`** | **`c`** | 0 | New user (Empty state) |
-| **`d`** | **`d`** | 0 | New user (Empty state) |
+```
+lib/
+├── main.dart                   # Entry point — orientation lock & app launch
+├── app.dart                    # Root widget, routes, global theme
+│
+├── models/
+│   └── mock_data.dart          # User model + MockDatabase (auth & persistence)
+│
+├── screens/
+│   ├── splash_screen.dart      # Animated splash + session routing
+│   ├── welcome_screen.dart     # Onboarding screen
+│   ├── login.dart              # Authentication screen
+│   ├── home.dart               # Main hub with bottom navigation
+│   ├── game_screen.dart        # Core Wordle gameplay
+│   ├── flashcard.dart          # Study & Quiz modes
+│   ├── dictionary.dart         # Discovered word log
+│   ├── store.dart              # Theme & power-up shop
+│   └── profile.dart            # Stats, avatar, rank, settings
+│
+├── components/
+│   ├── coin_badge.dart         # Animated coin display widget
+│   ├── custom_3d_buttton.dart  # Reusable 3D press-down button
+│   ├── custom_keyboard_key.dart# Individual keyboard key widget
+│   └── victory_effect.dart     # Confetti particle animation
+│
+├── services/
+│   └── audio_helper.dart       # Centralised sound & haptic utilities
+│
+└── theme/
+    ├── theme_data.dart         # GameTheme model + ThemeDatabase catalog
+    └── text_styles.dart        # Smart Thai/English font selection
 
-## ⚖️ Disclaimer & Credits
-This project is a clone created for learning purposes. It is **not** affiliated with, associated with, or endorsed by The New York Times or Josh Wardle.
+assets/
+├── emoji/                      # Avatar image assets
+├── fonts/                      # Custom font files
+├── images/                     # Mascot illustrations
+├── sounds/                     # Sound effect files
+├── targetwords.json            # Target word list with Thai translations
+└── validwords.txt              # Valid guess dictionary
+```
 
-* **Original Game Concept:** [Josh Wardle](https://twitter.com/powerlanguish)
-* **Current Rights Holder:** [The New York Times](https://www.nytimes.com/games/wordle/index.html)
+---
 
-<!-- ---
-Developed by [] -->
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Dart SDK `^3.10.0`)
+- Android Studio / Xcode (for device or emulator)
+- Chrome (for web)
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   # HTTPS
+   git clone https://github.com/whoosh09/MobileProject_204311.git
+
+   # SSH
+   git clone git@github.com:whoosh09/MobileProject_204311.git
+
+   cd MobileProject_204311
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   flutter pub get
+   ```
+
+3. **Generate app icons** *(optional — icons are already committed)*
+
+   ```bash
+   dart run flutter_launcher_icons
+   ```
+
+4. **Run the app**
+
+   ```bash
+   # Mobile (recommended)
+   flutter run
+
+   # Web — fixed port required for shared_preferences to work correctly
+   flutter run -d chrome --web-port=5000
+   ```
+
+5. **Generate documentation** *(optional)*
+
+   ```bash
+   dart doc
+   # Output will be in the doc/ directory
+   ```
+
+---
+
+## 🔐 Test Accounts
+
+| Username | Password | Coins | Description |
+|---|---|---|---|
+| `god` | `god` | 1,000,000 | Full demo — all themes, avatars & power-ups unlocked |
+| `newbie` | `1` | 0 | Brand-new player — zero progress |
+| `flash` | `2` | 5,000 | One word away from unlocking Flashcard mode |
+| `ranker` | `3` | 500 | One word away from earning Scholar rank |
+| `richboy` | `4` | 1,000,000 | Rich but nothing bought — ideal for testing the store |
+
+---
+
+## 🎮 How to Play
+
+1. Log in with any test account
+2. Tap **PLAY** on the home screen
+3. Type a 5-letter English word using the on-screen keyboard and press **ENTER**
+4. Read the tile feedback:
+   - 🟩 **Green** — correct letter, correct position
+   - 🟨 **Yellow** — correct letter, wrong position
+   - ⬜ **Grey** — letter not in the word
+5. Guess the word within 6 rows to earn **+10 coins**
+6. Spend coins in the **Store** on themes and power-ups
+
+### Power-Ups
+
+| Power-Up | Cost | Effect |
+|---|---|---|
+| 💡 Hint Reveal | 50 coins | Reveals the next correct letter |
+| 🔧 Keyboard Cleaner | 30 coins | Removes 3 wrong letters from the keyboard |
+| ➕ Extra Row | 100 coins | Adds a 7th guess row |
+
+---
+
+## 📸 Screenshots
+
+> *(Add screenshots here)*
+
+---
+
+## ⚖️ Credits
+
+| Role | Credit |
+|---|---|
+| Original game concept | [Josh Wardle](https://twitter.com/powerlanguish) |
+| Current rights holder | [The New York Times](https://www.nytimes.com/games/wordle/index.html) |
+| Project author | Quackle Team — Mobile Application Development Framework |
+
+---
+
+*Created for educational purposes only. Not affiliated with The New York Times.*

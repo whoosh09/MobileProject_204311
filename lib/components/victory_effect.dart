@@ -1,6 +1,25 @@
+/*
+ * File: victory_effect.dart
+ * Description: Full-screen confetti particle animation displayed on top of
+ * other widgets when the player wins a round.
+ *
+ * Lifecycle:
+ * - Created inside the end-game dialog Stack in WordleScreen and FlashcardPage
+ * - Plays once (2.5 seconds) then particles fade out; disposed with the dialog
+ *
+ * Author: 660510649 Detnarin Karinchai
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+/// Plays a one-shot confetti burst animation overlaying the current screen.
+///
+/// Wraps itself in [IgnorePointer] so the user can interact with widgets
+/// behind the effect while it plays. Spawns 120 [_Particle] instances that
+/// fly outward from the centre and fall under simulated gravity, fading out
+/// over 2.5 seconds.
 class VictoryEffect extends StatefulWidget {
   const VictoryEffect({super.key});
 
@@ -18,26 +37,26 @@ class _VictoryEffectState extends State<VictoryEffect> with SingleTickerProvider
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2500), // พลุจะกระจายอยู่ 2.5 วินาที
+      duration: const Duration(milliseconds: 2500),
     );
 
-    // สร้างเศษพลุ 120 ชิ้น
     for (int i = 0; i < 120; i++) {
       _particles.add(_Particle(
         color: _getRandomColor(),
-        x: 0.5, // จุดเริ่มต้น X (ตรงกลาง)
-        y: 0.3, // จุดเริ่มต้น Y (ค่อนไปทางบนนิดนึง จะได้หล่นลงมาสวยๆ)
-        angle: _random.nextDouble() * 2 * pi, // ทิศทางกระจาย 360 องศา
-        speed: _random.nextDouble() * 20 + 5, // ความเร็วในการพุ่ง
-        size: _random.nextDouble() * 8 + 4,   // ขนาดชิ้นพลุ
+        x: 0.5,
+        y: 0.3,
+        angle: _random.nextDouble() * 2 * pi,
+        speed: _random.nextDouble() * 20 + 5,
+        size: _random.nextDouble() * 8 + 4,
         rotation: _random.nextDouble() * 2 * pi,
       ));
     }
 
     _controller.addListener(() => setState(() {}));
-    _controller.forward(); // สั่งเล่นแอนิเมชันทันทีที่เปิดขึ้นมา
+    _controller.forward();
   }
 
+  /// Returns a random confetti color from a preset palette.
   Color _getRandomColor() {
     List<Color> colors = [
       Colors.green, Colors.blue, Colors.pinkAccent,
@@ -54,16 +73,16 @@ class _VictoryEffectState extends State<VictoryEffect> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    // ใชั IgnorePointer เพื่อให้ผู้เล่นสามารถเอานิ้วทะลุไปกดปุ่มด้านหลังได้
     return IgnorePointer(
       child: CustomPaint(
         painter: _ConfettiPainter(_particles, _controller.value),
-        child: Container(), // ใช้พื้นที่ให้เต็มจอ
+        child: Container(),
       ),
     );
   }
 }
 
+/// Internal data model for a single confetti particle.
 class _Particle {
   Color color;
   double x, y, angle, speed, size, rotation;
@@ -74,6 +93,11 @@ class _Particle {
   });
 }
 
+/// [CustomPainter] that draws all [_Particle] instances for a given animation [progress].
+///
+/// Each particle moves along its [_Particle.angle] direction, accelerates
+/// downward via simulated gravity, rotates, and fades out as [progress]
+/// approaches `1.0`.
 class _ConfettiPainter extends CustomPainter {
   final List<_Particle> particles;
   final double progress;
@@ -85,20 +109,18 @@ class _ConfettiPainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
 
     for (var p in particles) {
-      // คำนวณระยะทางและแรงโน้มถ่วง
-      double distance = p.speed * progress * 30; // พุ่งออกไป
-      double gravity = progress * progress * 500; // ตกลงมาด้านล่าง
+      double distance = p.speed * progress * 30;
+      double gravity = progress * progress * 500;
 
       double px = (size.width * p.x) + (cos(p.angle) * distance);
       double py = (size.height * p.y) + (sin(p.angle) * distance) + gravity;
 
       canvas.save();
       canvas.translate(px, py);
-      canvas.rotate(p.rotation + (progress * 15)); // หมุนติ้วๆ ระหว่างร่วง
+      canvas.rotate(p.rotation + (progress * 15));
 
-      paint.color = p.color.withOpacity(1.0 - progress); // ค่อยๆ จางหายไปตอนท้าย
+      paint.color = p.color.withOpacity(1.0 - progress);
 
-      // สุ่มวาดสี่เหลี่ยมบ้าง วงกลมบ้าง
       if (p.size % 2 > 1) {
         canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: p.size, height: p.size), paint);
       } else {

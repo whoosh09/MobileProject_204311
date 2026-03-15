@@ -1,6 +1,28 @@
 /*
  * File: game_screen.dart
- * Description: The core gameplay screen with Power-ups.
+ * Description: Core Wordle gameplay screen with grid, on-screen keyboard,
+ * power-up bar, and end-game dialogs.
+ *
+ * Responsibilities:
+ * - Loads target words and valid words from JSON/text assets
+ * - Manages guess state, letter status, and row progression
+ * - Handles power-up logic (Hint, Cleaner, Extra Row)
+ * - Updates user stats, coins, and rank on win/loss
+ *
+ * Dependencies:
+ * - User (mock_data.dart)
+ * - ThemeDatabase / GameTheme (theme_data.dart)
+ * - AppFeedback (audio_helper.dart)
+ * - Custom3DKey (components)
+ * - Custom3DButton (components)
+ * - VictoryEffect (components)
+ *
+ * Lifecycle:
+ * - Created via Navigator.push from WordleMainBody
+ * - Disposed when the player navigates back or via the end-game dialog
+ *
+ * Author: 660510649 Detnarin Karinchai
+ * Course: 204311-Mobile Application Development Framework
  */
 
 import 'dart:convert';
@@ -18,8 +40,17 @@ const Color defaultLightKeyColor = Color(0xFFD3D6DA);
 const Color defaultDarkKeyColor = Color(0xFF4F4F4F);
 const Color filledBorderColor = Color(0xFF878A8C);
 
+/// Represents the visual/evaluation state of a single letter cell.
 enum LetterStatus { initial, entered, correct, present, absent }
 
+/// Main Wordle game screen.
+///
+/// Fields:
+/// - [currentUser]: the active player whose inventory, stats, and coins are mutated
+///
+/// On init, randomly selects a target word from `assets/targetwords.json` and
+/// loads `assets/validwords.txt` to validate guesses. The game supports up to
+/// 6 rows (7 with the Extra Row power-up).
 class WordleScreen extends StatefulWidget {
   final User currentUser;
   const WordleScreen({super.key, required this.currentUser});
@@ -49,6 +80,7 @@ class _WordleScreenState extends State<WordleScreen> {
   void initState() {
     super.initState();
     GameTheme userTheme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
+    // Always use fixed wordle tile colors regardless of the UI theme
     currentTheme = GameTheme(
       id: userTheme.id,
       name: userTheme.name,
@@ -64,7 +96,12 @@ class _WordleScreenState extends State<WordleScreen> {
     _loadGameData();
   }
 
-  // --- Data Loading Logic ---
+  /// Loads target words (JSON) and valid words (TXT) concurrently, then picks a random target.
+  ///
+  /// Side effects:
+  /// - Populates [targetWords], [validWordsDict], [targetWord], [targetWordTranslation]
+  /// - Sets [isLoading] to `false` when complete
+  /// - Falls back to "WORLD / โลก" if the asset is empty
   Future<void> _loadGameData() async {
     try {
       final results = await Future.wait([
@@ -93,6 +130,7 @@ class _WordleScreenState extends State<WordleScreen> {
     }
   }
 
+  /// Resets all game state and picks a new random target word.
   void _resetGame() {
     setState(() {
       final List<String> keys = targetWords.keys.toList();
@@ -111,6 +149,11 @@ class _WordleScreenState extends State<WordleScreen> {
   }
 
   // --- Power-ups Logic ---
+
+  /// Reveals the next unfilled letter in the current row using the target word.
+  ///
+  /// Does nothing if [User.hintCount] is `0` or the row is already full.
+  /// Side effects: decrements [User.hintCount] and calls [User.saveData].
   void _useHint() {
     if (widget.currentUser.hintCount <= 0 || guesses[currentRow].length >= 5) return;
     setState(() {
@@ -124,6 +167,10 @@ class _WordleScreenState extends State<WordleScreen> {
     AppFeedback.playClick(widget.currentUser);
   }
 
+  /// Marks 3 random unused letters as absent on the keyboard.
+  ///
+  /// Does nothing if [User.cleanerCount] is `0`.
+  /// Side effects: decrements [User.cleanerCount] and calls [User.saveData].
   void _useCleaner() {
     if (widget.currentUser.cleanerCount <= 0) return;
     setState(() {
@@ -140,6 +187,10 @@ class _WordleScreenState extends State<WordleScreen> {
     AppFeedback.playClick(widget.currentUser);
   }
 
+  /// Adds a 7th guess row if the player has Extra Row charges remaining.
+  ///
+  /// Can only be used once per game ([isExtraRowUsed] guard).
+  /// Side effects: decrements [User.extraRowCount] and calls [User.saveData].
   void _useExtraRow() {
     if (widget.currentUser.extraRowCount <= 0 || isExtraRowUsed) return;
     setState(() {
@@ -153,6 +204,7 @@ class _WordleScreenState extends State<WordleScreen> {
     AppFeedback.playClick(widget.currentUser);
   }
 
+  /// Shows a confirmation [AlertDialog] before consuming a power-up.
   void _showUseItemDialog(String title, String description, VoidCallback onConfirm) {
     AppFeedback.playClick(widget.currentUser);
     showDialog(
@@ -174,7 +226,6 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 
-  // --- Build Method (Combined & Fixed) ---
   @override
   Widget build(BuildContext context) {
     bool isDark = currentTheme.brightness == Brightness.dark;
@@ -189,9 +240,8 @@ class _WordleScreenState extends State<WordleScreen> {
       );
     }
 
-    // 🆕 ใช้ WillPopScope ครอบ Scaffold เพื่อดักจับปุ่ม Back ของเครื่องมือถือ
     return WillPopScope(
-      onWillPop: _showExitConfirmDialog, // 🆕 เรียกฟังก์ชันยืนยันเมื่อกด Back
+      onWillPop: _showExitConfirmDialog,
       child: Scaffold(
         backgroundColor: currentTheme.backgroundColor,
         appBar: AppBar(
@@ -202,10 +252,9 @@ class _WordleScreenState extends State<WordleScreen> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: currentTheme.textColor),
             onPressed: () async {
-              // 🆕 ดักจับปุ่ม Back บน AppBar
               bool shouldExit = await _showExitConfirmDialog();
               if (shouldExit && mounted) {
-                Navigator.pop(context); // ถ้ากดยืนยันถึงจะให้ออก
+                Navigator.pop(context);
               }
             },
           ),
@@ -216,30 +265,29 @@ class _WordleScreenState extends State<WordleScreen> {
         ),
         body: Column(
           children: [
-            // 1. Game Grid
             Expanded(
               flex: 3,
               child: Container(
                 padding: const EdgeInsets.all(20),
-                child: _buildGrid(keyTextColor), //
+                child: _buildGrid(keyTextColor),
               ),
             ),
 
-            // 2. Power-up Bar
-            _buildPowerUpBar(), //
+            _buildPowerUpBar(),
 
-            // 3. Keyboard
             Expanded(
               flex: 2,
-              child: _buildKeyboard(keyColor, keyTextColor), //
+              child: _buildKeyboard(keyColor, keyTextColor),
             ),
           ],
         ),
-      ), // ✅ เพิ่มวงเล็บปิดของ Scaffold ตรงนี้
-    );   // ✅ วงเล็บปิดของ WillPopScope
+      ),
+    );
   }
 
   // --- UI Sub-widgets ---
+
+  /// Builds the 5×[maxRows] guess grid using [FlipTile] widgets.
   Widget _buildGrid(Color defaultTextColor) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -263,6 +311,7 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 
+  /// Builds the horizontal power-up bar with Hint, Cleaner, and Extra Row buttons.
   Widget _buildPowerUpBar() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
@@ -296,6 +345,9 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 
+  /// Builds a single power-up icon button with a count badge.
+  ///
+  /// Renders at reduced opacity when the item is unavailable ([isLocked] or count is 0).
   Widget _powerUpButton({required IconData icon, required int count, required String label, required VoidCallback onTap, required Color color, bool isLocked = false}) {
     bool hasItem = count > 0 && !isLocked;
     return GestureDetector(
@@ -328,6 +380,10 @@ class _WordleScreenState extends State<WordleScreen> {
     );
   }
 
+  /// Builds the three-row QWERTY keyboard using [Custom3DKey] widgets.
+  ///
+  /// Key colors reflect the current [keyStatus] map so evaluated letters are
+  /// shown in green, yellow, or grey.
   Widget _buildKeyboard(Color defaultKeyColor, Color defaultTextColor) {
     const keys = [
       ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -374,6 +430,12 @@ class _WordleScreenState extends State<WordleScreen> {
   }
 
   // --- Game Core Logic ---
+
+  /// Handles a key press from the on-screen keyboard.
+  ///
+  /// - ENTER: validates and submits the current guess via [_checkWord]
+  /// - DEL: removes the last character from the current row
+  /// - Letter: appends the character if the row has fewer than 5 letters
   void onKeyPressed(String val) {
     if (currentRow >= maxRows || isLoading) return;
 
@@ -398,18 +460,31 @@ class _WordleScreenState extends State<WordleScreen> {
     });
   }
 
+  /// Evaluates the current row's guess against [targetWord].
+  ///
+  /// Validates length and dictionary membership before scoring. Each letter
+  /// is scored correct > present > absent using a two-pass algorithm to handle
+  /// duplicate letters correctly. After a 1.6-second animation delay, updates
+  /// [keyStatus] and checks for win/loss conditions.
+  ///
+  /// Side effects on win:
+  /// - Increments [User.gamesPlayed], [User.gamesWon], [User.currentStreak],
+  ///   [User.coins] (+10), [User.wordsFound], [User.guessDistribution]
+  /// - May unlock a new rank title or the Flashcard feature
+  /// - Calls [User.saveData] and shows the end-game dialog
+  ///
+  /// Side effects on loss:
+  /// - Increments [User.gamesPlayed], resets [User.currentStreak] to 0
   Future<void> _checkWord() async {
     String guess = guesses[currentRow];
-    // 🆕 เช็คว่าพิมพ์ไม่ครบ
     if (guess.length != 5) {
       _showMessage("Not enough letters");
-      if (widget.currentUser.isVibrationEnabled) HapticFeedback.heavyImpact(); // 💥 สั่นแบบหนัก
+      if (widget.currentUser.isVibrationEnabled) HapticFeedback.heavyImpact();
       return;
     }
-    // 🆕 เช็คว่าคำไม่มีในดิกชันนารี
     if (!validWordsDict.contains(guess)) {
       _showMessage("Not in word list");
-      if (widget.currentUser.isVibrationEnabled) HapticFeedback.heavyImpact(); // 💥 สั่นแบบหนัก
+      if (widget.currentUser.isVibrationEnabled) HapticFeedback.heavyImpact();
       return;
     }
     if (isAnimating) return;
@@ -419,12 +494,14 @@ class _WordleScreenState extends State<WordleScreen> {
     List<String> targetChars = targetWord.split('');
     List<LetterStatus> rowStatus = List.filled(5, LetterStatus.absent);
 
+    // First pass: mark correct positions
     for (int i = 0; i < 5; i++) {
       if (guess[i] == targetChars[i]) {
         rowStatus[i] = LetterStatus.correct;
         targetChars[i] = '';
       }
     }
+    // Second pass: mark present letters
     for (int i = 0; i < 5; i++) {
       if (rowStatus[i] != LetterStatus.correct) {
         int indexInTarget = targetChars.indexOf(guess[i]);
@@ -459,7 +536,7 @@ class _WordleScreenState extends State<WordleScreen> {
     if (guess == targetWord) {
       AppFeedback.playWin(widget.currentUser);
       bool isUnlockedFlashcard = false;
-      String? newlyUnlockedRank; // 🆕 เพิ่มตัวแปรเก็บฉายาใหม่
+      String? newlyUnlockedRank;
 
       setState(() {
         widget.currentUser.gamesPlayed++;
@@ -473,16 +550,13 @@ class _WordleScreenState extends State<WordleScreen> {
         if (!widget.currentUser.foundWordsList.contains(targetWord)) widget.currentUser.foundWordsList.add(targetWord);
         widget.currentUser.guessDistribution[currentRow - 1]++;
 
-        // ตรวจสอบการปลดล็อก Flashcard
         if (widget.currentUser.wordsFound == 15) isUnlockedFlashcard = true;
 
-        // 🆕 ตรวจสอบการปลดล็อกฉายาใหม่ (Rank)
         if (widget.currentUser.wordsFound == 10) newlyUnlockedRank = "📖 Bookworm";
         if (widget.currentUser.wordsFound == 30) newlyUnlockedRank = "🎓 Scholar";
         if (widget.currentUser.wordsFound == 50) newlyUnlockedRank = "🧙‍♂️ Word Master";
         if (widget.currentUser.wordsFound == 100) newlyUnlockedRank = "👑 Legend";
 
-        // 🆕 เพิ่มฉายาเข้ากระเป๋า และตั้งให้สวมใส่อัตโนมัติเลย!
         if (newlyUnlockedRank != null && !widget.currentUser.unlockedRanks.contains(newlyUnlockedRank)) {
           widget.currentUser.unlockedRanks.add(newlyUnlockedRank!);
           widget.currentUser.selectedRankTitle = newlyUnlockedRank!;
@@ -490,7 +564,6 @@ class _WordleScreenState extends State<WordleScreen> {
       });
       widget.currentUser.saveData();
 
-      // 🆕 ส่งค่า newlyUnlockedRank เข้าไปใน Dialog ด้วย
       _showEndGameDialog(true, targetWord, targetWordTranslation, justUnlocked: isUnlockedFlashcard, newlyUnlockedRank: newlyUnlockedRank);
 
     } else if (currentRow == maxRows) {
@@ -504,11 +577,13 @@ class _WordleScreenState extends State<WordleScreen> {
     }
   }
 
-  // 🆕 ฟังก์ชันโชว์ข้อความกลางจอพร้อมดีไซน์แบบ Modern ขอบมน
+  /// Displays a temporary floating toast message in the centre of the screen.
+  ///
+  /// The overlay entry auto-removes itself after 1.2 seconds.
   void _showMessage(String msg) {
     OverlayEntry overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: MediaQuery.of(context).size.height * 0.35, // ลอยอยู่เหนือคีย์บอร์ดและกริดเล็กน้อย
+        top: MediaQuery.of(context).size.height * 0.35,
         left: 0,
         right: 0,
         child: Material(
@@ -538,10 +613,8 @@ class _WordleScreenState extends State<WordleScreen> {
       ),
     );
 
-    // ยิงข้อความขึ้นจอ
     Overlay.of(context).insert(overlayEntry);
 
-    // ตั้งเวลาให้ข้อความเฟดหายไปเอง
     bool isRemoved = false;
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (!isRemoved) {
@@ -550,11 +623,14 @@ class _WordleScreenState extends State<WordleScreen> {
       }
     });
   }
-  // --- ฟังก์ชันสำหรับโชว์หน้าต่างยืนยันการออกเกม ---
+
+  /// Shows a confirmation dialog when the player attempts to leave mid-game.
+  ///
+  /// Returns `true` if the player confirms exit, `false` otherwise.
+  /// Used by both the AppBar back button and the [WillPopScope] handler.
   Future<bool> _showExitConfirmDialog() async {
     AppFeedback.playClick(widget.currentUser);
 
-    // โชว์ Dialog และรอค่า true (กดออก) หรือ false (กดยกเลิก)
     bool? shouldExit = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -586,14 +662,14 @@ class _WordleScreenState extends State<WordleScreen> {
             ),
             onPressed: () {
               AppFeedback.playClick(widget.currentUser);
-              Navigator.of(context).pop(true); // ส่งค่า true กลับไป (ยืนยันการออก)
+              Navigator.of(context).pop(true);
             },
             child: const Text("Quit", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
           TextButton(
             onPressed: () {
               AppFeedback.playClick(widget.currentUser);
-              Navigator.of(context).pop(false); // ส่งค่า false กลับไป (ไม่ให้ออก)
+              Navigator.of(context).pop(false);
             },
             child: Text("Cancel", style: TextStyle(color: currentTheme.textColor.withOpacity(0.5))),
           ),
@@ -601,17 +677,24 @@ class _WordleScreenState extends State<WordleScreen> {
       ),
     );
 
-    return shouldExit ?? false; // ถ้าปัดจอทิ้งให้ถือว่า false
+    return shouldExit ?? false;
   }
 
+  /// Displays the end-game result dialog with the target word, rewards, and action buttons.
+  ///
+  /// Parameters:
+  /// - [won]: whether the player guessed correctly
+  /// - [targetWord]: the hidden word revealed at the end
+  /// - [meaning]: the Thai translation of the target word
+  /// - [justUnlocked]: whether the Flashcard feature was unlocked this round
+  /// - [newlyUnlockedRank]: a rank title string if a new rank was earned, or null
   void _showEndGameDialog(bool won, String targetWord, String meaning, {bool justUnlocked = false, String? newlyUnlockedRank}) {
     showDialog(
       context: context,
-      barrierDismissible: false, // บังคับให้ต้องกดปุ่มเพื่อออก
+      barrierDismissible: false,
       builder: (context) => Stack(
         alignment: Alignment.center,
         children: [
-          // --- 1. กล่อง Popup Dialog (เลเยอร์ด้านหลัง) ---
           Dialog(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -636,12 +719,9 @@ class _WordleScreenState extends State<WordleScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-
                     padding: const EdgeInsets.all(0),
                     child: Image.asset(
-                      won
-                          ? 'assets/images/wowquackle.png'  // รูปกรณีชนะ
-                          : 'assets/images/huhquackle.png', // รูปกรณีแพ้
+                      won ? 'assets/images/wowquackle.png' : 'assets/images/huhquackle.png',
                       height: 150,
                       fit: BoxFit.contain,
                     ),
@@ -666,7 +746,6 @@ class _WordleScreenState extends State<WordleScreen> {
 
                   const SizedBox(height: 24),
 
-                  // --- 🔠 THE WORD DISPLAY ---
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -702,7 +781,6 @@ class _WordleScreenState extends State<WordleScreen> {
 
                   const SizedBox(height: 24),
 
-                  // --- 🎁 REWARDS SECTION ---
                   if (won) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -721,7 +799,6 @@ class _WordleScreenState extends State<WordleScreen> {
                     ),
                   ],
 
-                  // --- 🎉 FLASHCARD UNLOCKED ALERt ---
                   if (justUnlocked) ...[
                     const SizedBox(height: 16),
                     Container(
@@ -761,7 +838,7 @@ class _WordleScreenState extends State<WordleScreen> {
                       ),
                     ),
                   ],
-                // --- 🌟 RANK UNLOCKED ALERT (เพิ่มใหม่) ---
+
                   if (newlyUnlockedRank != null) ...[
                     const SizedBox(height: 16),
                     Container(
@@ -791,7 +868,7 @@ class _WordleScreenState extends State<WordleScreen> {
                                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
                                 ),
                                 Text(
-                                  newlyUnlockedRank, // แสดงฉายา เช่น 📖 Bookworm
+                                  newlyUnlockedRank,
                                   style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                               ],
@@ -803,7 +880,6 @@ class _WordleScreenState extends State<WordleScreen> {
                   ],
                   const SizedBox(height: 32),
 
-                  // --- 🕹️ BUTTONS ---
                   Row(
                     children: [
                       Expanded(
@@ -815,8 +891,8 @@ class _WordleScreenState extends State<WordleScreen> {
                           onPressed: () {
                             AppFeedback.playClick(widget.currentUser);
                             AppFeedback.triggerHaptic(widget.currentUser);
-                            Navigator.pop(context); // ปิด Dialog
-                            Navigator.pop(context); // กลับหน้าหลัก
+                            Navigator.pop(context);
+                            Navigator.pop(context);
                           },
                         ),
                       ),
@@ -841,21 +917,38 @@ class _WordleScreenState extends State<WordleScreen> {
               ),
             ),
           ),
-          // --- 2. ✨ เอฟเฟกต์พลุกระจาย (เลเยอร์ด้านหน้าสุด จะทำงานเมื่อ won == true เท่านั้น) ---
           if (won) const VictoryEffect(),
         ],
       ),
     );
   }
 }
-// --- FlipTile Component (Unchanged) ---
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FlipTile Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A single animated tile in the Wordle guess grid.
+///
+/// Flips on the X-axis when its [status] transitions from [LetterStatus.entered]
+/// to a scored state, with each tile in the row delayed by [delayIndex] × 200 ms
+/// to create a cascading reveal effect.
 class FlipTile extends StatefulWidget {
   final String char;
   final LetterStatus status;
   final GameTheme currentTheme;
   final int delayIndex;
   final User currentUser;
-  const FlipTile({super.key, required this.char, required this.status, required this.currentTheme, required this.delayIndex, required this.currentUser});
+
+  const FlipTile({
+    super.key,
+    required this.char,
+    required this.status,
+    required this.currentTheme,
+    required this.delayIndex,
+    required this.currentUser,
+  });
+
   @override
   State<FlipTile> createState() => _FlipTileState();
 }
@@ -863,6 +956,7 @@ class FlipTile extends StatefulWidget {
 class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+
   @override
   void initState() {
     super.initState();
@@ -883,6 +977,7 @@ class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin
 
   @override
   void dispose() { _controller.dispose(); super.dispose(); }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(animation: _controller, builder: (context, child) {

@@ -1,7 +1,23 @@
+/*
+ * File: welcome_screen.dart
+ * Description: UI screen shown to first-time or logged-out users.
+ * Displays the mascot image and a GET STARTED button that leads to the login page.
+ *
+ * Lifecycle:
+ * - Created via the /welcome named route
+ * - Disposed when the user navigates forward to /login
+ *
+ * Author: Quackle Team
+ * Course: 204311-Mobile Application Development Framework
+ */
 
 import 'package:flutter/material.dart';
 import '../components/custom_3d_buttton.dart';
 
+/// Onboarding screen presenting the Quackle mascot and an entry-point button.
+///
+/// This is a stateless screen with no user data dependencies. It routes the
+/// user to the `/login` named route when the GET STARTED button is pressed.
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -15,24 +31,20 @@ class WelcomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              // Big, Bold Mascot/Logo
-              Image.asset('assets/images/fullbody_quackle.png', height:350),
+              Image.asset('assets/images/fullbody_quackle.png', height: 350),
               const SizedBox(height: 24),
-              // Big Bold Typography
-
               const Text(
                 'The fun way to learn!',
                 style: TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w500),
               ),
               const Spacer(),
-              // GET STARTED BUTTON
               Custom3DButton(
                 text: 'GET STARTED',
                 onPressed: () {
                   Navigator.pushNamed(context, '/login');
                 },
                 backgroundColor: const Color(0xFF58CC02),
-                shadowColor: const Color(0xFF48A901), // A darker green
+                shadowColor: const Color(0xFF48A901),
               ),
             ],
           ),
@@ -41,4 +53,3 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 }
-

@@ -1,10 +1,33 @@
+/*
+ * File: login.dart
+ * Description: UI screen for user authentication. Validates input, calls
+ * MockDatabase.login(), persists the session, and navigates to HomePage.
+ *
+ * Dependencies:
+ * - MockDatabase / User (mock_data.dart)
+ * - SharedPreferences (session persistence)
+ * - Custom3DButton (components)
+ * - HomePage (authenticated destination)
+ *
+ * Lifecycle:
+ * - Created via the /login named route
+ * - Disposed when the user is authenticated and replaced by HomePage
+ *
+ * Author: Quackle Team
+ * Course: 204311-Mobile Application Development Framework
+ */
 
 import 'package:flutter/material.dart';
 import '../components/custom_3d_buttton.dart';
 import '../models/mock_data.dart';
 import 'home.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 🆕 นำเข้า package นี้
+import 'package:shared_preferences/shared_preferences.dart';
 
+/// Login screen that authenticates users against [MockDatabase].
+///
+/// Validates the username and password fields, shows a loading indicator
+/// during the async login call, persists the username to [SharedPreferences]
+/// on success, and displays an error SnackBar on failure.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -28,26 +51,27 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  /// Validates the form, authenticates the user, and navigates to [HomePage].
+  ///
+  /// Side effects:
+  /// - Sets [_isLoading] during the async operation
+  /// - Saves `loggedInUser` key to [SharedPreferences] on success
+  /// - Displays an error [SnackBar] if credentials are invalid
+  /// - Throws an exception if the network or storage operation fails
   Future<void> _handleLogin() async {
-    // 1. Validate form fields
     if (!_formKey.currentState!.validate()) return;
 
-    // 2. Set loading state
     setState(() => _isLoading = true);
 
-    // 3. Authenticate
     User? user = await MockDatabase.login(
       _usernameController.text.trim(),
       _passwordController.text.trim(),
     );
 
-    // 4. Reset loading state if still mounted
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // 5. Handle success or failure
     if (user != null) {
-      // 🆕 บันทึกสถานะการล็อกอินลงในเครื่อง
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('loggedInUser', user.username);
 
@@ -157,6 +181,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  /// Builds a styled [TextFormField] with a prefix icon and optional suffix widget.
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,

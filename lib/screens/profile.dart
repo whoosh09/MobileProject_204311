@@ -1,3 +1,25 @@
+/*
+ * File: profile.dart
+ * Description: UI screen for viewing and editing the player's profile,
+ * including avatar, rank title, statistics, and app settings.
+ *
+ * Dependencies:
+ * - User (mock_data.dart)
+ * - ThemeDatabase / GameTheme (theme_data.dart)
+ * - AppFeedback (audio_helper.dart)
+ * - Custom3DButton (components)
+ * - SharedPreferences (logout session clearing)
+ * - LoginPage (logout destination)
+ *
+ * Lifecycle:
+ * - Created via the Profile tab in HomePage with a GlobalKey
+ * - showSettings() is called externally from the AppBar settings button
+ * - Disposed when HomePage is removed from the widget tree
+ *
+ * Author: Detnarin Karinchai
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:flutter/material.dart';
 import '../models/mock_data.dart';
 import '../services/audio_helper.dart';
@@ -6,6 +28,12 @@ import 'login.dart';
 import '../components/custom_3d_buttton.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Profile screen showing avatar, rank, stats, and guess distribution.
+///
+/// Fields:
+/// - [currentUser]: the active player whose data is displayed and mutated
+/// - [onProfileUpdate]: callback invoked after avatar, username, or coin changes
+///   so the parent [HomePage] can refresh the AppBar coin badge
 class ProfilePage extends StatefulWidget {
   final User currentUser;
   final VoidCallback onProfileUpdate;
@@ -29,11 +57,9 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   @override
   void initState() {
     super.initState();
-    // แอนิเมชันหัวใจเต้นตรง Avatar
     _pulseController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
     _pulseAnim = Tween<double>(begin: 0.9, end: 1.05).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
-    // แอนิเมชันหลอด Progress
     _barController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
     _barAnim = CurvedAnimation(parent: _barController, curve: Curves.easeOutCubic);
 
@@ -41,7 +67,6 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
       if (mounted) _barController.forward();
     });
 
-    // 🆕 ตรวจสอบการปลดล็อกฉายาใหม่ทันทีที่เข้าหน้า Profile
     _checkAndUnlockRanks();
   }
 
@@ -52,8 +77,12 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     super.dispose();
   }
 
+  /// Checks [User.wordsFound] against rank thresholds and unlocks any missing ranks.
+  ///
+  /// Side effects:
+  /// - Adds unlocked ranks to [User.unlockedRanks]
+  /// - Calls [User.saveData] if any new rank was added
   void _checkAndUnlockRanks() {
-    // rank ทั้งหมดที่ควรได้ตาม wordsFound
     final allRanks = ["🌱 Novice", "📖 Bookworm", "🎓 Scholar", "🧙‍♂️ Master", "👑 Legend"];
     final thresholds = [0, 10, 30, 50, 100];
 
@@ -74,7 +103,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     }
   }
 
-  // 🆕 หน้าต่างเลือกฉายา (แก้ไข Scope ให้อยู่นอก build)
+  /// Opens a bottom sheet allowing the player to select their displayed rank title.
   void _showRankPicker(GameTheme theme) {
     showModalBottomSheet(
       context: context,
@@ -126,7 +155,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
-  // Logic การคำนวณ Rank
+  /// Returns the rank title string for a given [words] count.
   String getRankTitle(int words) {
     if (words < 10) return "🌱 Novice";
     if (words < 30) return "📖 Bookworm";
@@ -135,6 +164,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     return "👑 Legend";
   }
 
+  /// Returns the name of the next rank for a given [words] count.
   String getRankNext(int words) {
     if (words < 10) return "Bookworm";
     if (words < 30) return "Scholar";
@@ -142,14 +172,17 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     if (words < 100) return "Legend";
     return "MAX";
   }
+
+  /// Returns the word count threshold required to reach the next rank.
   int getNextRankThreshold(int words) {
     if (words < 10) return 10;
     if (words < 30) return 30;
     if (words < 50) return 50;
     if (words < 100) return 100;
-    return 100; // ตันที่ 100 คำ
+    return 100;
   }
 
+  /// Returns a value between `0.0` and `1.0` representing progress toward the next rank.
   double getProgressToNextRank(int words) {
     if (words < 10) return words / 10;
     if (words < 30) return (words - 10) / 20;
@@ -158,16 +191,19 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     return 1.0;
   }
 
+  /// Returns the accent color associated with the player's currently equipped rank title.
   Color _rankColor(GameTheme theme) {
     final title = widget.currentUser.selectedRankTitle;
     if (title.contains("Novice")) return Colors.green.shade400;
     if (title.contains("Bookworm")) return Colors.blue.shade400;
     if (title.contains("Scholar")) return Colors.purple.shade400;
     if (title.contains("Master")) return Colors.orange.shade400;
-    return Colors.amber.shade400; // Legend
+    return Colors.amber.shade400;
   }
 
-  // Settings Bottom Sheet
+  /// Opens the settings bottom sheet with sound, vibration, and logout controls.
+  ///
+  /// Called externally from the AppBar settings icon button in [HomePage].
   void showSettings(GameTheme theme) {
     showModalBottomSheet(
       context: context,
@@ -246,6 +282,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
+  /// Shows a confirmation dialog before clearing the session and returning to splash.
   void _showLogoutConfirmDialog(GameTheme theme) {
     showDialog(
       context: context,
@@ -301,42 +338,33 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
+  /// Opens the avatar shop bottom sheet for browsing and purchasing avatar images.
   void _showAvatarShop(GameTheme theme) {
-
- final avatars = [
-      // 🦆 สายฟรีและราคาประหยัด (สัตว์คลาสสิก/สัตว์เลี้ยง)
-      {'path': 'assets/emoji/Duck.png', 'price': 0},         // เป็ด (ธีมเกม ฟรี)
-      {'path': 'assets/emoji/Chicken.png', 'price': 0},      // ไก่ (ฟรี)
-      {'path': 'assets/emoji/Frog.png', 'price': 10},        // กบ
-      {'path': 'assets/emoji/pig_face.png', 'price': 10},    // หมู
-
-      // 🍁 สายธรรมชาติและของน่ารัก (Tier 1)
-      {'path': 'assets/emoji/maple_leaf.png', 'price': 50},  // ใบเมเปิล
-      {'path': 'assets/emoji/Bubbles.png', 'price': 50},     // ฟองสบู่
-      {'path': 'assets/emoji/Penguin.png', 'price': 50},     // เพนกวิน
-      {'path': 'assets/emoji/Panda.png', 'price': 50},       // แพนด้า
-      {'path': 'assets/emoji/teddy_bear.png', 'price': 50},  // ตุ๊กตาหมี
-
-      // 🦋 สายสวยงามและสัตว์หายาก (Tier 2)
-      {'path': 'assets/emoji/Butterfly.png', 'price': 100},  // ผีเสื้อ
-      {'path': 'assets/emoji/Jellyfish.png', 'price': 100},  // แมงกะพรุน
-      {'path': 'assets/emoji/Peacock.png', 'price': 100},    // นกยูง
-      {'path': 'assets/emoji/Whale.png', 'price': 100},      // วาฬ
-      {'path': 'assets/emoji/Sauropod.png', 'price': 100},   // ไดโนเสาร์คอยาว
-
-      // 🔥 สายเท่และแฟชั่น (Tier 3)
-      {'path': 'assets/emoji/Alien.png', 'price': 200},      // เอเลี่ยน
-      {'path': 'assets/emoji/t-rex.png', 'price': 200},      // ทีเร็กซ์
-      {'path': 'assets/emoji/Fire.png', 'price': 200},       // ไฟ
-      {'path': 'assets/emoji/video_game.png', 'price': 250}, // จอยเกม
-      {'path': 'assets/emoji/Rainbow.png', 'price': 250},    // รุ้งกินน้ำ
-
-      // 👑 สายเทพ ของแรร์ระดับตำนาน (Tier 4 - Max Level)
-      {'path': 'assets/emoji/glowing_star.png', 'price': 500}, // ดาวเรืองแสง
-      {'path': 'assets/emoji/Unicorn.png', 'price': 500},      // ยูนิคอร์น
-      {'path': 'assets/emoji/Phoenix.png', 'price': 500},      // ฟีนิกซ์
-      {'path': 'assets/emoji/trident_emblem.png', 'price': 500},// ตรีศูล
-      {'path': 'assets/emoji/Crown.png', 'price': 500},        // มงกุฎ
+    final avatars = [
+      {'path': 'assets/emoji/Duck.png', 'price': 0},
+      {'path': 'assets/emoji/Chicken.png', 'price': 0},
+      {'path': 'assets/emoji/Frog.png', 'price': 10},
+      {'path': 'assets/emoji/pig_face.png', 'price': 10},
+      {'path': 'assets/emoji/maple_leaf.png', 'price': 50},
+      {'path': 'assets/emoji/Bubbles.png', 'price': 50},
+      {'path': 'assets/emoji/Penguin.png', 'price': 50},
+      {'path': 'assets/emoji/Panda.png', 'price': 50},
+      {'path': 'assets/emoji/teddy_bear.png', 'price': 50},
+      {'path': 'assets/emoji/Butterfly.png', 'price': 100},
+      {'path': 'assets/emoji/Jellyfish.png', 'price': 100},
+      {'path': 'assets/emoji/Peacock.png', 'price': 100},
+      {'path': 'assets/emoji/Whale.png', 'price': 100},
+      {'path': 'assets/emoji/Sauropod.png', 'price': 100},
+      {'path': 'assets/emoji/Alien.png', 'price': 200},
+      {'path': 'assets/emoji/t-rex.png', 'price': 200},
+      {'path': 'assets/emoji/Fire.png', 'price': 200},
+      {'path': 'assets/emoji/video_game.png', 'price': 250},
+      {'path': 'assets/emoji/Rainbow.png', 'price': 250},
+      {'path': 'assets/emoji/glowing_star.png', 'price': 500},
+      {'path': 'assets/emoji/Unicorn.png', 'price': 500},
+      {'path': 'assets/emoji/Phoenix.png', 'price': 500},
+      {'path': 'assets/emoji/trident_emblem.png', 'price': 500},
+      {'path': 'assets/emoji/Crown.png', 'price': 500},
     ];
 
     showModalBottomSheet(
@@ -424,9 +452,10 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
+  /// Shows a confirmation dialog before purchasing a new avatar image.
   void _showConfirmAvatarDialog(Map<String, Object> av, GameTheme theme, StateSetter setModalState) {
     final int price = av['price'] as int;
-    final String path = av['path'] as String; // 🆕
+    final String path = av['path'] as String;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -442,7 +471,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: theme.correct),
             onPressed: () {
@@ -456,7 +485,8 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
-void _processAvatarPurchase(String path, int price, StateSetter setModalState) { // 🆕 รับ String path
+  /// Deducts coins, adds the avatar to [User.ownedAvatars], and equips it immediately.
+  void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
     if (widget.currentUser.coins >= price) {
       AppFeedback.playCash(widget.currentUser);
       setState(() {
@@ -469,6 +499,11 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
       widget.onProfileUpdate();
     }
   }
+
+  /// Shows a dialog for changing the player's username for a 100-coin fee.
+  ///
+  /// Displays an error SnackBar if the player has insufficient coins.
+  /// Validates that the new username is at least 3 characters long.
   void _showEditUsernameDialog(GameTheme theme) {
     final controller = TextEditingController(text: widget.currentUser.username);
     final formKey = GlobalKey<FormState>();
@@ -490,7 +525,6 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // แสดงราคา
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -565,7 +599,7 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
               }
               if (formKey.currentState!.validate()) {
                 setState(() {
-                  widget.currentUser.username = controller.text.trim(); // ⚠️ ต้องเปลี่ยน username เป็น non-final ก่อน
+                  widget.currentUser.username = controller.text.trim();
                   widget.currentUser.coins -= 100;
                 });
                 widget.currentUser.saveData();
@@ -609,7 +643,7 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
                         decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [rankColor.withOpacity(0.4), rankColor.withOpacity(0.05)]), border: Border.all(color: rankColor, width: 3), boxShadow: [BoxShadow(color: rankColor.withOpacity(0.5), blurRadius: 20)]),
                         child: Center(
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0), // ปรับขนาดให้พอดีวงกลม
+                            padding: const EdgeInsets.all(16.0),
                             child: Image.asset(widget.currentUser.avatarEmoji, fit: BoxFit.contain),
                           ),
                         ),
@@ -625,7 +659,6 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace', letterSpacing: 2),
               ),
               const SizedBox(height: 10),
-              // 🆕 ส่วนแสดงฉายาที่กดเลือกได้ (แก้ไข UI ใหม่)
               GestureDetector(
                 onTap: () => _showRankPicker(theme),
                 child: Container(
@@ -688,7 +721,6 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
             ],
           ),
         ),
-        // Statistics & Distribution
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
           child: Column(
@@ -706,7 +738,6 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  // 🆕 เอา Emoji ออก และเอา isBig: true ออก เพื่อให้ทุกกล่องใช้มาตรฐานเดียวกัน
                   Expanded(child: _StatCard(label: "Streak", value: "${widget.currentUser.currentStreak}", icon: Icons.local_fire_department_rounded, color: Colors.orange.shade400, theme: theme)),
                   const SizedBox(width: 10),
                   Expanded(child: _StatCard(label: "Best", value: "${widget.currentUser.maxStreak}", icon: Icons.bolt_rounded, color: Colors.purple.shade400, theme: theme)),
@@ -715,7 +746,6 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
             ],
           ),
         ),
-        // Guess Distribution
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
           child: Column(
@@ -739,10 +769,7 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
                             double barWidth = count > 0 ? (widthFactor * _barAnim.value * constraints.maxWidth).clamp(36.0, constraints.maxWidth) : 36.0;
                             return Stack(
                               children: [
-                                // 1. พื้นหลังหลอด
                                 Container(height: 28, decoration: BoxDecoration(color: theme.textColor.withOpacity(0.05), borderRadius: BorderRadius.circular(8))),
-
-                                // 2. หลอดสีตาม Theme (จะขยายตาม Animation)
                                 if (count > 0)
                                   Container(
                                     width: barWidth,
@@ -752,22 +779,18 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
                                       borderRadius: BorderRadius.circular(8)
                                     )
                                   ),
-
-                                // 3. เลเยอร์บนสุด: ขีดสีขาว + ตัวเลข
                                 Positioned.fill(
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 10),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        // 🔹 สร้างขีดสีขาว (Notches) 🔹
                                         Row(
                                           children: List.generate(6, (i) => Container(
                                             margin: const EdgeInsets.only(right: 3),
                                             width: 4,
                                             height: 14,
                                             decoration: BoxDecoration(
-                                              // ทำให้ขีดสว่างตามจำนวนรอบที่ทาย
                                               color: i < (index + 1)
                                                   ? Colors.white.withOpacity(0.9)
                                                   : Colors.white.withOpacity(0.2),
@@ -775,14 +798,11 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
                                             ),
                                           )),
                                         ),
-
-                                        // 🔹 ตัวเลขบอกจำนวน 🔹
                                         Text(
                                           "$count",
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.bold,
-                                            // 🆕 ตัวเลขเปลี่ยนสีตามโหมด (Dark=ขาว, Light=ดำ/เทาเข้ม)
                                             color: count > 0
                                                 ? (isDark ? Colors.white : Colors.black87)
                                                 : theme.textColor.withOpacity(0.3),
@@ -814,7 +834,14 @@ void _processAvatarPurchase(String path, int price, StateSetter setModalState) {
   }
 }
 
-// Stat Card Widget
+/// Compact statistic card used in the profile statistics section.
+///
+/// Fields:
+/// - [label]: statistic name displayed below the value
+/// - [value]: the statistic value string
+/// - [icon]: icon representing the statistic category
+/// - [color]: accent color for the icon and card border
+/// - [theme]: active [GameTheme] used for background and text colors
 class _StatCard extends StatelessWidget {
   final String label, value;
   final IconData icon;
@@ -835,22 +862,20 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: theme.brightness == Brightness.dark ? color.withOpacity(0.08) : color.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(20), // 🆕 เพิ่มความมนให้ดูสมูทขึ้น
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withOpacity(0.25))
       ),
       child: Row(
         children: [
-          // 🆕 1. ปรับพื้นหลังไอคอนเป็นวงกลม จะดูเข้ากับ UI โดยรวมมากกว่า
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: color.withOpacity(0.15),
               shape: BoxShape.circle
             ),
-            child: Icon(icon, color: color, size: 24) // 🆕 ขยายไอคอนนิดนึงให้สมดุล
+            child: Icon(icon, color: color, size: 24)
           ),
           const SizedBox(width: 12),
-          // 🆕 2. จัดระเบียบตัวเลขและข้อความ
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -861,17 +886,16 @@ class _StatCard extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     value,
-                    // ✅ ฟิกซ์ขนาดฟอนต์ที่ 24 ให้ตัวเลขเท่ากันทุกการ์ด
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: theme.textColor, fontFamily: 'monospace')
                   ),
                 ),
-                const SizedBox(height: 2), // 🆕 เพิ่มช่องว่างระหว่างเลขกับ Text นิดนึง
+                const SizedBox(height: 2),
                 Text(
-                  label.toUpperCase(), // 🆕 ดันเป็นตัวพิมพ์ใหญ่หมด
+                  label.toUpperCase(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0, // 🆕 ถ่างช่องไฟให้ดู Modern
+                    letterSpacing: 1.0,
                     color: theme.textColor.withOpacity(0.5),
                     fontFamily: 'monospace'
                   )

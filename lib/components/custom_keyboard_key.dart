@@ -1,7 +1,32 @@
+/*
+ * File: custom_keyboard_key.dart
+ * Description: Reusable 3D keyboard key widget used in the Wordle game screen.
+ * Plays a tap sound, triggers haptic feedback, and animates a press-down effect.
+ *
+ * Dependencies:
+ * - audioplayers (local AudioPlayer per key instance)
+ * - flutter/services (HapticFeedback)
+ *
+ * Lifecycle:
+ * - Created inside _buildKeyboard() in WordleScreen
+ * - Disposed when WordleScreen is removed from the widget tree
+ *
+ * Author:
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
 
+/// A single key in the on-screen Wordle keyboard with a 3D press animation.
+///
+/// Fields:
+/// - [char]: the letter, "ENTER", or "DEL" label displayed on the key
+/// - [keyColor]: background color reflecting the letter's [LetterStatus]
+/// - [textColor]: foreground color for the key label
+/// - [flex]: flex factor used inside the parent [Row]
+/// - [onTap]: callback invoked when the key is released
 class Custom3DKey extends StatefulWidget {
   final String char;
   final Color keyColor;
@@ -32,19 +57,21 @@ class _Custom3DKeyState extends State<Custom3DKey> {
     super.dispose();
   }
 
+  /// Animates the key into its pressed state, plays the tap sound,
+  /// and triggers a light haptic impact.
   void _handleTapDown(TapDownDetails details) {
     setState(() => _isPressed = true);
     HapticFeedback.lightImpact();
-
-
     _audioPlayer.play(AssetSource('keyboard_sound.ogg'), volume: 1);
   }
 
+  /// Releases the pressed state and invokes [onTap].
   void _handleTapUp(TapUpDetails details) {
     setState(() => _isPressed = false);
     widget.onTap();
   }
 
+  /// Cancels the press animation without firing [onTap].
   void _handleTapCancel() {
     setState(() => _isPressed = false);
   }

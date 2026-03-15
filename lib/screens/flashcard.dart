@@ -1,3 +1,25 @@
+/*
+ * File: flashcard.dart
+ * Description: UI screen for reviewing and quizzing on unlocked vocabulary.
+ * Requires at least 15 discovered words to unlock.
+ *
+ * Dependencies:
+ * - User (mock_data.dart)
+ * - ThemeDatabase / GameTheme (theme_data.dart)
+ * - AppFeedback (audio_helper.dart)
+ * - AppTextStyles (text_styles.dart)
+ * - Custom3DButton (components)
+ * - VictoryEffect (components)
+ * - assets/targetwords.json (word → Thai meaning map)
+ *
+ * Lifecycle:
+ * - Created via the Flashcard tab in HomePage
+ * - Disposed when the user navigates away from the tab
+ *
+ * Author: 660510649 Detnarin Karinchai
+ * Course: 204311-Mobile Application Development Framework
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
@@ -5,10 +27,19 @@ import 'dart:math';
 import '../models/mock_data.dart';
 import '../services/audio_helper.dart';
 import '../theme/theme_data.dart';
-import '../theme/text_styles.dart'; // 🆕 Re-added import
+import '../theme/text_styles.dart';
 import '../components/custom_3d_buttton.dart';
 import '../components/victory_effect.dart';
 
+/// Vocabulary review screen with Study (flip-card) and Quiz (multiple-choice) modes.
+///
+/// Fields:
+/// - [currentUser]: the active player whose word list and coins are read/mutated
+/// - [onRefresh]: callback invoked after a quiz completes so [HomePage] updates
+///   the coin badge
+///
+/// The screen is locked until [User.wordsFound] reaches 15. Once unlocked,
+/// words are loaded from `assets/targetwords.json` and shuffled for variety.
 class FlashcardPage extends StatefulWidget {
   final User currentUser;
   final VoidCallback onRefresh;
@@ -27,15 +58,15 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
 
   bool isQuizMode = false;
 
-  // --- State สำหรับ Study Mode ---
+  // --- Study Mode state ---
   late AnimationController _flipController;
   late Animation<double> _flipAnimation;
   bool isFront = true;
   int studyIndex = 0;
 
-  // --- State สำหรับ Quiz Mode ---
+  // --- Quiz Mode state ---
   int quizIndex = 0;
-  int correctAnswersCount = 0; // 🆕 ตัวแปรเก็บจำนวนข้อที่ตอบถูก
+  int correctAnswersCount = 0;
   List<String> currentOptions = [];
   String? selectedAnswer;
   bool isAnswering = false;
@@ -51,6 +82,12 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     _loadTranslations();
   }
 
+  /// Loads Thai translations from `assets/targetwords.json` for all unlocked words.
+  ///
+  /// Side effects:
+  /// - Populates [wordMeanings] and [unlockedWords]
+  /// - Calls [_generateOptions] when done so the quiz is ready immediately
+  /// - Sets [isLoading] to `false` when complete
   Future<void> _loadTranslations() async {
     try {
       final String jsonString = await rootBundle.loadString('assets/targetwords.json');
@@ -89,6 +126,10 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
   // ==========================================
   // 📖 STUDY MODE
   // ==========================================
+
+  /// Flips the current study card to show or hide the translation.
+  ///
+  /// Does nothing if an animation is already in progress.
   void _flipCard() {
     if (_flipController.isAnimating) return;
     AppFeedback.playFlip(widget.currentUser);
@@ -102,6 +143,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     isFront = !isFront;
   }
 
+  /// Advances to the next study card and resets the flip state.
   void _nextStudyCard() {
     if (studyIndex < unlockedWords.length - 1) {
       AppFeedback.playClick(widget.currentUser);
@@ -112,6 +154,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     }
   }
 
+  /// Returns to the previous study card and resets the flip state.
   void _prevStudyCard() {
     if (studyIndex > 0) {
       AppFeedback.playClick(widget.currentUser);
@@ -122,6 +165,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     }
   }
 
+  /// Resets the flip animation so the card always shows the front (word) side.
   void _resetCard() {
     if (!isFront) {
       _flipController.value = 0;
@@ -132,6 +176,11 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
   // ==========================================
   // 🎮 QUIZ MODE
   // ==========================================
+
+  /// Generates four answer options for the current quiz word.
+  ///
+  /// Always includes the correct translation plus three random distractors
+  /// drawn from [wordMeanings]. The list is shuffled before display.
   void _generateOptions() {
     String currentWord = unlockedWords[quizIndex];
     String correctMeaning = wordMeanings[currentWord] ?? "ไม่มีคำแปล";
@@ -149,6 +198,13 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     showVictory = false;
   }
 
+  /// Evaluates [answer] against the correct translation and advances the quiz.
+  ///
+  /// Side effects:
+  /// - Increments [correctAnswersCount] on a correct answer
+  /// - Plays the appropriate sound and triggers haptic feedback
+  /// - Advances to the next question after a 1.5-second delay
+  /// - Shows the completion dialog and awards coins when the final question is reached
   Future<void> _checkAnswer(String answer) async {
     if (isAnswering) return;
 
@@ -161,7 +217,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     String correctMeaning = wordMeanings[currentWord] ?? "";
 
     if (answer == correctMeaning) {
-      correctAnswersCount++; // 🌟 บวกคะแนนเมื่อตอบถูก
+      correctAnswersCount++;
       AppFeedback.playCorrect(widget.currentUser);
       setState(() => showVictory = true);
     } else {
@@ -178,7 +234,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
         _generateOptions();
       });
     } else {
-      // 🌟 คำนวณเหรียญ: ถูกกี่ข้อก็ได้เท่านั้น (ถ้าอยากให้ 1 ข้อ = 2 เหรียญ ให้คูณ 2 ตรงนี้ได้เลย)
       int rewardCoins = correctAnswersCount;
 
       setState(() {
@@ -191,7 +246,7 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     }
   }
 
-  // --- ฟังก์ชันโชว์หน้าต่างยินดีด้วยตอนเล่นจบ ---
+  /// Shows the end-of-round dialog with score and coin reward information.
   void _showQuizCompleteDialog(int rewardCoins) {
     final theme = ThemeDatabase.getTheme(widget.currentUser.currentThemeId);
     AppFeedback.playWin(widget.currentUser);
@@ -218,7 +273,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 🌟 โชว์คะแนนที่ทำได้
             Text(
               "Score: $correctAnswersCount / ${unlockedWords.length}",
               style: TextStyle(color: theme.correct, fontSize: 22, fontWeight: FontWeight.w900)
@@ -231,7 +285,6 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
             ),
             const SizedBox(height: 20),
 
-            // โชว์กล่องเหรียญ
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
@@ -263,13 +316,12 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
               onPressed: () {
                 AppFeedback.playClick(widget.currentUser);
                 AppFeedback.triggerHaptic(widget.currentUser);
-                Navigator.pop(context); // ปิดหน้าต่าง
+                Navigator.pop(context);
 
-                // 🌟 เริ่มรอบใหม่ & รีเซ็ตคะแนน
                 setState(() {
                   unlockedWords.shuffle();
                   quizIndex = 0;
-                  correctAnswersCount = 0; // รีเซ็ตคะแนนกลับเป็น 0
+                  correctAnswersCount = 0;
                   _generateOptions();
                 });
               },

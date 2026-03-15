@@ -8,11 +8,17 @@
  * - ThemeDatabase / GameTheme (theme_data.dart)
  * - AppFeedback (audio_helper.dart)
  *
+ *  * Responsibilities:
+ * - Displays a categorized marketplace for themes and consumable power-ups
+ * - Validates user coin balance before processing transactions
+ * - Manages the equipping and real-time application of purchased themes
+ * - Triggers purchase feedback (audio/haptic) and updates persistent user data
+ *
  * Lifecycle:
  * - Created via the Store tab in HomePage
  * - Disposed when the user navigates away from the tab
  *
- * Author: 660510649 Detnarin Karinchai
+ * Author: 660510649 Detnarin Karinchai, 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

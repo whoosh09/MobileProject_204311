@@ -8,7 +8,7 @@
  * - Contains global app configuration (orientation lock)
  * - Should remain lightweight
  *
- * Author: Quackle Team
+ * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

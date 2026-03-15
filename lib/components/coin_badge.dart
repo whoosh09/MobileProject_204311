@@ -7,7 +7,12 @@
  * - Created inside the AppBar of HomePage
  * - Disposed when HomePage is removed from the widget tree
  *
- * Author:
+ *  * Responsibilities:
+ * - Provides a visual representation of the player's current currency
+ * - Animates numerical transitions using an interpolation (rolling) effect
+ * - Triggers a "pop" scale animation to provide feedback on coin updates
+ *
+ * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

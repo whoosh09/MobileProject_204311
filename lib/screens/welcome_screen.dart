@@ -7,7 +7,7 @@
  * - Created via the /welcome named route
  * - Disposed when the user navigates forward to /login
  *
- * Author: Quackle Team
+ * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

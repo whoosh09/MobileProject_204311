@@ -3,11 +3,17 @@
  * Description: Reusable 3D-style press-down button widget used throughout
  * the Quackle application for primary actions and quiz answer options.
  *
+ *
  * Lifecycle:
  * - Created wherever a primary CTA or quiz option button is needed
  * - Disposed when the parent widget is removed from the tree
  *
- * Author:
+ *  * Responsibilities:
+ * - Renders a consistent 3D visual style with depth and shadow layers
+ * - Orchestrates the "press-down" animation state during user interaction
+ * - Provides semantic feedback colors for quiz success and failure states
+ *
+ * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

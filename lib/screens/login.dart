@@ -13,7 +13,13 @@
  * - Created via the /login named route
  * - Disposed when the user is authenticated and replaced by HomePage
  *
- * Author: Quackle Team
+ *  * Responsibilities:
+ * - Captures and validates user credentials through a secure form interface
+ * - Interfaces with the MockDatabase to authenticate users
+ * - Establishes persistent sessions by storing user tokens in local storage
+ * - Provides visual feedback for authentication progress and error states
+ *
+ * Author: 660510669 Phutawan Fongchan, 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

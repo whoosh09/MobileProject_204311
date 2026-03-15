@@ -11,7 +11,12 @@
  * - Created inside _buildKeyboard() in WordleScreen
  * - Disposed when WordleScreen is removed from the widget tree
  *
- * Author:
+ *  * Responsibilities:
+ * - Handles low-latency audio feedback (click sounds) for keyboard interaction
+ * - Triggers physical haptic feedback to simulate a tactile typing experience
+ * - Adapts visual state (color/labels) based on game-logic letter status
+ *
+ * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

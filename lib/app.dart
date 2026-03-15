@@ -8,7 +8,7 @@
  * - Configures smooth page transition animations per platform
  * - Declares initial route (/splash) and all named routes
  *
- * Author: Quackle Team
+ * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

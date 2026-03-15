@@ -9,11 +9,17 @@
  * - MockDatabase / User (session lookup)
  * - HomePage (authenticated destination)
  *
+ *  * Responsibilities:
+ * - Plays the initial branding "bounce" animation on startup
+ * - Validates the existence of a saved user session in SharedPreferences
+ * - Determines the initial routing (Home vs. Welcome) based on session state
+ * - Pre-loads user theme preferences to ensure a seamless visual transition
+ *
  * Lifecycle:
  * - Created as the initial route (/splash) by QuackApp
  * - Disposed automatically when replaced via pushReplacement
  *
- * Author: Quackle Team
+ * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

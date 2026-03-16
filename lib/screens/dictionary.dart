@@ -14,7 +14,7 @@
  * - Created via the Dictionary tab in HomePage
  * - Disposed when the user navigates away from the tab
  *
- * Author: 660510649 Detnarin Karinchai
+ * Author: 660510649 Detnarin Karinchai, 660510685 Aissara Pathan
  * Course: 204311-Mobile Application Development Framework
  */
 

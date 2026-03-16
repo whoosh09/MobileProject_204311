@@ -17,7 +17,7 @@
  * - No UI logic should appear in this file
  * - Uses async network/disk operations; errors are caught and printed
  *
- * Author: Quackle Team
+ * Author: 660510687 Kanittha Bootchumsaeng
  * Course: 204311-Mobile Application Development Framework
  */
 

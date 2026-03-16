@@ -8,13 +8,12 @@
  * - Provides ThemeDatabase.themes as the master theme catalog
  * - Provides ThemeDatabase.getTheme() for safe theme lookup by ID
  *
- * Author:
- * Course: 204311-Mobi660510649 Detnarin Karinchaile Application Development Framework
+ * Author:660510649 Detnarin Karinchaile
+ * Course: 204311-Mobile Application Development Framework
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 /// Represents a single visual theme that can be applied to the entire app.
 ///
 /// Fields:

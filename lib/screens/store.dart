@@ -18,7 +18,7 @@
  * - Created via the Store tab in HomePage
  * - Disposed when the user navigates away from the tab
  *
- * Author: 660510649 Detnarin Karinchai, 660510669 Phutawan Fongchan
+ * Author: 660510649 Detnarin Karinchai, 660510669 Phutawan Fongchan, 660510687 Kanittha Bootchumsaeng
  * Course: 204311-Mobile Application Development Framework
  */
 

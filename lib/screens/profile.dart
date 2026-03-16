@@ -16,7 +16,7 @@
  * - showSettings() is called externally from the AppBar settings button
  * - Disposed when HomePage is removed from the widget tree
  *
- * Author: Detnarin Karinchai
+ * Author: 660510649 Detnarin Karinchai, 660510687 Kanittha Bootchumsaeng
  * Course: 204311-Mobile Application Development Framework
  */
 

@@ -14,7 +14,7 @@
  * - Created via Navigator.push from LoginPage or SplashScreen
  * - Disposed when the user logs out and the route stack is cleared
  *
- * Author: Quackle Team
+ * Author: 660510687 Kanittha Bootchumsaeng
  * Course: 204311-Mobile Application Development Framework
  */
 

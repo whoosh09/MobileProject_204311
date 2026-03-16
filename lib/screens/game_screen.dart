@@ -21,7 +21,7 @@
  * - Created via Navigator.push from WordleMainBody
  * - Disposed when the player navigates back or via the end-game dialog
  *
- * Author: 660510649 Detnarin Karinchai
+ * Author: 660510649 Detnarin Karinchai, 660510687 Kanittha Bootchumsaeng
  * Course: 204311-Mobile Application Development Framework
  */
 

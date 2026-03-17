@@ -6,6 +6,11 @@
  * Dependencies:
  * - google_fonts (Kanit for Thai text)
  *
+ * Responsibilities:
+ * - Detects the presence of Thai characters in a given string.
+ * - Dynamically switches between Google Fonts (Kanit) and system fonts.
+ * - Normalizes font weights and spacing for mixed-language UI components.
+ *
  * Author: Quackle Team
  * Course: 204311-Mobile Application Development Framework
  */

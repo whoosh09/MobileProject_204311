@@ -3,10 +3,14 @@
  * Description: Defines the GameTheme data model and ThemeDatabase, which
  * contains all purchasable visual themes for the Quackle application.
  *
+ * Dependencies:
+ * - flutter/material.dart
+ * - flutter/services.dart
+ *
  * Responsibilities:
- * - Models per-theme colors for tiles, UI, and status bar
- * - Provides ThemeDatabase.themes as the master theme catalog
- * - Provides ThemeDatabase.getTheme() for safe theme lookup by ID
+ * - Models per-theme colors for tiles, UI, and status bar.
+ * - Provides ThemeDatabase.themes as the master theme catalog.
+ * - Provides ThemeDatabase.getTheme() for safe theme lookup by ID.
  *
  * Author:660510649 Detnarin Karinchaile
  * Course: 204311-Mobile Application Development Framework
@@ -58,6 +62,7 @@ class GameTheme {
 /// - Access the full list via [ThemeDatabase.themes]
 /// - Retrieve a theme by ID with [ThemeDatabase.getTheme]
 class ThemeDatabase {
+  /// The collection of available themes, ranging from free to legendary.
   static List<GameTheme> themes = [
     // 1. Free
     GameTheme(
@@ -242,7 +247,10 @@ class ThemeDatabase {
     ),
   ];
 
-  /// Returns the [GameTheme] matching [id], or the first theme if not found.
+  /// Returns the [GameTheme] matching the provided [id].
+  ///
+  /// If the requested theme cannot be found, it returns the first theme in
+  /// the [themes] list as a default fallback.
   static GameTheme getTheme(String id) {
     return themes.firstWhere((t) => t.id == id, orElse: () => themes[0]);
   }

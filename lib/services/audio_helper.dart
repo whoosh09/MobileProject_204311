@@ -3,15 +3,15 @@
  * Description: Provides centralised audio playback and haptic feedback
  * utilities for the Quackle application via a single shared AudioPlayer.
  *
- * Responsibilities:
- * - Plays sound effects from the assets/sounds/ directory
- * - Provides haptic feedback wrappers that respect user preferences
- * - All methods are static and gated by the User's sound/vibration settings
- *
  * Dependencies:
  * - audioplayers
  * - flutter/services (HapticFeedback, SystemSound)
  * - User (mock_data.dart)
+ *
+ * Responsibilities:
+ * - Plays sound effects from the assets/sounds/ directory.
+ * - Provides haptic feedback wrappers that respect user preferences.
+ * - All methods are static and gated by the User's sound/vibration settings.
  *
  * Notes:
  * - No UI logic should appear in this file
@@ -29,6 +29,9 @@ import '../models/mock_data.dart';
 ///
 /// All playback methods check [User.isSoundEnabled] or [User.isVibrationEnabled]
 /// before performing any action, ensuring user preferences are always respected.
+///
+/// Fields:
+/// - [_player]: the single shared [AudioPlayer] instance for all sound effects
 class AppFeedback {
 
   static final AudioPlayer _player = AudioPlayer();
@@ -38,10 +41,11 @@ class AppFeedback {
     if (user.isSoundEnabled) SystemSound.play(SystemSoundType.click);
   }
 
-  /// Plays an audio asset from `assets/sounds/[fileName]`.
+  /// Plays an audio asset from the `assets/sounds/` directory.
   ///
-  /// Does nothing when [isEnabled] is `false`. Catches and prints any
-  /// playback errors to avoid crashing the UI.
+  /// Side effects:
+  /// - Performs asynchronous audio playback.
+  /// - Catches and logs playback errors to the console.
   static Future<void> _playSound(String fileName, bool isEnabled) async {
     if (isEnabled) {
       try {
@@ -104,8 +108,9 @@ class AppFeedback {
     }
   }
 
-  /// Plays a system click sound and triggers a light haptic impact,
-  /// both gated by the user's respective preference settings.
+  /// Plays a system click and triggers a light haptic impact.
+  ///
+  /// Both actions are gated by the user's respective preference settings.
   static void triggerSuccess(User user) {
     if (user.isSoundEnabled) SystemSound.play(SystemSoundType.click);
     if (user.isVibrationEnabled) HapticFeedback.lightImpact();

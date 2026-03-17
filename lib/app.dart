@@ -3,10 +3,17 @@
  * Description: Defines the root QuackApp widget, which configures the
  * global MaterialApp, theme, and named route table for the application.
  *
+ * Dependencies:
+ * - flutter/material.dart
+ * - screens/login.dart
+ * - screens/splash_screen.dart
+ * - screens/welcome_screen.dart
+ *
  * Responsibilities:
- * - Sets global font family (DINNextRounded) and background color
- * - Configures smooth page transition animations per platform
- * - Declares initial route (/splash) and all named routes
+ * - Configures the global [MaterialApp] settings including title and debug flags.
+ * - Defines the application's visual identity through [ThemeData].
+ * - Orchestrates platform-aware page transition animations.
+ * - Maintains the master named route table for app-wide navigation.
  *
  * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework

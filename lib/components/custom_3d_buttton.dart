@@ -5,13 +5,13 @@
  *
  *
  * Lifecycle:
- * - Created wherever a primary CTA or quiz option button is needed
- * - Disposed when the parent widget is removed from the tree
+ * - Created wherever a primary CTA or quiz option button is needed.
+ * - Disposed when the parent widget is removed from the tree.
  *
- *  * Responsibilities:
- * - Renders a consistent 3D visual style with depth and shadow layers
- * - Orchestrates the "press-down" animation state during user interaction
- * - Provides semantic feedback colors for quiz success and failure states
+ * Responsibilities:
+ * - Renders a consistent 3D visual style with depth and shadow layers.
+ * - Orchestrates the "press-down" animation state during user interaction.
+ * - Provides semantic feedback colors for quiz success and failure states.
  *
  * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
@@ -65,10 +65,14 @@ class Custom3DButton extends StatefulWidget {
   State<Custom3DButton> createState() => _Custom3DButtonState();
 }
 
+/// The logic and interaction state for [Custom3DButton].
+///
+/// Resolves dynamic colors based on [ButtonState] and manages
+/// the [_isPressed] state to drive the 3D shift animation.
 class _Custom3DButtonState extends State<Custom3DButton> {
   bool _isPressed = false;
 
-  /// Resolves the surface color based on the current [ButtonState].
+  /// The surface color resolved based on the current [ButtonState].
   Color get _resolvedBgColor {
     switch (widget.state) {
       case ButtonState.correct:   return Colors.green.shade500;
@@ -77,7 +81,7 @@ class _Custom3DButtonState extends State<Custom3DButton> {
     }
   }
 
-  /// Resolves the shadow color based on the current [ButtonState].
+  /// The shadow color resolved based on the current [ButtonState].
   Color get _resolvedShadowColor {
     switch (widget.state) {
       case ButtonState.correct:   return Colors.green.shade800;

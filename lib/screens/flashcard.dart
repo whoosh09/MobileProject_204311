@@ -13,8 +13,14 @@
  * - assets/targetwords.json (word → Thai meaning map)
  *
  * Lifecycle:
- * - Created via the Flashcard tab in HomePage
- * - Disposed when the user navigates away from the tab
+ * - Created via the Flashcard tab in HomePage.
+ * - Disposed when the user navigates away from the tab.
+ *
+ * Responsibilities:
+ * - Manages the transition between Study (flip-card) and Quiz (multiple-choice) modes.
+ * - Handles the asynchronous loading and parsing of vocabulary translations.
+ * - Logic for generating quiz distractors and validating player answers.
+ * - Updates user currency and saves progress upon quiz completion.
  *
  * Author: 660510649 Detnarin Karinchai
  * Course: 204311-Mobile Application Development Framework
@@ -50,6 +56,10 @@ class FlashcardPage extends StatefulWidget {
   State<FlashcardPage> createState() => _FlashcardPageState();
 }
 
+/// The logic and UI state management for [FlashcardPage].
+///
+/// Orchestrates the animation controllers for card flipping and tracks the
+/// scoring state for the multiple-choice quiz session.
 class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProviderStateMixin {
   bool isLoading = true;
 
@@ -129,7 +139,9 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
 
   /// Flips the current study card to show or hide the translation.
   ///
-  /// Does nothing if an animation is already in progress.
+  /// Side effects:
+  /// - Plays a flip sound effect.
+  /// - Triggers physical haptic feedback.
   void _flipCard() {
     if (_flipController.isAnimating) return;
     AppFeedback.playFlip(widget.currentUser);
@@ -177,10 +189,11 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
   // 🎮 QUIZ MODE
   // ==========================================
 
-  /// Generates four answer options for the current quiz word.
+  /// Generates four answer options including the correct translation.
   ///
-  /// Always includes the correct translation plus three random distractors
-  /// drawn from [wordMeanings]. The list is shuffled before display.
+  /// Side effects:
+  /// - Shuffles the distractor list to ensure random placement.
+  /// - Resets [selectedAnswer] and [isAnswering] for the new question.
   void _generateOptions() {
     String currentWord = unlockedWords[quizIndex];
     String correctMeaning = wordMeanings[currentWord] ?? "ไม่มีคำแปล";
@@ -198,13 +211,14 @@ class _FlashcardPageState extends State<FlashcardPage> with SingleTickerProvider
     showVictory = false;
   }
 
-  /// Evaluates [answer] against the correct translation and advances the quiz.
+  /// Evaluates the [answer] against the correct meaning and advances the quiz.
+  ///
+  /// This method handles the asynchronous delay between questions.
   ///
   /// Side effects:
-  /// - Increments [correctAnswersCount] on a correct answer
-  /// - Plays the appropriate sound and triggers haptic feedback
-  /// - Advances to the next question after a 1.5-second delay
-  /// - Shows the completion dialog and awards coins when the final question is reached
+  /// - Increments [correctAnswersCount] on success.
+  /// - Updates [User.coins] and saves to local storage on completion.
+  /// - Displays an [AlertDialog] when the quiz ends.
   Future<void> _checkAnswer(String answer) async {
     if (isAnswering) return;
 

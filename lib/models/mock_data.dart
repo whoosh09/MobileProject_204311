@@ -3,13 +3,13 @@
  * Description: Defines the User data model and the MockDatabase class used
  * as an in-memory user store with SharedPreferences persistence.
  *
- * Responsibilities:
- * - Models all player state (coins, stats, inventory, settings)
- * - Provides saveData() / loadData() for local persistence
- * - Provides MockDatabase.login() to authenticate users
- *
  * Dependencies:
  * - SharedPreferences
+ *
+ * Responsibilities:
+ * - Models all player state (coins, stats, inventory, settings).
+ * - Provides saveData() / loadData() for local persistence.
+ * - Provides MockDatabase.login() to authenticate users.
  *
  * Author: 660510649 Detnarin Karinchai
  * Course: 204311-Mobile Application Development Framework

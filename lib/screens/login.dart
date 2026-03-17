@@ -10,16 +10,16 @@
  * - HomePage (authenticated destination)
  *
  * Lifecycle:
- * - Created via the /login named route
- * - Disposed when the user is authenticated and replaced by HomePage
+ * - Created via the /login named route.
+ * - Disposed when the user is authenticated and replaced by HomePage.
  *
- *  * Responsibilities:
- * - Captures and validates user credentials through a secure form interface
- * - Interfaces with the MockDatabase to authenticate users
- * - Establishes persistent sessions by storing user tokens in local storage
- * - Provides visual feedback for authentication progress and error states
+ * Responsibilities:
+ * - Captures and validates user credentials through a secure form interface.
+ * - Interfaces with the MockDatabase to authenticate users.
+ * - Establishes persistent sessions by storing user tokens in local storage.
+ * - Provides visual feedback for authentication progress and error states.
  *
- * Author: 660510669 Phutawan Fongchan, 660510669 Phutawan Fongchan
+ * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 
@@ -41,6 +41,17 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
+/// The logic and state management for [LoginPage].
+///
+/// Handles form validation, asynchronous authentication calls, and
+/// management of persistent login sessions via [SharedPreferences].
+///
+/// Fields:
+/// - [_formKey]: key used to validate and save the current state of the login form
+/// - [_usernameController]: controller for the username [TextFormField]
+/// - [_passwordController]: controller for the password [TextFormField]
+/// - [_isLoading]: whether the authentication process is currently in progress
+/// - [_obscurePassword]: whether the password text should be hidden from view
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();

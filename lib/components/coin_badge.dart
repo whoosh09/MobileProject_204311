@@ -4,13 +4,13 @@
  * a pop/bounce animation whenever the value changes.
  *
  * Lifecycle:
- * - Created inside the AppBar of HomePage
- * - Disposed when HomePage is removed from the widget tree
+ * - Created inside the AppBar of HomePage.
+ * - Disposed when HomePage is removed from the widget tree.
  *
- *  * Responsibilities:
- * - Provides a visual representation of the player's current currency
- * - Animates numerical transitions using an interpolation (rolling) effect
- * - Triggers a "pop" scale animation to provide feedback on coin updates
+ *  Responsibilities:
+ * - Provides a visual representation of the player's current currency.
+ * - Animates numerical transitions using an interpolation (rolling) effect.
+ * - Triggers a "pop" scale animation to provide feedback on coin updates.
  *
  * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 /// [TweenAnimationBuilder] to smoothly roll the number display from the
 /// previous value to the new one over 1.2 seconds.
 class AnimatedCoinBadge extends StatefulWidget {
+  /// The current number of coins to be displayed.
   final int coins;
   const AnimatedCoinBadge({super.key, required this.coins});
 
@@ -31,6 +32,10 @@ class AnimatedCoinBadge extends StatefulWidget {
   State<AnimatedCoinBadge> createState() => _AnimatedCoinBadgeState();
 }
 
+/// The logic and animation state for [AnimatedCoinBadge].
+///
+/// Manages the [AnimationController] for the scale effect and tracks
+/// the previous coin count to perform numerical interpolation.
 class _AnimatedCoinBadgeState extends State<AnimatedCoinBadge> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;

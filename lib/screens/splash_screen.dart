@@ -9,15 +9,15 @@
  * - MockDatabase / User (session lookup)
  * - HomePage (authenticated destination)
  *
- *  * Responsibilities:
- * - Plays the initial branding "bounce" animation on startup
- * - Validates the existence of a saved user session in SharedPreferences
- * - Determines the initial routing (Home vs. Welcome) based on session state
- * - Pre-loads user theme preferences to ensure a seamless visual transition
- *
  * Lifecycle:
- * - Created as the initial route (/splash) by QuackApp
- * - Disposed automatically when replaced via pushReplacement
+ * - Created as the initial route (/splash) by QuackApp.
+ * - Disposed automatically when replaced via pushReplacement.
+ *
+ * Responsibilities:
+ * - Plays the initial branding "bounce" animation on startup.
+ * - Validates the existence of a saved user session in SharedPreferences.
+ * - Determines the initial routing (Home vs. Welcome) based on session state.
+ * - Pre-loads user theme preferences to ensure a seamless visual transition.
  *
  * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
@@ -46,6 +46,16 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
+/// The logic and animation state management for [SplashScreen].
+///
+/// Handles the elastic bounce animation of the logo and coordinates the
+/// asynchronous lookup of [SharedPreferences] data.
+///
+/// Fields:
+/// - [_controller]: controller managing the logo's bounce animation lifecycle
+/// - [_bounceAnimation]: elastic scaling animation applied to the central logo
+/// - [_backgroundColor]: theme-aware background color that updates after session check
+/// - [_textColor]: theme-aware text color that updates after session check
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _bounceAnimation;

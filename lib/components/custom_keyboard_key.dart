@@ -8,13 +8,13 @@
  * - flutter/services (HapticFeedback)
  *
  * Lifecycle:
- * - Created inside _buildKeyboard() in WordleScreen
- * - Disposed when WordleScreen is removed from the widget tree
+ * - Created inside _buildKeyboard() in WordleScreen.
+ * - Disposed when WordleScreen is removed from the widget tree.
  *
- *  * Responsibilities:
- * - Handles low-latency audio feedback (click sounds) for keyboard interaction
- * - Triggers physical haptic feedback to simulate a tactile typing experience
- * - Adapts visual state (color/labels) based on game-logic letter status
+ * Responsibilities:
+ * - Handles low-latency audio feedback (click sounds) for keyboard interaction.
+ * - Triggers physical haptic feedback to simulate a tactile typing experience.
+ * - Adapts visual state (color/labels) based on game-logic letter status.
  *
  * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
@@ -52,8 +52,14 @@ class Custom3DKey extends StatefulWidget {
   State<Custom3DKey> createState() => _Custom3DKeyState();
 }
 
+/// The logic and feedback state for [Custom3DKey].
+///
+/// Manages the [AudioPlayer] for sound effects and handles
+/// gesture callbacks to drive haptics and animation.
 class _Custom3DKeyState extends State<Custom3DKey> {
+  /// Whether the key is currently being pressed down.
   bool _isPressed = false;
+  /// The player used for low-latency tap sound effects.
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
@@ -62,8 +68,10 @@ class _Custom3DKeyState extends State<Custom3DKey> {
     super.dispose();
   }
 
-  /// Animates the key into its pressed state, plays the tap sound,
-  /// and triggers a light haptic impact.
+  /// Animates the key into its pressed state and provides feedback.
+  /// Side effects:
+  /// - Plays a keyboard tap sound effect.
+  /// - Triggers a light haptic impact on the device.
   void _handleTapDown(TapDownDetails details) {
     setState(() => _isPressed = true);
     HapticFeedback.lightImpact();
@@ -76,7 +84,7 @@ class _Custom3DKeyState extends State<Custom3DKey> {
     widget.onTap();
   }
 
-  /// Cancels the press animation without firing [onTap].
+  /// Cancels the press animation without firing [onTap] callback.
   void _handleTapCancel() {
     setState(() => _isPressed = false);
   }

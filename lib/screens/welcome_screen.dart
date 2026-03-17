@@ -3,9 +3,16 @@
  * Description: UI screen shown to first-time or logged-out users.
  * Displays the mascot image and a GET STARTED button that leads to the login page.
  *
+ * Dependencies:
+ * - Custom3DButton (components)
+ *
  * Lifecycle:
  * - Created via the /welcome named route
  * - Disposed when the user navigates forward to /login
+ *
+ * Responsibilities:
+ * - Displays the primary brand mascot and welcoming message to new users.
+ * - Provides the initial navigation entry point to the authentication flow.
  *
  * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework

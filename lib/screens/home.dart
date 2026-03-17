@@ -11,8 +11,13 @@
  * - WordleScreen, FlashcardPage, DictionaryPage, StorePage, ProfilePage
  *
  * Lifecycle:
- * - Created via Navigator.push from LoginPage or SplashScreen
- * - Disposed when the user logs out and the route stack is cleared
+ * - Created via Navigator.push from LoginPage or SplashScreen.
+ * - Disposed when the user logs out and the route stack is cleared.
+ *
+ * Responsibilities:
+ * - Manages the global state and navigation between the five primary app tabs.
+ * - Coordinates state refreshes (e.g., coin updates) across different pages.
+ * - Provides a persistent AppBar for global actions like coin display and settings.
  *
  * Author: 660510687 Kanittha Bootchumsaeng
  * Course: 204311-Mobile Application Development Framework
@@ -42,6 +47,9 @@ import '../services/audio_helper.dart';
 ///
 /// A [GlobalKey] is kept on [ProfilePage] so the AppBar settings button
 /// can call [ProfilePageState.showSettings] directly.
+///
+/// Fields:
+/// - [currentUser]: the active player session whose data is shared across all tabs
 class HomePage extends StatefulWidget {
   final User currentUser;
 
@@ -50,11 +58,17 @@ class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
 }
-
+/// The logic and state management for [HomePage].
+///
+/// Handles tab switching and maintains a [GlobalKey] to interact with
+/// the profile settings directly from the AppBar.
+///
+/// Fields:
+/// - [_selectedIndex]: the index of the currently active navigation tab
+/// - [_profileKey]: key used to trigger the settings dialog within [ProfilePage]
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  /// Key allowing the AppBar settings button to reach into [ProfilePage].
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey<ProfilePageState>();
 
   /// Triggers a full rebuild so the coin badge and other reactive UI refreshes.
@@ -198,6 +212,10 @@ class _HomePageState extends State<HomePage> {
 ///
 /// Navigates to [WordleScreen] on tap and calls [onRefresh] when the user
 /// returns, so the coin badge and other state-dependent UI reflects any changes.
+///
+/// Fields:
+/// - [currentUser]: the active player session
+/// - [onRefresh]: callback to notify [HomePage] of state changes after gameplay
 class WordleMainBody extends StatelessWidget {
   final User currentUser;
   final VoidCallback onRefresh;

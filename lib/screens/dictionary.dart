@@ -11,8 +11,13 @@
  * - assets/targetwords.json (word → Thai meaning map)
  *
  * Lifecycle:
- * - Created via the Dictionary tab in HomePage
- * - Disposed when the user navigates away from the tab
+ * - Created via the Dictionary tab in HomePage.
+ * - Disposed when the user navigates away from the tab.
+ *
+ * Responsibilities:
+ * - Loads and parses vocabulary data from local JSON assets.
+ * - Tracks and displays user discovery progress using a visual card.
+ * - Provides real-time filtering of words based on English or Thai queries.
  *
  * Author: 660510649 Detnarin Karinchai, 660510685 Aissara Pathan
  * Course: 204311-Mobile Application Development Framework
@@ -40,6 +45,10 @@ class DictionaryPage extends StatefulWidget {
   State<DictionaryPage> createState() => _DictionaryPageState();
 }
 
+/// The logic and UI state for [DictionaryPage].
+///
+/// Manages the asynchronous loading of the dictionary asset, the search
+/// controller state, and the calculation of discovery progress.
 class _DictionaryPageState extends State<DictionaryPage> {
   Map<String, String> _dictionary = {};
   bool _isLoading = true;

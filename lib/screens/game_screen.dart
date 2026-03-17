@@ -3,12 +3,6 @@
  * Description: Core Wordle gameplay screen with grid, on-screen keyboard,
  * power-up bar, and end-game dialogs.
  *
- * Responsibilities:
- * - Loads target words and valid words from JSON/text assets
- * - Manages guess state, letter status, and row progression
- * - Handles power-up logic (Hint, Cleaner, Extra Row)
- * - Updates user stats, coins, and rank on win/loss
- *
  * Dependencies:
  * - User (mock_data.dart)
  * - ThemeDatabase / GameTheme (theme_data.dart)
@@ -18,8 +12,14 @@
  * - VictoryEffect (components)
  *
  * Lifecycle:
- * - Created via Navigator.push from WordleMainBody
- * - Disposed when the player navigates back or via the end-game dialog
+ * - Created via Navigator.push from WordleMainBody.
+ * - Disposed when the player navigates back or via the end-game dialog.
+ *
+ * Responsibilities:
+ * - Loads target words and valid words from JSON/text assets.
+ * - Manages guess state, letter status, and row progression.
+ * - Handles power-up logic (Hint, Cleaner, Extra Row).
+ * - Updates user stats, coins, and rank on win/loss.
  *
  * Author: 660510649 Detnarin Karinchai, 660510685 Aissara Pathan, 660510687 Kanittha Bootchumsaeng
  * Course: 204311-Mobile Application Development Framework
@@ -59,6 +59,24 @@ class WordleScreen extends StatefulWidget {
   State<WordleScreen> createState() => _WordleScreenState();
 }
 
+/// The logic and gameplay state for [WordleScreen].
+///
+/// Manages the guess grid, keyboard status mapping, and power-up execution.
+///
+/// Fields:
+/// - [currentTheme]: the theme used for visual feedback, overriding specific color keys
+/// - [maxRows]: the maximum number of guess rows allowed (6 or 7)
+/// - [isExtraRowUsed]: whether the "Extra Row" power-up has been consumed
+/// - [targetWord]: the hidden 5-letter word the player is trying to guess
+/// - [targetWordTranslation]: the Thai translation of the current [targetWord]
+/// - [targetWords]: a mapping of all possible target words to their Thai meanings
+/// - [validWordsDict]: a collection of all valid 5-letter words for validation
+/// - [isLoading]: whether the game is currently loading assets from the bundle
+/// - [guesses]: the list of guesses entered by the player, indexed by row
+/// - [gridStatus]: the visual status of each cell in the grid [row][column]
+/// - [currentRow]: the index of the row currently being edited
+/// - [keyStatus]: a mapping of keyboard letters to their highest known [LetterStatus]
+/// - [isAnimating]: whether a row evaluation animation is in progress
 class _WordleScreenState extends State<WordleScreen> {
   late GameTheme currentTheme;
   int maxRows = 6;
@@ -953,6 +971,9 @@ class FlipTile extends StatefulWidget {
   State<FlipTile> createState() => _FlipTileState();
 }
 
+/// The logic and animation state for [FlipTile].
+///
+/// Handles the [AnimationController] for the 3D flip effect.
 class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -988,6 +1009,7 @@ class _FlipTileState extends State<FlipTile> with SingleTickerProviderStateMixin
     });
   }
 
+  /// Builds the visual tile box based on current flip angle and [LetterStatus].
   Widget _buildContent(bool isFlipped) {
     LetterStatus displayStatus = isFlipped ? widget.status : LetterStatus.entered;
     Color color = Colors.transparent;

@@ -12,9 +12,15 @@
  * - LoginPage (logout destination)
  *
  * Lifecycle:
- * - Created via the Profile tab in HomePage with a GlobalKey
- * - showSettings() is called externally from the AppBar settings button
- * - Disposed when HomePage is removed from the widget tree
+ * - Created via the Profile tab in HomePage with a GlobalKey.
+ * - showSettings() is called externally from the AppBar settings button.
+ * - Disposed when HomePage is removed from the widget tree.
+ *
+ * Responsibilities:
+ * - Displays player identity including avatar, username, and selected rank.
+ * - Visualizes game statistics and numerical guess distribution.
+ * - Provides interfaces for profile customization and shop interactions.
+ * - Manages application settings and secure session logout.
  *
  * Author: 660510649 Detnarin Karinchai, 660510687 Kanittha Bootchumsaeng
  * Course: 204311-Mobile Application Development Framework
@@ -48,6 +54,16 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => ProfilePageState();
 }
 
+/// The logic and animation state management for [ProfilePage].
+///
+/// This state class provides public access to [showSettings] for integration
+/// with external navigation components.
+///
+/// Fields:
+/// - [_pulseController]: controller for the avatar's breathing pulse effect
+/// - [_barController]: controller for the horizontal progress bar animations
+/// - [_pulseAnim]: scaling animation for the profile avatar
+/// - [_barAnim]: curved animation used for statistics and rank progress bars
 class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _barController;
@@ -829,6 +845,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
   }
 
+  /// Returns a styled label for the profile sections.
   Widget _sectionLabel(String text, GameTheme theme) {
     return Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace', letterSpacing: 1.5, color: theme.textColor.withOpacity(0.45)));
   }

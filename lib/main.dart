@@ -5,8 +5,8 @@
  * and launches the root QuackApp widget.
  *
  * Notes:
- * - Contains global app configuration (orientation lock)
- * - Should remain lightweight
+ * - Contains global app configuration (orientation lock).
+ * - Should remain lightweight.
  *
  * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework

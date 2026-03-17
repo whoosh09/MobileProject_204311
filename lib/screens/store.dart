@@ -8,15 +8,15 @@
  * - ThemeDatabase / GameTheme (theme_data.dart)
  * - AppFeedback (audio_helper.dart)
  *
- *  * Responsibilities:
- * - Displays a categorized marketplace for themes and consumable power-ups
- * - Validates user coin balance before processing transactions
- * - Manages the equipping and real-time application of purchased themes
- * - Triggers purchase feedback (audio/haptic) and updates persistent user data
- *
  * Lifecycle:
- * - Created via the Store tab in HomePage
- * - Disposed when the user navigates away from the tab
+ * - Created via the Store tab in HomePage.
+ * - Disposed when the user navigates away from the tab.
+ *
+ * Responsibilities:
+ * - Displays a categorized marketplace for themes and consumable power-ups.
+ * - Validates user coin balance before processing transactions.
+ * - Manages the equipping and real-time application of purchased themes.
+ * - Triggers purchase feedback (audio/haptic) and updates persistent user data.
  *
  * Author: 660510649 Detnarin Karinchai, 660510669 Phutawan Fongchan, 660510687 Kanittha Bootchumsaeng
  * Course: 204311-Mobile Application Development Framework
@@ -47,6 +47,13 @@ class StorePage extends StatefulWidget {
   State<StorePage> createState() => _StorePageState();
 }
 
+/// The logic and state management for [StorePage].
+///
+/// Handles transaction validation, theme switching, and inventory updates
+/// for the player.
+///
+/// Fields:
+/// - [powerUps]: catalogue of purchasable power-up items with display metadata and pricing
 class _StorePageState extends State<StorePage> {
   /// Catalogue of purchasable power-up items with display metadata and pricing.
   final List<Map<String, dynamic>> powerUps = [
@@ -286,9 +293,14 @@ class _StorePageState extends State<StorePage> {
     );
   }
 
-  /// Deducts coins, adds the theme to owned list, and equips it immediately.
+  /// Deducts coins and adds the theme to the player's collection.
   ///
-  /// Displays an error SnackBar if the player has insufficient coins.
+  /// Side effects:
+  /// - Mutates [User.coins] and [User.ownedThemeIds].
+  /// - Plays a cash sound effect on success.
+  ///
+  /// Failure Modes:
+  /// - Displays an error SnackBar if the player has insufficient coins.
   void _processThemePurchase(GameTheme theme) {
     if (widget.currentUser.coins >= theme.price) {
       AppFeedback.playCash(widget.currentUser);
@@ -308,7 +320,12 @@ class _StorePageState extends State<StorePage> {
 
   /// Deducts coins and increments the appropriate power-up counter.
   ///
-  /// Displays an error SnackBar if the player has insufficient coins.
+  /// Side effects:
+  /// - Mutates [User.coins] and specific inventory counts.
+  /// - Plays a cash sound effect on success.
+  ///
+  /// Failure Modes:
+  /// - Displays an error SnackBar if the player has insufficient coins.
   void _processItemPurchase(Map<String, dynamic> item) {
     if (widget.currentUser.coins >= item['price']) {
       AppFeedback.playCash(widget.currentUser);
@@ -350,6 +367,7 @@ class _StorePageState extends State<StorePage> {
     );
   }
 
+  /// Returns a circular container representing a single color.
   Widget _colorDot(Color color) => Container(width: 14, height: 14, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
 
   /// Builds the price/status tag shown on the right side of each theme card.
@@ -364,7 +382,9 @@ class _StorePageState extends State<StorePage> {
     );
   }
 
-  /// Displays a floating [SnackBar] with [msg], using red for errors.
+  /// Displays a floating [SnackBar] message.
+  ///
+  /// Uses green for success messages and red for errors.
   void _showSnackBar(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: isError ? Colors.redAccent : Colors.green, behavior: SnackBarBehavior.floating));

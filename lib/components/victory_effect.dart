@@ -4,8 +4,13 @@
  * other widgets when the player wins a round.
  *
  * Lifecycle:
- * - Created inside the end-game dialog Stack in WordleScreen and FlashcardPage
- * - Plays once (2.5 seconds) then particles fade out; disposed with the dialog
+ * - Created inside the end-game dialog Stack in WordleScreen and FlashcardPage.
+ * - Plays once (2.5 seconds) then particles fade out; disposed with the dialog.
+ *
+ * Responsibilities:
+ * - Generates and manages the lifecycle of confetti particle objects.
+ * - Orchestrates the animation progress and frame updates.
+ * - Renders particles to a [Canvas] with simulated physics and fading.
  *
  * Author: 660510649 Detnarin Karinchai
  * Course: 204311-Mobile Application Development Framework
@@ -27,9 +32,17 @@ class VictoryEffect extends StatefulWidget {
   State<VictoryEffect> createState() => _VictoryEffectState();
 }
 
+/// The logic and particle management state for [VictoryEffect].
+///
+/// Spawns 120 [_Particle] instances and manages a 2.5-second
+/// [AnimationController] to drive the movement and fade effects.
 class _VictoryEffectState extends State<VictoryEffect> with SingleTickerProviderStateMixin {
+  /// The controller managing the 2.5-second animation lifecycle.
   late AnimationController _controller;
+
+  /// The list of active particles used for rendering.
   final List<_Particle> _particles = [];
+
   final Random _random = Random();
 
   @override

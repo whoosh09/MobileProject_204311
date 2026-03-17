@@ -184,7 +184,14 @@ assets/
 
 ## 📸 Screenshots
 
-> *(Add screenshots here)*
+<img width="270" height="606" alt="Home" src="https://github.com/user-attachments/assets/c09eaf10-6a46-4de2-9fa8-1d3a22c033de" />
+<img width="270" height="606" alt="FlashCardQuiz" src="https://github.com/user-attachments/assets/1580a532-69ed-4fbd-9252-a420a921e953" />
+<img width="270" height="606" alt="FlashCardStudy" src="https://github.com/user-attachments/assets/8aed4eb8-085c-4dbd-80fb-7d8bf422959f" />
+<img width="270" height="606" alt="Dictionary" src="https://github.com/user-attachments/assets/0f99ccc4-b5fa-401b-a2d2-43a1da6036d3" />
+<img width="270" height="606" alt="ShopTheme" src="https://github.com/user-attachments/assets/9c2cb0cf-5e93-4334-8f68-5cc8d6785774" />
+<img width="270" height="606" alt="ShopePowerUp" src="https://github.com/user-attachments/assets/3cc3f2f1-bfce-4f93-903b-2d51af257139" />
+<img width="270" height="606" alt="Profile" src="https://github.com/user-attachments/assets/43f64f38-b216-4bef-9bd3-74fd4023c68d" />
+
 
 ---
 

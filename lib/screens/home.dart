@@ -19,7 +19,7 @@
  * - Coordinates state refreshes (e.g., coin updates) across different pages.
  * - Provides a persistent AppBar for global actions like coin display and settings.
  *
- * Author: 660510687 Kanittha Bootchumsaeng
+ * Author: 660510687 Kanittha Bootchumsaeng, 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

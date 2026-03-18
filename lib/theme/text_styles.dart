@@ -11,7 +11,7 @@
  * - Dynamically switches between Google Fonts (Kanit) and system fonts.
  * - Normalizes font weights and spacing for mixed-language UI components.
  *
- * Author: Quackle Team
+ * Author: 660510669 Phutawan Fongchan
  * Course: 204311-Mobile Application Development Framework
  */
 

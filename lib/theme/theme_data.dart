@@ -12,7 +12,7 @@
  * - Provides ThemeDatabase.themes as the master theme catalog.
  * - Provides ThemeDatabase.getTheme() for safe theme lookup by ID.
  *
- * Author:660510649 Detnarin Karinchaile
+ * Author:660510649 Detnarin Karinchai
  * Course: 204311-Mobile Application Development Framework
  */
 

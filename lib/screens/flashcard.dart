@@ -22,7 +22,7 @@
  * - Logic for generating quiz distractors and validating player answers.
  * - Updates user currency and saves progress upon quiz completion.
  *
- * Author: 660510649 Detnarin Karinchai
+ * Author: 660510649 Detnarin Karinchai, 660510685 Aissara Pathan
  * Course: 204311-Mobile Application Development Framework
  */
 

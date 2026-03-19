@@ -1,4 +1,4 @@
-# 🦆 Quackle
+# 🦆 Quackle - EDICE (204311 Mobile Application Development Framework)
 
 > A Wordle-inspired word-guessing game built with Flutter — featuring themes, power-ups, a flashcard system, and local persistence.
 
@@ -12,7 +12,7 @@
 
 ## 📖 Overview
 
-Quackle is a mobile word game where players guess a hidden 5-letter English word within 6 attempts.  
+Quackle is a mobile word game where players guess a hidden 5-letter English word within 6 attempts.
 Each guess provides color-coded feedback, and correct guesses reward coins that can be spent in the in-game store.
 
 > **Disclaimer:** This project was created for **educational purposes** as part of a Mobile Application Development course. It is not affiliated with or endorsed by The New York Times or Josh Wardle.
@@ -21,32 +21,32 @@ Each guess provides color-coded feedback, and correct guesses reward coins that 
 
 ## ✨ Features
 
-| Category | Details |
-|---|---|
-| 🎮 **Core Gameplay** | Guess a 5-letter word in 6 tries with color-coded tile feedback |
-| 🎨 **Theme Store** | 14 purchasable visual themes (Classic, Dark, Neon, Galaxy, Legendary…) |
-| ⚡ **Power-Ups** | Hint Reveal, Keyboard Cleaner, Extra Row — purchasable with coins |
-| 📖 **Flashcard Mode** | Study & Quiz modes unlocked after finding 15 words |
-| 📚 **My Dictionary** | Searchable log of all discovered words with Thai translations |
-| 🏆 **Rank System** | Earn titles (Novice → Bookworm → Scholar → Master → Legend) |
-| 🐣 **Avatar Shop** | Collect and equip emoji-style avatars |
-| 💾 **Persistence** | All progress saved locally via `shared_preferences` |
-| 🔊 **Sound & Haptics** | Toggle-able sound effects and vibration feedback |
+| Category               | Details                                                                |
+| ---------------------- | ---------------------------------------------------------------------- |
+| 🎮 **Core Gameplay**   | Guess a 5-letter word in 6 tries with color-coded tile feedback        |
+| 🎨 **Theme Store**     | 14 purchasable visual themes (Classic, Dark, Neon, Galaxy, Legendary…) |
+| ⚡ **Power-Ups**       | Hint Reveal, Keyboard Cleaner, Extra Row — purchasable with coins      |
+| 📖 **Flashcard Mode**  | Study & Quiz modes unlocked after finding 15 words                     |
+| 📚 **My Dictionary**   | Searchable log of all discovered words with Thai translations          |
+| 🏆 **Rank System**     | Earn titles (Novice → Bookworm → Scholar → Master → Legend)            |
+| 🐣 **Avatar Shop**     | Collect and equip emoji-style avatars                                  |
+| 💾 **Persistence**     | All progress saved locally via `shared_preferences`                    |
+| 🔊 **Sound & Haptics** | Toggle-able sound effects and vibration feedback                       |
 
 ---
 
 ## 🛠 Tech Stack
 
-| Layer | Technology | Version |
-|---|---|---|
-| **Framework** | Flutter (Dart) | SDK `^3.10.0` |
-| **State Management** | `setState` / `StatefulWidget` | — |
-| **Local Storage** | `shared_preferences` | `^2.3.2` |
-| **Audio** | `audioplayers` | `^6.1.0` |
-| **Fonts (Thai)** | `google_fonts` (Kanit) | `^6.2.1` |
-| **Fonts (Custom)** | DINNextRounded LT W04 | bundled asset |
-| **Icons** | `cupertino_icons` | `^1.0.8` |
-| **App Icon Generator** | `flutter_launcher_icons` | `^0.13.1` |
+| Layer                  | Technology                    | Version       |
+| ---------------------- | ----------------------------- | ------------- |
+| **Framework**          | Flutter (Dart)                | SDK `^3.10.0` |
+| **State Management**   | `setState` / `StatefulWidget` | —             |
+| **Local Storage**      | `shared_preferences`          | `^2.3.2`      |
+| **Audio**              | `audioplayers`                | `^6.1.0`      |
+| **Fonts (Thai)**       | `google_fonts` (Kanit)        | `^6.2.1`      |
+| **Fonts (Custom)**     | DINNextRounded LT W04         | bundled asset |
+| **Icons**              | `cupertino_icons`             | `^1.0.8`      |
+| **App Icon Generator** | `flutter_launcher_icons`      | `^0.13.1`     |
 
 ---
 
@@ -123,7 +123,7 @@ assets/
    flutter pub get
    ```
 
-3. **Generate app icons** *(optional — icons are already committed)*
+3. **Generate app icons** _(optional — icons are already committed)_
 
    ```bash
    dart run flutter_launcher_icons
@@ -139,7 +139,7 @@ assets/
    flutter run -d chrome --web-port=5000
    ```
 
-5. **Generate documentation** *(optional)*
+5. **Generate documentation** _(optional)_
 
    ```bash
    dart doc
@@ -150,13 +150,13 @@ assets/
 
 ## 🔐 Test Accounts
 
-| Username | Password | Coins | Description |
-|---|---|---|---|
-| `god` | `god` | 1,000,000 | Full demo — all themes, avatars & power-ups unlocked |
-| `newbie` | `1` | 0 | Brand-new player — zero progress |
-| `flash` | `2` | 5,000 | One word away from unlocking Flashcard mode |
-| `ranker` | `3` | 500 | One word away from earning Scholar rank |
-| `richboy` | `4` | 1,000,000 | Rich but nothing bought — ideal for testing the store |
+| Username  | Password | Coins     | Description                                           |
+| --------- | -------- | --------- | ----------------------------------------------------- |
+| `god`     | `god`    | 1,000,000 | Full demo — all themes, avatars & power-ups unlocked  |
+| `newbie`  | `1`      | 0         | Brand-new player — zero progress                      |
+| `flash`   | `2`      | 5,000     | One word away from unlocking Flashcard mode           |
+| `ranker`  | `3`      | 500       | One word away from earning Scholar rank               |
+| `richboy` | `4`      | 1,000,000 | Rich but nothing bought — ideal for testing the store |
 
 ---
 
@@ -174,11 +174,11 @@ assets/
 
 ### Power-Ups
 
-| Power-Up | Cost | Effect |
-|---|---|---|
-| 💡 Hint Reveal | 50 coins | Reveals the next correct letter |
-| 🔧 Keyboard Cleaner | 30 coins | Removes 3 wrong letters from the keyboard |
-| ➕ Extra Row | 100 coins | Adds a 7th guess row |
+| Power-Up            | Cost      | Effect                                    |
+| ------------------- | --------- | ----------------------------------------- |
+| 💡 Hint Reveal      | 50 coins  | Reveals the next correct letter           |
+| 🔧 Keyboard Cleaner | 30 coins  | Removes 3 wrong letters from the keyboard |
+| ➕ Extra Row        | 100 coins | Adds a 7th guess row                      |
 
 ---
 
@@ -192,17 +192,16 @@ assets/
 <img width="270" height="606" alt="ShopePowerUp" src="https://github.com/user-attachments/assets/3cc3f2f1-bfce-4f93-903b-2d51af257139" />
 <img width="270" height="606" alt="Profile" src="https://github.com/user-attachments/assets/43f64f38-b216-4bef-9bd3-74fd4023c68d" />
 
-
 ---
 
 ## ⚖️ Credits
 
-| Role | Credit |
-|---|---|
-| Original game concept | [Josh Wardle](https://twitter.com/powerlanguish) |
+| Role                  | Credit                                                                |
+| --------------------- | --------------------------------------------------------------------- |
+| Original game concept | [Josh Wardle](https://twitter.com/powerlanguish)                      |
 | Current rights holder | [The New York Times](https://www.nytimes.com/games/wordle/index.html) |
-| Project author | Quackle Team — Mobile Application Development Framework |
+| Project author        | Quackle Team — Mobile Application Development Framework               |
 
 ---
 
-*Created for educational purposes only. Not affiliated with The New York Times.*
+_Created for educational purposes only. Not affiliated with The New York Times._

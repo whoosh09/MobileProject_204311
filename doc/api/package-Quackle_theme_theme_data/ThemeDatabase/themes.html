@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the themes property from the ThemeDatabase class, for the Dart programming language.">
+  <title>themes property - ThemeDatabase class - theme_data library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../../static-assets/styles.css?v1">
+  <link rel="icon" href="../../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../../index.html">Quackle</a></li>
+    <li><a href="../../package-Quackle_theme_theme_data/">theme\theme_data.dart</a></li>
+    <li><a href="../../package-Quackle_theme_theme_data/ThemeDatabase-class.html">ThemeDatabase</a></li>
+    <li class="self-crumb">themes property</li>
+  </ol>
+  <div class="self-name">themes</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="package-Quackle_theme_theme_data&#47;ThemeDatabase-class-sidebar.html"
+    data-below-sidebar="">
+    <div>
+<h1><span class="kind-property">themes</span> property 
+</h1></div>
+
+    
+      <section class="multi-line-signature">
+        
+        <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-Quackle_theme_theme_data/GameTheme-class.html">GameTheme</a></span>&gt;</span>
+        <span class="name ">themes</span>
+        <div class="features"><span class="feature">getter/setter pair</span></div>
+
+      </section>
+      
+<section class="desc markdown">
+  <p>The collection of available themes, ranging from free to legendary.</p>
+</section>
+
+      
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">static List&lt;GameTheme&gt; themes = [
+  &#47;&#47; 1. Free
+  GameTheme(
+    id: &#39;classic&#39;,
+    name: &#39;Classic Green&#39;,
+    price: 0,
+    correct: const Color(0xFF58CC02),
+    present: const Color(0xFFC9B458),
+    absent: const Color(0xFF787C7E),
+    backgroundColor: Colors.white,
+    textColor: Colors.black,
+    brightness: Brightness.light,
+  ),
+
+  &#47;&#47; 2
+  GameTheme(
+    id: &#39;pastel&#39;,
+    name: &#39;Sweet Pastel&#39;,
+    price: 50,
+    correct: const Color(0xFF88C9A1),
+    present: const Color(0xFFFFD166),
+    absent: Colors.grey,
+    backgroundColor: const Color(0xFFFFFBE6),
+    textColor: Colors.brown,
+    brightness: Brightness.light,
+  ),
+
+  &#47;&#47; 3
+  GameTheme(
+    id: &#39;neon&#39;,
+    name: &#39;Cyber Neon&#39;,
+    price: 100,
+    correct: const Color(0xFF00FF00),
+    present: const Color(0xFFFFD166),
+    absent: Colors.grey,
+    backgroundColor: const Color(0xFF121212),
+    textColor: Colors.white,
+    brightness: Brightness.dark,
+  ),
+
+  &#47;&#47; 4
+  GameTheme(
+    id: &#39;dark&#39;,
+    name: &#39;Dark Mode&#39;,
+    price: 200,
+    correct: const Color(0xFF81C784),
+    present: const Color(0xFFFFD166),
+    absent: Colors.grey,
+    backgroundColor: const Color(0xFF212121),
+    textColor: Colors.white70,
+    brightness: Brightness.dark,
+  ),
+
+  &#47;&#47; 5
+  GameTheme(
+    id: &#39;midnight&#39;,
+    name: &#39;Midnight Purple&#39;,
+    price: 300,
+    correct: const Color(0xFF9D50BB),
+    present: const Color(0xFF6E48AA),
+    absent: const Color(0xFF2D3436),
+    backgroundColor: const Color(0xFF0F0C29),
+    textColor: Colors.white,
+    brightness: Brightness.dark,
+  ),
+
+  &#47;&#47; 6
+  GameTheme(
+    id: &#39;sunset&#39;,
+    name: &#39;Sunset Glow&#39;,
+    price: 350,
+    correct: const Color(0xFFFF6B35),
+    present: const Color(0xFFFFB627),
+    absent: const Color(0xFF6C757D),
+    backgroundColor: const Color(0xFFFFF3E0),
+    textColor: const Color(0xFF5D4037),
+    brightness: Brightness.light,
+  ),
+
+  &#47;&#47; 7
+  GameTheme(
+    id: &#39;sakura&#39;,
+    name: &#39;Sakura Blossom&#39;,
+    price: 400,
+    correct: const Color(0xFFFF7597),
+    present: const Color(0xFFFFB7B2),
+    absent: const Color(0xFFE0E0E0),
+    backgroundColor: const Color(0xFFFFF0F3),
+    textColor: const Color(0xFFC9184A),
+    brightness: Brightness.light,
+  ),
+
+  &#47;&#47; 8
+  GameTheme(
+    id: &#39;ice&#39;,
+    name: &#39;Frozen Ice&#39;,
+    price: 450,
+    correct: const Color(0xFF4CC9F0),
+    present: const Color(0xFF90DBF4),
+    absent: const Color(0xFFADB5BD),
+    backgroundColor: const Color(0xFFEAF8FF),
+    textColor: const Color(0xFF023E8A),
+    brightness: Brightness.light,
+  ),
+
+  &#47;&#47; 9
+  GameTheme(
+    id: &#39;ocean&#39;,
+    name: &#39;Deep Ocean&#39;,
+    price: 500,
+    correct: const Color(0xFF0077B6),
+    present: const Color(0xFF90E0EF),
+    absent: const Color(0xFFCFD8DC),
+    backgroundColor: const Color(0xFFCAF0F8),
+    textColor: const Color(0xFF03045E),
+    brightness: Brightness.light,
+  ),
+
+  &#47;&#47; 10
+  GameTheme(
+    id: &#39;candy&#39;,
+    name: &#39;Candy Pop&#39;,
+    price: 600,
+    correct: const Color(0xFFFF4D6D),
+    present: const Color(0xFFFFC300),
+    absent: const Color(0xFFD3D3D3),
+    backgroundColor: const Color(0xFFFFF0F6),
+    textColor: const Color(0xFF9D174D),
+    brightness: Brightness.light,
+  ),
+
+  &#47;&#47; 11
+  GameTheme(
+    id: &#39;matrix&#39;,
+    name: &#39;Matrix Code&#39;,
+    price: 700,
+    correct: const Color(0xFF00FF41),
+    present: const Color(0xFF39FF14),
+    absent: const Color(0xFF1B4332),
+    backgroundColor: const Color(0xFF000000),
+    textColor: const Color(0xFF00FF41),
+    brightness: Brightness.dark,
+  ),
+
+  &#47;&#47; 12
+  GameTheme(
+    id: &#39;galaxy&#39;,
+    name: &#39;Galaxy Night&#39;,
+    price: 800,
+    correct: const Color(0xFF7B2CBF),
+    present: const Color(0xFF9D4EDD),
+    absent: const Color(0xFF3C096C),
+    backgroundColor: const Color(0xFF10002B),
+    textColor: const Color(0xFFE0AAFF),
+    brightness: Brightness.dark,
+  ),
+
+  &#47;&#47; 13
+  GameTheme(
+    id: &#39;lava&#39;,
+    name: &#39;Volcanic Lava&#39;,
+    price: 1000,
+    correct: const Color(0xFFD00000),
+    present: const Color(0xFFFF8C00),
+    absent: const Color(0xFF3D3D3D),
+    backgroundColor: const Color(0xFF1A1A1A),
+    textColor: const Color(0xFFFFE3E3),
+    brightness: Brightness.dark,
+  ),
+
+  &#47;&#47; 14 Legendary
+  GameTheme(
+    id: &#39;legendary&#39;,
+    name: &#39;Golden Emperor&#39;,
+    price: 5000,
+    correct: const Color(0xFFFFD700),
+    present: const Color(0xFFFFC300),
+    absent: const Color(0xFF5C5C5C),
+    backgroundColor: const Color(0xFF1A1A1A),
+    textColor: const Color(0xFFFFD700),
+    brightness: Brightness.dark,
+  ),
+];</code></pre>
+</section>
+
+
+    
+</div> <!-- /.main-content -->
+<div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+  <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../../index.html">Quackle</a></li>
+    <li><a href="../../package-Quackle_theme_theme_data/">theme_data</a></li>
+    <li><a href="../../package-Quackle_theme_theme_data/ThemeDatabase-class.html">ThemeDatabase</a></li>
+    <li class="self-crumb">themes property</li>
+</ol>
+
+  <h5>ThemeDatabase class</h5>
+  <div id="dartdoc-sidebar-left-content"></div>
+</div><!--/.sidebar-offcanvas-->
+<div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+</div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    Quackle
+      1.0.0+1
+  </span>
+  
+</footer>
+
+
+<script src="../../static-assets/highlight.pack.js?v1"></script>
+<script src="../../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+
